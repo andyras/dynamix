@@ -104,11 +104,12 @@ void Initialize_array(realtype * array, int n, realtype initializeValue) {
 void Build_k_energies(realtype * kEnergies, int numberOfKStates, realtype kBandEdge, realtype kBandTop) {
  
  int i;
- realtype kEnergy = kBandEdge;
+
+ kEnergies[0] = kBandEdge;	// the bottom of the conduction band is set
  
- for (i = 0; i < numberOfKStates; i++) {
-  kEnergies[i] = kEnergy;
-  kEnergy += (kBandTop-kBandEdge)/numberOfKStates;
+ // loop over the remaining states.  This way the top of the band will be at kBandTop
+ for (i = 1; i < numberOfKStates; i++) {
+  kEnergies[i] = kEnergies[i-1] + (kBandTop-kBandEdge)/(numberOfKStates-1);
  }
 }
 
@@ -145,7 +146,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  realtype Vkc = 0.007349968763;
 
  if (scaleV == 1)
-  Vkc = Vkc/sqrt(Nk)*sqrt((kBandTop-kBandEdge)*27.211);
+  Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
 
  for (i = 0; i < dim; i++)			// initialize
   for (j = 0; j < dim; j++)
@@ -158,8 +159,8 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  if (Nb > 0) {					// bridge
   // coupling between k and b1
   for (i = 0; i < Nk; i++) {
-   vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk)*sqrt((kBandTop-kBandEdge)*27.211);
-   vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk)*sqrt((kBandTop-kBandEdge)*27.211);
+   vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+   vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
   }
   // coupling between bN and c
   for (i = 0; i < Nc; i++) {
