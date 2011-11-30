@@ -1,0 +1,145 @@
+#!/bin/bash
+#$ -S /bin/bash
+#$ -cwd
+#$ -V
+
+
+## FLAGS FOR RUN ##
+do_compile="y"
+do_run="y"
+do_plot="y"
+do_movie="n"
+do_backup="n"
+
+## INPUT PARAMETERS ##
+
+# numerical parameters #
+abstol=1.0e-10				# absolute tolerance
+reltol=1.0e-10				# relative tolerance
+tout=2067				# final time reached by solver (atomic units)
+numsteps=60000				# number of timesteps
+numOutputSteps=600			# number of output timesteps
+# bulk parameters #
+k_bandedge=0.0				# lower band edge of bulk conduction band
+k_bandtop=0.0734996876			# upper band edge of bulk conduction band
+#k_bandtop=0.036749843813		# upper band edge of bulk conduction band
+Nk=50					# number of k states to have
+# physical parameters #
+temp=3e2				# temperature in Kelvin
+# vibronic parameters #
+N_vib=3					# number of vibronic states
+E_vib=0.0036749843813			# vibrational energy
+gkc=1.0					# g factor between k and c states
+gkb=1.0					# g factor between k and b states
+gbc=1.0					# g factor between b and c states
+gbb=1.0					# g factor between b states
+
+function compile {
+## COMPILE ##
+ echo compiling dynamix.cpp...
+# g++ -Wall dynamix.cpp -O3 -o dynamix -lm -lsundials_cvode -lsundials_nvecserial && echo done compiling\!
+ g++ -Wall dynamix.cpp -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo done compiling\!
+}
+
+function run {
+## RUN THE PROGRAM! ##
+ echo running dynamix...
+ ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo dynamix done\! || echo dynamix did not run \:\(
+ mkdir -p outs
+ mv *.out outs/
+}
+
+function plot {
+## GENERATE POPULATION PLOTSCRIPT ##
+ echo "set terminal postscript eps  enhanced colour dashed lw 1 \"Helvetica\" 14
+set output \"populations.eps\"
+set multiplot
+set style data lines
+set style line 1 lw 2 lt 1 lc rgb \"red\"
+set style line 2 lw 2 lt 1 lc rgb \"green\"
+set style line 3 lw 2 lt 1 lc rgb \"blue\"
+set style line 4 lw 2 lt 1 lc rgb \"purple\"
+set style line 5 lw 2 lt 1 lc rgb \"dark-goldenrod\"
+set style increment user
+set key on lmargin
+set lmargin 24
+set border 10
+set ytics scale 0.5
+set ylabel \"Population \(a.u.\)\"
+set xtics nomirror scale 0.5" > plot_pops
+ # k and c population plot
+ if [ $(($Nb)) == 0 ]
+ then
+  echo set size 1\, 1.0 \; set origin 0.0,0.0 \;  set xlabel \'Time \(fs\)\' >> plot_pops
+  else
+  echo set size 1\, 0.7\; set origin 0.0,0.3 >> plot_pops
+ fi
+ echo plot \'outs/tkprob.out\' using \(\$1\/41.34\):2 title \'k states\' lt 1, \\ >> plot_pops
+ echo \'outs/tcprob.out\' using \(\$1\/41.34\):2 title \'c states\' lt 2 >> plot_pops
+ # Bridge population plot
+ if [ $((Nb)) -ge 1 ]
+  then
+   echo set size 1\, 0.3 \; set origin 0.0,0.0 >> plot_pops
+ fi
+ echo set xlabel \'Time \(fs\)\' \; set ylabel \'Bridge Pop. \(a.u.\)\' >> plot_pops
+ [ $((Nb)) -ge 1 ] && echo -n plot \'outs/tbprob.out\' using \(\$1\/41.34\):2 title \'b1\' lt 3 >> plot_pops
+ [ $((Nb)) -ge 2 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):3 title \'b2\' lt 4 >> plot_pops
+ [ $((Nb)) -ge 3 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):4 title \'b3\' lt 5 >> plot_pops
+ [ $((Nb)) -ge 4 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):5 title \'b4\' lt 1 >> plot_pops
+ gnuplot 'plot_pops'
+ rm -f plot_pops
+}
+
+function movie {
+ ## GENERATE MOVIE MAKER ##
+ timestep=`echo "scale=4; ($tout/$numOutputSteps/41.34)" | bc`
+ echo making movie maker...
+ cat outs/energy.out outs/allprob.out > temp.out
+ cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
+ 
+ echo number of output .pngzz: $numOutputSteps
+ echo making pngs...
+ mkdir -p img
+ 
+ for (( i=1\; i<=$numOutputSteps; i++ ))
+ do
+  time=`echo "scale=4; ($i*$tout/$numOutputSteps/41.34)" | bc`
+  foo=`printf "%07d" $(($i))`
+  echo set term png size 800,600 > plotz
+  echo set output \"img/${foo}.png\" >> plotz
+  echo set style line 1 lt 1 lw 3 >> plotz
+  echo plot [0:0.03] [0:1] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+1)) with imp ls 1 title \'bulk populations, time \= $time fs\' >> plotz
+  gnuplot plotz
+ done
+ 
+ echo making movie...
+ mencoder mf://img/*.png -mf w=800:h=600:fps=25:type=png -ovc copy -oac copy -o bulk_states.avi
+ rm -rf img
+ rm -f plotz
+ rm -f temp.out
+ rm -f transpose.out
+ echo done\! movie is bulk_states.avi
+}
+
+
+function backup {
+## BACK UP FILES ##
+ echo backing things up...
+ durr=backup/dynamix_`date +%Y-%m-%d.%H.%M.%S`
+ mkdir -p $durr
+ cp -r ins/ outs/ dynamix* total_dynamix $durr
+ [ "$do_plot" == 'y' ] && cp populations.eps $durr
+ [ "$do_movie" == 'y' ] && cp bulk_states.avi $durr
+ [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
+ echo all backed up\!
+}
+
+Nb=`wc -l "ins/b_energies.in" | awk '{print $1}'`
+
+[ "$do_compile" == 'y' ] && compile
+[ "$do_run" == 'y' ] && run
+[ "$do_plot" == 'y' ] && plot
+[ "$do_movie" == 'y' ] && movie
+[ "$do_backup" == 'y' ] && backup
+
+echo all done\!
