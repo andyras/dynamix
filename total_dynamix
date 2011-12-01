@@ -99,6 +99,9 @@ set ylabel \"Energy above band edge (a.u.)\"
 set xlabel \"Time (a.u.)\"
 set xrange [0:$tout]
 set yrange [$k_bandedge:$new_k_bandtop]
+set ytics scale 0
+set xtics scale 0
+set border 0
 unset key
 splot \"./outs/kprob.out\"" > plot_kpops
  gnuplot plot_kpops
