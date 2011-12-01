@@ -88,7 +88,21 @@ set xtics nomirror scale 0.5" > plot_pops
  [ $((Nb)) -ge 3 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):4 title \'b3\' lt 5 >> plot_pops
  [ $((Nb)) -ge 4 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):5 title \'b4\' lt 1 >> plot_pops
  gnuplot 'plot_pops'
- rm -f plot_pops
+ #rm -f plot_pops
+ # need to scale k_bandtop a bit so the plot fills properly
+ new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
+ echo "set terminal postscript eps enhanced colour
+set output \"kprob.eps\"
+set title \"Electron probability density in bulk conduction band\"
+set pm3d map
+set palette model XYZ rgbformulae 7,5,15
+set ylabel \"Energy above band edge (a.u.)\"
+set xlabel \"Time (a.u.)\"
+set xrange [0:$tout]
+set yrange [$k_bandedge:$new_k_bandtop]
+unset key
+splot \"./outs/kprob.out\"" > plot_kpops
+ gnuplot plot_kpops
 }
 
 function movie {

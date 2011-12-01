@@ -7,7 +7,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
-#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
+//#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
 //#define DEBUGf				// otherwise output is enormous
 //#define DEBUG_SAI			// debuggery related to checking against Sai's code
 using namespace std;
@@ -380,8 +380,9 @@ int Normalize_NV(N_Vector nv, realtype total) {
 }
 
 
-int Output_checkpoint(FILE * outputFile, N_Vector outputData, realtype time,
-  realtype * totK, realtype * totC, realtype ** totB, realtype ** vibProb, realtype * times,  int index) {
+int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, realtype time,
+  realtype * totK, realtype * totC, realtype ** totB, realtype ** vibProb, realtype * times,
+  int index, realtype * energies) {
 
  int i, j;
  int Idx;
@@ -396,8 +397,10 @@ int Output_checkpoint(FILE * outputFile, N_Vector outputData, realtype time,
    temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
   }
   fprintf(outputFile, "%-.7lf ", temp);
+  fprintf(kprobFile, "%-.7lf %-.7lf %-.7lf\n", time, energies[Ik_vib + i*N_vib], temp);
   sumkpop += temp;
  }
+ fprintf(kprobFile, "\n");			// makes a blank line for gnuplot
  for (i = 0; i < Nc; i++) {			// c populations
   temp = 0.0;
   for (j = 0; j < N_vib; j++) {
@@ -582,6 +585,7 @@ int main (int argc, char * argv[]) {
  time_t endRun;					// time at end of log
  struct tm * currentTime;			// time structure for localtime
  FILE * output;
+ FILE * kprob;					// file formatted for plotting in gnuplot
  FILE * log;
  realtype * tkprob; 				// total probability in k, c, b states at each timestep
  realtype * tcprob;
@@ -794,7 +798,8 @@ int main (int argc, char * argv[]) {
  // print t = 0 information //
  Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
  output = fopen("allprob.out", "w");	// note that output is closed after advancing the solution in time
- Output_checkpoint(output, y, t0, tkprob, tcprob, tbprob, vibprob, times, 0);
+ kprob = fopen("kprob.out", "w");
+ Output_checkpoint(output, kprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, 0, energy);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -836,9 +841,10 @@ int main (int argc, char * argv[]) {
   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
   if (i % (numsteps/numOutputSteps) == 0)
-   Output_checkpoint(output, yout, t, tkprob, tcprob, tbprob, vibprob, times, (i*numOutputSteps/numsteps));
+   Output_checkpoint(output, kprob, yout, t, tkprob, tcprob, tbprob, vibprob, times, (i*numOutputSteps/numsteps), energy);
  }
  fclose(output);				// note that file is opened when printing t=0 information
+ fclose(kprob);
 
  // compute final outputs //
  Compute_final_outputs(times, tkprob, tcprob, tbprob, vibprob, energy, numOutputSteps);
