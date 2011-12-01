@@ -2,7 +2,6 @@
 #$ -S /bin/bash
 #$ -cwd
 #$ -V
-#testing
 
 
 ## FLAGS FOR RUN ##
