@@ -19,7 +19,6 @@ reltol=1.0e-10				# relative tolerance
 tout=2067				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
-numOutputSteps=10			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.0				# lower band edge of bulk conduction band
 k_bandtop=0.0734996876			# upper band edge of bulk conduction band
@@ -123,25 +122,43 @@ function movie {
 unset key
 set style line 1 lt 1 lw 3" > plotz
 
- for (( i=1\; i<=$numOutputSteps; i++ ))
+ xtics_string="nomirror scale 0,-1 ("
+ for (( i=0 ; i<=$tout ; i+=1000 ))
  do
-  time_fs=`echo "scale=4; ($i*$tout/$numOutputSteps/41.34)" | bc`
+  time_fs=`echo "scale=4; ($i/41.3414)" | bc`
+  time_au=$i
+  time_x=$time_au	# make this line reflect the units you want in the plot
+  xtics_string=$xtics_string"\"$time_x\" $i, "
+ done
+ echo $xtics_string
+
+ #for (( i=1; i<=$numOutputSteps; i++ ))
+ for (( i=0; i<=10; i++ ))
+ do
+  time_fs=`echo "scale=4; ($i*$tout/$numOutputSteps/41.3414)" | bc`
   time_au=`echo "scale=4; ($i*$tout/$numOutputSteps)" | bc`
+  time_x=$time_au	# make this line reflect the units you want in the plot
+  time_unit="a.u."	# make this line reflect the units you want in the plot
   foo=`printf "%07d" $(($i))`
+  xtix=$xtics_string"\"\" $time_x 1)"
+  echo $xtix
   echo "set output \"img/${foo}.png\"
 set multiplot
 
 set origin 0,0
-set size 1,0.5
+set size 1.1,0.5
 set border 0
 set ytics scale 0
-set xtics nomirror scale 0,-1 (\"0\" 0, \"1000\" 1000, \"2000\" 2000, \"\" $time_au 1)
+set xtics $xtix
 set ylabel \"Energy above band edge \(a.u.\)\"
-set xlabel \"Time \(fs\)\"
+set xlabel \"Time \($time_unit\)\"
 set xrange [0:$tout]
 set yrange [$k_bandedge:$k_bandtop]
+unset colorbox
 set pm3d map
 set palette model XYZ functions gray**0.35, gray**0.5, gray**0.8
+set palette model XYZ functions gray**0.35, gray**0.75, gray**0.2
+set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 splot './outs/kprob.out'
 
 set origin 0,0.5
@@ -151,8 +168,8 @@ set xtics scale 0 autofreq
 set ytics scale 1 nomirror
 set xlabel \"Energy above band edge \(a.u.\)\"
 set ylabel \"Electron probability\"
-set title \"Bulk populations at $time_fs fs\"
-plot [$k_bandedge:$k_bandtop] [0:0.1] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+1)) with imp ls 1
+set title \"Bulk populations at time = $time_x $time_unit\"
+plot [$k_bandedge:$k_bandtop] [0:0.1] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve
 unset title
 
 unset multiplot" >> plotz
