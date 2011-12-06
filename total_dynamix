@@ -19,7 +19,7 @@ reltol=1.0e-10				# relative tolerance
 tout=2067				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
-numOutputSteps=60			# number of output timesteps
+numOutputSteps=50			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.0				# lower band edge of bulk conduction band
 k_bandtop=0.0734996876			# upper band edge of bulk conduction band
@@ -119,16 +119,24 @@ function movie {
  echo making pngs...
  mkdir -p img
  
+ echo "set term png size 800,800
+set style line 1 lt 1 lw 3" > plotz
+
  for (( i=1\; i<=$numOutputSteps; i++ ))
  do
   time=`echo "scale=4; ($i*$tout/$numOutputSteps/41.34)" | bc`
   foo=`printf "%07d" $(($i))`
-  echo "set term png size 800,600
-set output \"img/${foo}.png\"
-set style line 1 lt 1 lw 3
-plot [0:0.0735] [0:0.1] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+1)) with imp ls 1 title \"bulk populations, time = $time fs" > plotz
-  gnuplot plotz
+  echo "set output \"img/${foo}.png\"
+set multiplot
+set size 1,0.5
+set origin 0,0
+set pm3d map
+splot './outs/kprob.out'
+set origin 0,0.5
+plot [0:0.0735] [0:0.1] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+1)) with imp ls 1 title \"bulk populations, time = $time fs
+unset multiplot" >> plotz
  done
+ gnuplot plotz
  
  echo making movie...
  mencoder mf://img/*.png -mf w=800:h=600:fps=25:type=png -ovc copy -oac copy -o bulk_states.avi
