@@ -117,31 +117,31 @@ function movie {
  echo number of output .pngzz: $numOutputSteps
  echo making pngs...
  mkdir -p img
+
+ max_pop=$(python findMaxZ.py outs/kprob.out)
+ max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
  
  echo "set term png truecolor size 800,800
-unset key
-set style line 1 lt 1 lw 3" > plotz
+unset key" > plotz
 
- xtics_string="nomirror scale 0,-1 ("
- for (( i=0 ; i<=$tout ; i+=1000 ))
+ xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
+ for (( i=0 ; i<=$tout ; i+=1000 ))	# builds the xtics string
  do
-  time_fs=`echo "scale=4; ($i/41.3414)" | bc`
   time_au=$i
+  time_fs=`echo "scale=4; ($i/41.3414)" | bc`
   time_x=$time_au	# make this line reflect the units you want in the plot
   xtics_string=$xtics_string"\"$time_x\" $i, "
  done
- echo $xtics_string
 
- #for (( i=1; i<=$numOutputSteps; i++ ))
- for (( i=0; i<=10; i++ ))
+ #for (( i=0; i<=$numOutputSteps; i++ ))
+ for (( i=500; i<=515; i++ ))	# for testing movie making
  do
   time_fs=`echo "scale=4; ($i*$tout/$numOutputSteps/41.3414)" | bc`
   time_au=`echo "scale=4; ($i*$tout/$numOutputSteps)" | bc`
   time_x=$time_au	# make this line reflect the units you want in the plot
   time_unit="a.u."	# make this line reflect the units you want in the plot
   foo=`printf "%07d" $(($i))`
-  xtix=$xtics_string"\"\" $time_x 1)"
-  echo $xtix
+  xtix=$xtics_string"\"\" $time_x 1)"	# terminates the xtics string
   echo "set output \"img/${foo}.png\"
 set multiplot
 
@@ -169,7 +169,7 @@ set ytics scale 1 nomirror
 set xlabel \"Energy above band edge \(a.u.\)\"
 set ylabel \"Electron probability\"
 set title \"Bulk populations at time = $time_x $time_unit\"
-plot [$k_bandedge:$k_bandtop] [0:0.1] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve
+plot [$k_bandedge:$k_bandtop] [0:$max_pop] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve
 unset title
 
 unset multiplot" >> plotz
@@ -177,7 +177,7 @@ unset multiplot" >> plotz
  gnuplot plotz
  
  echo making movie...
- mencoder mf://img/*.png -mf w=800:h=600:fps=25:type=png -ovc copy -oac copy -o bulk_states.avi
+ mencoder -really-quiet mf://img/*.png -mf w=800:h=600:fps=25:type=png -ovc copy -oac copy -o bulk_states.avi
  rm -rf img
  rm -f plotz
  rm -f temp.out
