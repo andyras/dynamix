@@ -5,10 +5,10 @@
 
 
 ## FLAGS FOR RUN ##
-do_compile="y"
+do_compile="n"
 do_run="y"
 do_plot="y"
-do_movie="y"
+do_movie="n"
 do_backup="n"
 
 ## INPUT PARAMETERS ##
@@ -104,6 +104,21 @@ set xtics scale 0
 set border 0
 unset key
 splot \"./outs/kprob.out\"" > plot_kpops
+echo "
+set terminal postscript eps enhanced colour
+set output \"kprob.eps\"
+set title \"Electron probability density in bulk conduction band\"
+set border 0
+set ytics scale 0
+set xtics scale 0
+set ylabel \"Energy above band edge \(a.u.\)\"
+set xlabel \"Time (a.u.)\"
+set xrange [0:$tout]
+set yrange [$k_bandedge:$k_bandtop]
+unset colorbox
+set pm3d map
+set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
+splot './outs/kprob.out'" > plot_kpops
  gnuplot plot_kpops
 }
 
@@ -150,7 +165,6 @@ set origin 0,0
 set size 1.1,0.5
 set border 0
 set ytics scale 0
-set xtics $xtix
 set xtics scale 0
 set ylabel \"Energy above band edge \(a.u.\)\"
 set xlabel \"Time \($time_unit\)\"
@@ -158,8 +172,6 @@ set xrange [0:$tout]
 set yrange [$k_bandedge:$k_bandtop]
 unset colorbox
 set pm3d map
-set palette model XYZ functions gray**0.35, gray**0.5, gray**0.8
-set palette model XYZ functions gray**0.35, gray**0.75, gray**0.2
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 set arrow 1 from graph $time_n, graph -0.03 to graph $time_n, graph -0.01 nohead lw 3
 set arrow 2 from graph $time_n, graph 1.01 to graph $time_n, graph 0.98 nohead lw 3
