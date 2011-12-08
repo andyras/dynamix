@@ -138,6 +138,7 @@ unset key" > plotz
  do
   time_fs=$(echo "scale=4; ($i*$tout/$numOutputSteps/41.3414)" | bc)
   time_au=$(echo "scale=4; ($i*$tout/$numOutputSteps)" | bc)
+  time_n=$(echo "scale=4; ($time_au/$tout)" | bc)
   time_x=$time_au	# make this line reflect the units you want in the plot
   time_unit="a.u."	# make this line reflect the units you want in the plot
   foo=$(printf "%07d" $(($i)))
@@ -150,6 +151,7 @@ set size 1.1,0.5
 set border 0
 set ytics scale 0
 set xtics $xtix
+set xtics scale 0
 set ylabel \"Energy above band edge \(a.u.\)\"
 set xlabel \"Time \($time_unit\)\"
 set xrange [0:$tout]
@@ -159,7 +161,10 @@ set pm3d map
 set palette model XYZ functions gray**0.35, gray**0.5, gray**0.8
 set palette model XYZ functions gray**0.35, gray**0.75, gray**0.2
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
+set arrow 1 from graph $time_n, graph -0.03 to graph $time_n, graph -0.01 nohead lw 3
+set arrow 2 from graph $time_n, graph 1.01 to graph $time_n, graph 0.98 nohead lw 3
 splot './outs/kprob.out'
+unset arrow
 
 set origin 0,0.5
 set size 1,0.5
@@ -177,11 +182,13 @@ unset multiplot" >> plotz
  gnuplot plotz
  
  echo making movie...
- mencoder -really-quiet mf://img/*.png -mf w=800:h=600:fps=25:type=png -ovc copy -oac copy -o bulk_states.avi
+ mencoder -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
+ mencoder -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  rm -rf img
  rm -f plotz
  rm -f temp.out
  rm -f transpose.out
+ rm -f divx2pass.log
  echo done\! movie is bulk_states.avi
 }
 
