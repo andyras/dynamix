@@ -5,9 +5,9 @@
 
 
 ## FLAGS FOR RUN ##
-do_compile="n"
-do_run="n"
-do_plot="n"
+do_compile="y"
+do_run="y"
+do_plot="y"
 do_movie="y"
 do_backup="n"
 
@@ -182,8 +182,8 @@ unset multiplot" >> plotz
  gnuplot plotz
  
  echo making movie...
- mencoder -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
- mencoder -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
+ mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
+ mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  rm -rf img
  rm -f plotz
  rm -f temp.out
