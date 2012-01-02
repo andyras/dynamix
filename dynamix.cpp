@@ -145,7 +145,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  int scaleV = 1;
  realtype Vkc = 0.007349968763;
 
- if (scaleV == 1)
+ if ((scaleV == 1) && (Nk > 1))
   Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
 
  for (i = 0; i < dim; i++)			// initialize
@@ -158,14 +158,30 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
     vArray[Ik+i][Ic+j] = Vkc;
  if (Nb > 0) {					// bridge
   // coupling between k and b1
-  for (i = 0; i < Nk; i++) {
-   vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
-   vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+  if ((scaleV == 1) && (Nk > 1)) {
+   for (i = 0; i < Nk; i++) {
+    vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+    vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+   }
+  }
+  else {
+   for (i = 0; i < Nk; i++) {
+    vArray[Ik+i][Ib] = Vbridge[0];
+    vArray[Ib][Ik+i] = Vbridge[0];
+   }
   }
   // coupling between bN and c
-  for (i = 0; i < Nc; i++) {
-   vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb];///sqrt(Nc);
-   vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb];///sqrt(Nc);
+  if ((scaleV == 1) && (Nc > 1)) {
+   for (i = 0; i < Nc; i++) {
+    vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb]/sqrt(Nc-1);
+    vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb]/sqrt(Nc-1);
+   }
+  }
+  else {
+   for (i = 0; i < Nc; i++) {
+    vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb];
+    vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb];
+   }
   }
   // coupling between bridge states
   for (i = 0; i < Nb - 1; i++) {
