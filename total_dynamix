@@ -5,25 +5,27 @@
 
 
 ## FLAGS FOR RUN ##
-do_compile="n"
-do_run="y"
-do_plot="n"
-do_movie="n"
-do_backup="n"
+    do_compile="n"
+	do_run="y"
+       do_plot="y"
+      do_movie="n"
+    do_cleanup="n"
+do_fullcleanup="n"
+     do_backup="n"
 
 ## INPUT PARAMETERS ##
 
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=8000				# final time reached by solver (atomic units)
+tout=800				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.0				# lower band edge of bulk conduction band
 k_bandtop=0.0734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=1					# number of k states to have
+Nk=50					# number of k states to have
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -32,7 +34,7 @@ E_vib=0.0036749843813			# vibrational energy
 gkc=1.0					# g factor between k and c states
 gkb=1.0					# g factor between k and b states
 gbc=1.0					# g factor between b and c states
-gbb=1.0					# g factor between b states
+gbb=0.0					# g factor between b states
 
 function compile {
 ## COMPILE ##
@@ -87,7 +89,7 @@ set xtics nomirror scale 0.5" > plot_pops
  [ $((Nb)) -ge 3 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):4 title \'b3\' lt 5 >> plot_pops
  [ $((Nb)) -ge 4 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):5 title \'b4\' lt 1 >> plot_pops
  gnuplot 'plot_pops'
- #rm -f plot_pops
+ [ "$do_fullcleanup" == 'y' ] && rm -f plot_pops
  # need to scale k_bandtop a bit so the plot fills properly
  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
  echo "set terminal postscript eps enhanced colour
@@ -120,6 +122,7 @@ set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 splot './outs/kprob.out'" > plot_kpops
  gnuplot plot_kpops
+ [ "$do_fullcleanup" == 'y' ] && rm -f plot_kpops
 }
 
 function movie {
@@ -137,7 +140,7 @@ function movie {
  max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
  
  echo "set term png truecolor size 800,800
-unset key" > plotz
+unset key" > plot_movie
 
  xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
  for (( i=0 ; i<=$tout ; i+=1000 ))	# builds the xtics string
@@ -189,18 +192,18 @@ set title \"Bulk populations at time = $time_x $time_unit\"
 plot [$k_bandedge:$k_bandtop] [0:$max_pop] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve
 unset title
 
-unset multiplot" >> plotz
+unset multiplot" >> plot_movie
  done
- gnuplot plotz
+ gnuplot plot_movie
  
  echo making movie...
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
- rm -rf img
- rm -f plotz
- rm -f temp.out
- rm -f transpose.out
- rm -f divx2pass.log
+ [ "$do_cleanup" == 'y' ] && rm -rf img
+ [ "$do_fullcleanup" == 'y' ] && rm -f plot_movie
+ [ "$do_cleanup" == 'y' ] && rm -f temp.out
+ [ "$do_cleanup" == 'y' ] && rm -f transpose.out
+ [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
  echo done\! movie is bulk_states.avi
 }
 
@@ -210,7 +213,7 @@ function backup {
  echo backing things up...
  durr=backup/dynamix_`date +%Y-%m-%d.%H.%M.%S`
  mkdir -p $durr
- cp -r ins/ outs/ dynamix* total_dynamix $durr
+ cp -rf ins/ outs/ dynamix* total_dynamix $durr
  [ "$do_plot" == 'y' ] && cp populations.eps $durr
  [ "$do_movie" == 'y' ] && cp bulk_states.avi $durr
  [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
