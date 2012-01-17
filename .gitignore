@@ -5,3 +5,5 @@
 *.eps
 *plot*
 *.swp
+backup/
+whoo

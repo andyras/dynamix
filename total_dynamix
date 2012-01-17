@@ -5,54 +5,55 @@
 
 
 ## FLAGS FOR RUN ##
-    do_compile="n"
+    do_compile="y"
 	do_run="y"
        do_plot="y"
-      do_movie="n"
-    do_cleanup="n"
-do_fullcleanup="n"
-     do_backup="n"
+      do_movie="y"
+    do_cleanup="y"
+do_fullcleanup="y"
+     do_backup="y"
 
 ## INPUT PARAMETERS ##
 
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=800				# final time reached by solver (atomic units)
+tout=8000				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.0				# lower band edge of bulk conduction band
 k_bandtop=0.0734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=50					# number of k states to have
+Nk=10					# number of k states to have
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
 N_vib=3					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
-gkc=1.0					# g factor between k and c states
+gkc=0.0					# g factor between k and c states
 gkb=1.0					# g factor between k and b states
-gbc=1.0					# g factor between b and c states
+gbc=-1.0					# g factor between b and c states
 gbb=0.0					# g factor between b states
 
 function compile {
 ## COMPILE ##
- echo compiling dynamix.cpp...
-# g++ -Wall dynamix.cpp -O3 -o dynamix -lm -lsundials_cvode -lsundials_nvecserial && echo done compiling\!
- g++ -Wall dynamix.cpp -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo done compiling\!
+ echo "### $(date) compiling dynamix.cpp..."
+# g++ -Wall dynamix.cpp -O3 -o dynamix -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling\!"
+ g++ -Wall dynamix.cpp -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling\!"
 }
 
 function run {
 ## RUN THE PROGRAM! ##
- echo running dynamix...
- ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo dynamix done\! || echo dynamix did not run \:\(
+ echo "### $(date) running dynamix..."
+ ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run \:\("
  mkdir -p outs
  mv *.out outs/
 }
 
 function plot {
 ## GENERATE POPULATION PLOTSCRIPT ##
+ echo "### $(date) making plots..."
  echo "set terminal postscript eps  enhanced colour dashed lw 1 \"Helvetica\" 14
 set output \"populations.eps\"
 set multiplot
@@ -122,18 +123,16 @@ set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 splot './outs/kprob.out'" > plot_kpops
  gnuplot plot_kpops
- [ "$do_fullcleanup" == 'y' ] && rm -f plot_kpops
+ [ "$do_fullcleanup" == 'y' ] && rm -f plot_kpops && echo "### $(date) done plotting!"
 }
 
 function movie {
  ## GENERATE MOVIE MAKER ##
  timestep=$(echo "scale=4; ($tout/$numOutputSteps/41.34)" | bc)
- echo making movie maker...
+ echo "### $(date) making movie maker..."
  cat outs/energy.out outs/allprob.out > temp.out
  cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
  
- echo number of output .pngzz: $numOutputSteps
- echo making pngs...
  mkdir -p img
 
  max_pop=$(python findMaxZ.py outs/kprob.out)
@@ -194,9 +193,11 @@ unset title
 
 unset multiplot" >> plot_movie
  done
- gnuplot plot_movie
+ echo "### $(date) done making movie maker!"
+ echo "### $(date) making .png for each frame of the movie..."
+ gnuplot plot_movie && echo "### $(date) done making .pngs!"
  
- echo making movie...
+ echo "### $(date) making movie..."
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  [ "$do_cleanup" == 'y' ] && rm -rf img
@@ -204,23 +205,27 @@ unset multiplot" >> plot_movie
  [ "$do_cleanup" == 'y' ] && rm -f temp.out
  [ "$do_cleanup" == 'y' ] && rm -f transpose.out
  [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
- echo done\! movie is bulk_states.avi
+ echo "### $(date) done\! movie is bulk_states.avi"
 }
 
 
 function backup {
 ## BACK UP FILES ##
- echo backing things up...
+ echo "### $(date) backing things up..."
  durr=backup/dynamix_`date +%Y-%m-%d.%H.%M.%S`
  mkdir -p $durr
  cp -rf ins/ outs/ dynamix* total_dynamix $durr
- [ "$do_plot" == 'y' ] && cp populations.eps $durr
+ [ "$do_plot" == 'y' ] && cp *.eps $durr
  [ "$do_movie" == 'y' ] && cp bulk_states.avi $durr
  [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
- echo all backed up\!
+ echo "### $(date) all backed up\!"
 }
 
 Nb=`wc -l "ins/b_energies.in" | awk '{print $1}'`
+
+echo "### $(date) dynamix run starting now..."
+echo "###"
+echo "###"
 
 [ "$do_compile" == 'y' ] && compile
 [ "$do_run" == 'y' ] && run
@@ -228,4 +233,6 @@ Nb=`wc -l "ins/b_energies.in" | awk '{print $1}'`
 [ "$do_movie" == 'y' ] && movie
 [ "$do_backup" == 'y' ] && backup
 
-echo all done\!
+echo "### $(date) all done\!"
+echo "###"
+echo "###"
