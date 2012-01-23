@@ -7,11 +7,11 @@
 ## FLAGS FOR RUN ##
     do_compile="y"
 	do_run="y"
-       do_plot="y"
-      do_movie="y"
-    do_cleanup="y"
-do_fullcleanup="y"
-     do_backup="y"
+       do_plot="n"
+      do_movie="n"
+    do_cleanup="n"
+do_fullcleanup="n"
+     do_backup="n"
 
 ## INPUT PARAMETERS ##
 

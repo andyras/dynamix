@@ -398,9 +398,9 @@ int Normalize_NV(N_Vector nv, realtype total) {
 
 int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, realtype time,
   realtype * totK, realtype * totC, realtype ** totB, realtype ** vibProb, realtype * times,
-  int index, realtype * energies) {
+  realtype * energy_expectation, int index, realtype * energies) {
 
- int i, j;
+ int i, j, k, l;				// counters
  int Idx;
  realtype sumkpop = 0;
  realtype sumcpop = 0;
@@ -447,6 +447,19 @@ int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, 
  totC[index] = sumcpop;
  times[index] = time;
 
+ // temp += energies[i]*(pow(NV_Ith_S(outputData,i),2) + pow(NV_Ith_S(outputData,i+NEQ_vib),2));
+
+ temp = 0.0;
+ for (i = 0; i < NEQ; i++) {		// loop over all states
+  for (j = 0; j < N_vib; j++) {		// loop over all vibronic states
+   for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
+    for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
+    }
+   }
+  }
+ }
+ energy_expectation[index] = temp;
+
  return 0;
 }
 
@@ -477,7 +490,7 @@ realtype Find_array_maximum (realtype * inputArray, int num) {
 
 
 void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realtype ** tb,
- realtype ** vibProb, realtype * energies,  int num) {
+ realtype ** vibProb, realtype * energies, realtype * energy_expectation, int num) {
 
  FILE * tkprob;
  FILE * tcprob;
@@ -489,6 +502,7 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
  FILE * totprob;
  FILE * energy;
  FILE * times;
+ FILE * energy_exp;
  int i, j;
  realtype summ;
 
@@ -502,6 +516,7 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
  cmax = fopen("cmax.out", "w");
  energy = fopen("energy.out", "w");
  times = fopen("times.out", "w");
+ energy_exp = fopen("energy_exp.out", "w");
 
  if (Nb > 0) {
   FILE * tbprob;
@@ -557,15 +572,20 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
  fprintf(cmax, "%-.7lf", Find_array_maximum(tc, num+1));
 
  for (i = 0; i < Nk; i++)
-  fprintf(energy, "%-.7lf ", energies[Ik_vib + i*N_vib]);
+  fprintf(energy, "%-.7lf\n", energies[Ik_vib + i*N_vib]);
  for (i = 0; i < Nc; i++)
-  fprintf(energy, "%-.7lf ", energies[Ic_vib + i*N_vib]);
- for (i = 0; i < Nb; i++)
+  fprintf(energy, "%-.7lf\n", energies[Ic_vib + i*N_vib]);
+ for (i = 0; i < Nb; i++) {
   fprintf(energy, "%-.7lf ", energies[Ib_vib + i*N_vib]);
- fprintf(energy, "\n");
+  if (i < (Nb - 1))
+   fprintf(energy, "\n");
+ }
 
  for (i = 0; i <= num; i++)
-  fprintf(times, "%-.7lf \n", time[i]);
+  fprintf(times, "%-.7lf\n", time[i]);
+
+ for (i = 0; i <= num; i++)
+  fprintf(energy_exp, "%-.7lf\n", energy_expectation[i]);
 
  fclose(tkprob);
  fclose(tcprob);
@@ -608,6 +628,7 @@ int main (int argc, char * argv[]) {
  realtype ** tbprob;
  realtype ** vibprob;
  realtype * times;
+ realtype * energy_expectation;			// expectation value of energy at each timestep
  // END VARIABLES //
 
  // OPEN LOG FILE; PUT IN START TIME //
@@ -674,6 +695,7 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < numOutputSteps+1; i++)
   vibprob[i] = new realtype [N_vib];
  times = new realtype [numOutputSteps+1];
+ energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
  NEQ = Nk+Nc+Nb;				// total number of equations set
  NEQ_vib = (Nk+Nc+Nb)*N_vib;
  Ik = 0;					// set index start positions for each type of state
@@ -815,7 +837,7 @@ int main (int argc, char * argv[]) {
  Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
  output = fopen("allprob.out", "w");	// note that output is closed after advancing the solution in time
  kprob = fopen("kprob.out", "w");
- Output_checkpoint(output, kprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, 0, energy);
+ Output_checkpoint(output, kprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -857,13 +879,13 @@ int main (int argc, char * argv[]) {
   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
   if (i % (numsteps/numOutputSteps) == 0)
-   Output_checkpoint(output, kprob, yout, t, tkprob, tcprob, tbprob, vibprob, times, (i*numOutputSteps/numsteps), energy);
+   Output_checkpoint(output, kprob, yout, t, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, (i*numOutputSteps/numsteps), energy);
  }
  fclose(output);				// note that file is opened when printing t=0 information
  fclose(kprob);
 
  // compute final outputs //
- Compute_final_outputs(times, tkprob, tcprob, tbprob, vibprob, energy, numOutputSteps);
+ Compute_final_outputs(times, tkprob, tcprob, tbprob, vibprob, energy, energy_expectation, numOutputSteps);
  
  // finalize log file //
  time(&endRun);
