@@ -25,7 +25,7 @@ numOutputSteps=600			# number of output timesteps
 k_bandedge=0.0				# lower band edge of bulk conduction band
 k_bandtop=0.0734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=10					# number of k states to have
+Nk=1					# number of k states to have
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #

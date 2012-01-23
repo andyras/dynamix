@@ -7,7 +7,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
-//#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
+#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
 //#define DEBUGf				// otherwise output is enormous
 //#define DEBUG_SAI			// debuggery related to checking against Sai's code
 using namespace std;
@@ -154,8 +154,10 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  if (Nb == 0)					// no bridge
   // Vkc
   for (i = 0; i < Nk; i++)
-   for (j = 0; j < Nc; j++)
+   for (j = 0; j < Nc; j++) {
     vArray[Ik+i][Ic+j] = Vkc;
+    vArray[Ic+j][Ik+i] = Vkc;
+   }
  if (Nb > 0) {					// bridge
   // coupling between k and b1
   if ((scaleV == 1) && (Nk > 1)) {
@@ -452,8 +454,11 @@ int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, 
  temp = 0.0;
  for (i = 0; i < NEQ; i++) {		// loop over all states
   for (j = 0; j < N_vib; j++) {		// loop over all vibronic states
+   temp += energy[i*N_vib + j]*(pow(NV_Ith_S(outputData,i*N_vib+j),2) + pow(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib),2));
    for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
     for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
+     temp += V[i][k]*(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l));
+     temp += V[k][i]*(NV_Ith_S(outputData,k*N_vib+l+NEQ_vib)*NV_Ith_S(outputData,i*N_vib+j));
     }
    }
   }
