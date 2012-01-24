@@ -18,7 +18,7 @@ do_fullcleanup="n"
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=8000				# final time reached by solver (atomic units)
+tout=800				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #

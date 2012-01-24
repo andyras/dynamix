@@ -449,12 +449,10 @@ int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, 
  totC[index] = sumcpop;
  times[index] = time;
 
- // temp += energies[i]*(pow(NV_Ith_S(outputData,i),2) + pow(NV_Ith_S(outputData,i+NEQ_vib),2));
-
  temp = 0.0;
  for (i = 0; i < NEQ; i++) {		// loop over all states
   for (j = 0; j < N_vib; j++) {		// loop over all vibronic states
-   //temp += energy[i*N_vib + j]*(pow(NV_Ith_S(outputData,i*N_vib+j),2) + pow(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib),2));
+   temp += energy[i*N_vib + j]*(pow(NV_Ith_S(outputData,i*N_vib+j),2) + pow(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib),2));
    for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
     for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
      temp += (V[i][k])*(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l));
