@@ -398,7 +398,7 @@ int Normalize_NV(N_Vector nv, realtype total) {
 }
 
 
-int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, realtype time,
+int Output_checkpoint(FILE * outputFile, FILE * realImaginary, FILE * kprobFile, N_Vector outputData, realtype time,
   realtype * totK, realtype * totC, realtype ** totB, realtype ** vibProb, realtype * times,
   realtype * energy_expectation, int index, realtype * energies) {
 
@@ -407,6 +407,14 @@ int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, 
  realtype sumkpop = 0;
  realtype sumcpop = 0;
  realtype temp;
+
+ for (i = 0; i < NEQ_vib; i++) {
+  fprintf(realImaginary, "%-7lf %-7lf", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ_vib));
+  if (i == (NEQ_vib - 2)) {
+   fprintf(realImaginary, " ");
+  }
+ }
+ fprintf(realImaginary, "\n");
 
  for (i = 0; i < Nk; i++) {			// k populations
   temp = 0.0;
@@ -455,7 +463,9 @@ int Output_checkpoint(FILE * outputFile, FILE * kprobFile, N_Vector outputData, 
    temp += energy[i*N_vib + j]*(pow(NV_Ith_S(outputData,i*N_vib+j),2) + pow(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib),2));
    for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
     for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
-     temp += (V[i][k])*(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l));
+     temp += (V[i][k])
+      *(NV_Ith_S(outputData,i*N_vib+j)*NV_Ith_S(outputData,k*N_vib+l)
+	+ NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l+NEQ_vib));
     }
    }
   }
@@ -623,6 +633,7 @@ int main (int argc, char * argv[]) {
  time_t endRun;					// time at end of log
  struct tm * currentTime;			// time structure for localtime
  FILE * output;
+ FILE * realImaginary;				// file containing real and imaginary parts of the wavefunction
  FILE * kprob;					// file formatted for plotting in gnuplot
  FILE * log;
  realtype * tkprob; 				// total probability in k, c, b states at each timestep
@@ -838,8 +849,9 @@ int main (int argc, char * argv[]) {
  // print t = 0 information //
  Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
  output = fopen("allprob.out", "w");	// note that output is closed after advancing the solution in time
+ realImaginary = fopen("real_imaginary.out", "w");
  kprob = fopen("kprob.out", "w");
- Output_checkpoint(output, kprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
+ Output_checkpoint(output, realImaginary, kprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -881,9 +893,10 @@ int main (int argc, char * argv[]) {
   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
   if (i % (numsteps/numOutputSteps) == 0)
-   Output_checkpoint(output, kprob, yout, t, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, (i*numOutputSteps/numsteps), energy);
+   Output_checkpoint(output, realImaginary, kprob, yout, t, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, (i*numOutputSteps/numsteps), energy);
  }
  fclose(output);				// note that file is opened when printing t=0 information
+ fclose(realImaginary);
  fclose(kprob);
 
  // compute final outputs //
