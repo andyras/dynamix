@@ -233,8 +233,8 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
       Vee = Vkc*FCkc[n][m];
       NV_Ith_S(ydot, IkRe) += Vee*(coss*NV_Ith_S(y, IcIm) + sinn*NV_Ith_S(y, IcRe)); // k Re
       NV_Ith_S(ydot, IkIm) += Vee*(sinn*NV_Ith_S(y, IcIm) - coss*NV_Ith_S(y, IcRe)); // k Im
-      NV_Ith_S(ydot, IcRe) += Vee*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // k Re
-      NV_Ith_S(ydot, IcIm) -= Vee*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // k Im
+      NV_Ith_S(ydot, IcRe) += Vee*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // c Re
+      NV_Ith_S(ydot, IcIm) -= Vee*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // c Im
 #ifdef DEBUGf
       cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IcRe " << IcRe << " IcIm ";
       cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
@@ -463,9 +463,12 @@ int Output_checkpoint(FILE * outputFile, FILE * realImaginary, FILE * kprobFile,
    temp += energy[i*N_vib + j]*(pow(NV_Ith_S(outputData,i*N_vib+j),2) + pow(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib),2));
    for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
     for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
-     temp += (V[i][k])
+     temp -= (V[i][k])
       *(NV_Ith_S(outputData,i*N_vib+j)*NV_Ith_S(outputData,k*N_vib+l)
-	+ NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l+NEQ_vib));
+	- NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l+NEQ_vib));
+     if (index == 2) {
+      cout << "whooooo V["<< i << "][" << k << "] is " << V[i][k] << "\n\n";
+     }
     }
    }
   }
@@ -597,7 +600,7 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
   fprintf(times, "%-.7lf\n", time[i]);
 
  for (i = 0; i <= num; i++)
-  fprintf(energy_exp, "%-.7lf\n", energy_expectation[i]);
+  fprintf(energy_exp, "%-.9lf\n", energy_expectation[i]);
 
  fclose(tkprob);
  fclose(tcprob);

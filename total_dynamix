@@ -18,7 +18,7 @@ do_fullcleanup="n"
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=800				# final time reached by solver (atomic units)
+tout=14000				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
@@ -40,15 +40,26 @@ function compile {
 ## COMPILE ##
  echo "### $(date) compiling dynamix.cpp..."
 # g++ -Wall dynamix.cpp -O3 -o dynamix -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling\!"
- g++ -Wall dynamix.cpp -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling\!"
+ g++ -Wall dynamix.cpp -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling!"
+}
+
+function compile_fail {
+## IF COMPILATION FAILS, QUIT ##
+ echo "### $(date) failed to compile :("
+ exit
 }
 
 function run {
 ## RUN THE PROGRAM! ##
  echo "### $(date) running dynamix..."
- ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run \:\("
+ ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run :("
  mkdir -p outs
  mv *.out outs/
+}
+
+function run_fail {
+ echo "### failed to run dynamix :("
+ exit
 }
 
 function plot {
@@ -227,8 +238,13 @@ echo "### $(date) dynamix run starting now..."
 echo "###"
 echo "###"
 
-[ "$do_compile" == 'y' ] && compile
-[ "$do_run" == 'y' ] && run
+# [ "$do_compile" == 'y' ] && compile
+if [ "$do_compile" == 'y' ] ; then
+ compile || compile_fail
+fi
+if [ "$do_run" == 'y' ] ; then
+ run || run_fail
+fi
 [ "$do_plot" == 'y' ] && plot
 [ "$do_movie" == 'y' ] && movie
 [ "$do_backup" == 'y' ] && backup
