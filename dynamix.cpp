@@ -144,6 +144,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  int i, j;					// counters
  int scaleV = 1;
  realtype Vkc = 0.007349968763;
+ Vkc = 0.0005;
 
  if ((scaleV == 1) && (Nk > 1))
   Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
@@ -225,16 +226,16 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
       IkIm = IkRe + NEQ_vib;
       IcRe = Ic_vib + j*N_vib + m;
       IcIm = IcRe + NEQ_vib;
-      coss = cos((energy[IkRe] - energy[IcRe])*t);	// do the cosine now for speed
-      sinn = sin((energy[IkRe] - energy[IcRe])*t);	// do the sine now for speed
       /* Franck-Condon indices should be consistent in direction from one end of the 
        * system to the other.  That is, if the first index is for the beginning state
        * the second should be for the next in the chain, and so on. */
       Vee = Vkc*FCkc[n][m];
-      NV_Ith_S(ydot, IkRe) += Vee*(coss*NV_Ith_S(y, IcIm) + sinn*NV_Ith_S(y, IcRe)); // k Re
-      NV_Ith_S(ydot, IkIm) += Vee*(sinn*NV_Ith_S(y, IcIm) - coss*NV_Ith_S(y, IcRe)); // k Im
-      NV_Ith_S(ydot, IcRe) += Vee*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // c Re
-      NV_Ith_S(ydot, IcIm) -= Vee*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // c Im
+      coss = Vee*cos((energy[IkRe] - energy[IcRe])*t);	// do the cosine now for speed
+      sinn = Vee*sin((energy[IkRe] - energy[IcRe])*t);	// do the sine now for speed
+      NV_Ith_S(ydot, IkRe) += (coss*NV_Ith_S(y, IcIm) + sinn*NV_Ith_S(y, IcRe)); // k Re
+      NV_Ith_S(ydot, IkIm) += (sinn*NV_Ith_S(y, IcIm) - coss*NV_Ith_S(y, IcRe)); // k Im
+      NV_Ith_S(ydot, IcRe) += (coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // c Re
+      NV_Ith_S(ydot, IcIm) -= (sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // c Im
 #ifdef DEBUGf
       cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IcRe " << IcRe << " IcIm ";
       cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
@@ -252,13 +253,13 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
      IkIm = IkRe + NEQ_vib;
      IbRe = Ib_vib + m;
      IbIm = IbRe + NEQ_vib;
-     coss = cos((energy[IkRe] - energy[IbRe])*t);
-     sinn = sin((energy[IkRe] - energy[IbRe])*t);
      Vee = Vkb*FCkb[n][m];
-     NV_Ith_S(ydot, IkRe) += Vee*(coss*NV_Ith_S(y, IbIm) + sinn*NV_Ith_S(y, IbRe));	// k Re
-     NV_Ith_S(ydot, IkIm) += Vee*(sinn*NV_Ith_S(y, IbIm) - coss*NV_Ith_S(y, IbRe));	// k Im
-     NV_Ith_S(ydot, IbRe) += Vee*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe));	// b1 Re
-     NV_Ith_S(ydot, IbIm) -= Vee*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe));	// b1 Im
+     coss = Vee*cos((energy[IkRe] - energy[IbRe])*t);
+     sinn = Vee*sin((energy[IkRe] - energy[IbRe])*t);
+     NV_Ith_S(ydot, IkRe) += (coss*NV_Ith_S(y, IbIm) + sinn*NV_Ith_S(y, IbRe));	// k Re
+     NV_Ith_S(ydot, IkIm) += (sinn*NV_Ith_S(y, IbIm) - coss*NV_Ith_S(y, IbRe));	// k Im
+     NV_Ith_S(ydot, IbRe) += (coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe));	// b1 Re
+     NV_Ith_S(ydot, IbIm) -= (sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe));	// b1 Im
 #ifdef DEBUGf
      cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IbRe " << IbRe << " IbIm ";
      cout << IbIm << " Vkb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
@@ -271,13 +272,13 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
      IcIm = IcRe + NEQ_vib;
      IbRe = Ib_vib + (Nb-1)*N_vib + m;
      IbIm = IbRe + NEQ_vib;
-     coss = cos((energy[IcRe] - energy[IbRe])*t);
-     sinn = sin((energy[IcRe] - energy[IbRe])*t);
      Vee = Vbc*FCbc[m][n];
-     NV_Ith_S(ydot, IcRe) += Vee*(coss*NV_Ith_S(y, IbIm) + sinn*NV_Ith_S(y, IbRe));	// c Re
-     NV_Ith_S(ydot, IcIm) += Vee*(sinn*NV_Ith_S(y, IbIm) - coss*NV_Ith_S(y, IbRe));	// c Im
-     NV_Ith_S(ydot, IbRe) += Vee*(coss*NV_Ith_S(y, IcIm) - sinn*NV_Ith_S(y, IcRe));	// b1 Re
-     NV_Ith_S(ydot, IbIm) -= Vee*(sinn*NV_Ith_S(y, IcIm) + coss*NV_Ith_S(y, IcRe));	// b1 Im
+     coss = Vee*cos((energy[IcRe] - energy[IbRe])*t);
+     sinn = Vee*sin((energy[IcRe] - energy[IbRe])*t);
+     NV_Ith_S(ydot, IcRe) += (coss*NV_Ith_S(y, IbIm) + sinn*NV_Ith_S(y, IbRe));	// c Re
+     NV_Ith_S(ydot, IcIm) += (sinn*NV_Ith_S(y, IbIm) - coss*NV_Ith_S(y, IbRe));	// c Im
+     NV_Ith_S(ydot, IbRe) += (coss*NV_Ith_S(y, IcIm) - sinn*NV_Ith_S(y, IcRe));	// b1 Re
+     NV_Ith_S(ydot, IbIm) -= (sinn*NV_Ith_S(y, IcIm) + coss*NV_Ith_S(y, IcRe));	// b1 Im
 #ifdef DEBUGf
      cout << endl << "IcRe " << IcRe << " IcIm " << IcIm << " IbRe " << IbRe << " IbIm ";
      cout << IbIm << " Vcb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
@@ -290,13 +291,13 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
      IbIm = IbRe + NEQ_vib;
      IBRe = Ib_vib + (i+1)*N_vib + m;
      IBIm = IBRe + NEQ_vib;
-     coss = cos((energy[IbRe] - energy[IBRe])*t);
-     sinn = sin((energy[IbRe] - energy[IBRe])*t);
      Vee = Vbridge[i+1]*FCbb[n][m];
-     NV_Ith_S(ydot, IbRe) += Vee*(coss*NV_Ith_S(y, IBIm) + sinn*NV_Ith_S(y, IBRe));	// b Re
-     NV_Ith_S(ydot, IbIm) += Vee*(sinn*NV_Ith_S(y, IBIm) - coss*NV_Ith_S(y, IBRe));	// b Im
-     NV_Ith_S(ydot, IBRe) += Vee*(coss*NV_Ith_S(y, IbIm) - sinn*NV_Ith_S(y, IbRe));	// b1 Re
-     NV_Ith_S(ydot, IBIm) -= Vee*(sinn*NV_Ith_S(y, IbIm) + coss*NV_Ith_S(y, IbRe));	// b1 Im
+     coss = Vee*cos((energy[IbRe] - energy[IBRe])*t);
+     sinn = Vee*sin((energy[IbRe] - energy[IBRe])*t);
+     NV_Ith_S(ydot, IbRe) += (coss*NV_Ith_S(y, IBIm) + sinn*NV_Ith_S(y, IBRe));	// b Re
+     NV_Ith_S(ydot, IbIm) += (sinn*NV_Ith_S(y, IBIm) - coss*NV_Ith_S(y, IBRe));	// b Im
+     NV_Ith_S(ydot, IBRe) += (coss*NV_Ith_S(y, IbIm) - sinn*NV_Ith_S(y, IbRe));	// b1 Re
+     NV_Ith_S(ydot, IBIm) -= (sinn*NV_Ith_S(y, IbIm) + coss*NV_Ith_S(y, IbRe));	// b1 Im
 #ifdef DEBUGf
      cout << endl << "IbRe " << IbRe << " IbIm " << IbIm << " IBRe " << IBRe << " IBIm ";
      cout << IBIm << " Vbb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
@@ -403,11 +404,15 @@ int Output_checkpoint(FILE * outputFile, FILE * realImaginary, FILE * kprobFile,
   realtype * energy_expectation, int index, realtype * energies) {
 
  int i, j, k, l;				// counters
+ int Re1, Im1, Re2, Im2;			// indices for real and imaginary components
+ double sinn, coss;				// these are used for computing observables
+ 						// in the interaction picture.
  int Idx;
  realtype sumkpop = 0;
  realtype sumcpop = 0;
  realtype temp;
 
+ fprintf(realImaginary, "%-.7lf ", time);
  for (i = 0; i < NEQ_vib; i++) {
   fprintf(realImaginary, "%-7lf %-7lf", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ_vib));
   if (i == (NEQ_vib - 2)) {
@@ -460,15 +465,25 @@ int Output_checkpoint(FILE * outputFile, FILE * realImaginary, FILE * kprobFile,
  temp = 0.0;
  for (i = 0; i < NEQ; i++) {		// loop over all states
   for (j = 0; j < N_vib; j++) {		// loop over all vibronic states
-   temp += energy[i*N_vib + j]*(pow(NV_Ith_S(outputData,i*N_vib+j),2) + pow(NV_Ith_S(outputData,i*N_vib+j+NEQ_vib),2));
+   Re1 = i*N_vib + j;			// index for current state
+   Im1 = i*N_vib + j + NEQ_vib;	
+   temp += energy[Re1]*(pow(NV_Ith_S(outputData,Re1),2) + pow(NV_Ith_S(outputData,Im1),2));
    for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
     for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
-     temp -= (V[i][k])
-      *(NV_Ith_S(outputData,i*N_vib+j)*NV_Ith_S(outputData,k*N_vib+l)
-	- NV_Ith_S(outputData,i*N_vib+j+NEQ_vib)*NV_Ith_S(outputData,k*N_vib+l+NEQ_vib));
-     if (index == 2) {
-      cout << "whooooo V["<< i << "][" << k << "] is " << V[i][k] << "\n\n";
-     }
+     Re2 = k*N_vib + l;			// index for coupled state
+     Im2 = k*N_vib + l + NEQ_vib;
+     // WARNING: this only works correctly when the Franck-Condon displacement
+     // factors are all 0. In order for this to be corrected, I will have to
+     // fold the FC factors into the coupling matrix.  Which makes sense to do
+     // anyway, I guess.
+     sinn = V[i][k]*sin((energy[Re1] - energy[Re2])*time);	// precalculate sin and cos to save space
+     coss = V[i][k]*cos((energy[Re1] - energy[Re2])*time);
+     if ( time == 0 )
+      cout << "whoo V[" << i << "][" << k << "] is " << V[i][k] << endl;
+     temp += NV_Ith_S(outputData,Re1)*NV_Ith_S(outputData,Re2)*coss;
+     temp += NV_Ith_S(outputData,Im1)*NV_Ith_S(outputData,Im2)*coss;
+     temp -= NV_Ith_S(outputData,Re1)*NV_Ith_S(outputData,Im2)*sinn;
+     temp += NV_Ith_S(outputData,Im1)*NV_Ith_S(outputData,Re2)*sinn;
     }
    }
   }
@@ -600,7 +615,7 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
   fprintf(times, "%-.7lf\n", time[i]);
 
  for (i = 0; i <= num; i++)
-  fprintf(energy_exp, "%-.9lf\n", energy_expectation[i]);
+  fprintf(energy_exp, "%-.7lf %-.9lf\n", time[i], energy_expectation[i]);
 
  fclose(tkprob);
  fclose(tcprob);
@@ -722,7 +737,7 @@ int main (int argc, char * argv[]) {
  Ib_vib = Ic_vib + Nc*N_vib;
  Build_k_energies(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
- Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
+ Initialize_array(k_pops, Nk, 1.0);		// populate k states (all zero to start off)
  //Build_k_pops(k_pops, k_energies, k_bandedge, temperature);	// populate k states (all zero to start off)
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
