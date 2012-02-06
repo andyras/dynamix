@@ -605,7 +605,7 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
  for (i = 0; i < Nk; i++)
   fprintf(energy, "%-.7lf ", energies[Ik_vib + i*N_vib]);
  for (i = 0; i < Nc; i++)
-  fprintf(energy, "%-.7lf\n", energies[Ic_vib + i*N_vib]);
+  fprintf(energy, "%-.7lf ", energies[Ic_vib + i*N_vib]);
  for (i = 0; i < Nb; i++) {
   fprintf(energy, "%-.7lf ", energies[Ib_vib + i*N_vib]);
   if (i < (Nb - 1))

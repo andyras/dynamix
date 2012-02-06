@@ -5,9 +5,9 @@
 
 
 ## FLAGS FOR RUN ##
-    do_compile="y"
-	do_run="y"
-       do_plot="y"
+    do_compile="n"
+	do_run="n"
+       do_plot="n"
       do_movie="y"
     do_cleanup="n"
 do_fullcleanup="n"
@@ -145,6 +145,7 @@ function movie {
  cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
  
  mkdir -p img
+ rm -rf img/*
 
  max_pop=$(python findMaxZ.py outs/kprob.out)
  max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
