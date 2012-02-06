@@ -200,7 +200,7 @@ set ytics scale 1 nomirror
 set xlabel \"Energy above band edge \(a.u.\)\"
 set ylabel \"Electron probability\"
 set title \"Bulk populations at time = $time_x $time_unit\"
-plot [$k_bandedge:$k_bandtop] [0:$max_pop] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve
+plot [$k_bandedge:$k_bandtop] [0:$max_pop] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve x1
 unset title
 
 unset multiplot" >> plot_movie

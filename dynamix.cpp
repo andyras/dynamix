@@ -477,8 +477,6 @@ int Output_checkpoint(FILE * outputFile, FILE * realImaginary, FILE * kprobFile,
      // anyway, I guess.
      sinn = V[i][k]*sin((energy[Re1] - energy[Re2])*time);	// precalculate sin and cos to save space
      coss = V[i][k]*cos((energy[Re1] - energy[Re2])*time);
-     if ( time == 0 )
-      cout << "whoo V[" << i << "][" << k << "] is " << V[i][k] << endl;
      temp += NV_Ith_S(outputData,Re1)*NV_Ith_S(outputData,Re2)*coss;
      temp += NV_Ith_S(outputData,Im1)*NV_Ith_S(outputData,Im2)*coss;
      temp -= NV_Ith_S(outputData,Re1)*NV_Ith_S(outputData,Im2)*sinn;
