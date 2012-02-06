@@ -8,7 +8,7 @@
     do_compile="y"
 	do_run="y"
        do_plot="y"
-      do_movie="n"
+      do_movie="y"
     do_cleanup="n"
 do_fullcleanup="n"
      do_backup="n"
@@ -23,17 +23,17 @@ numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band
-k_bandtop=0.003000000734996876			# upper band edge of bulk conduction band
+k_bandtop=0.00734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=1					# number of k states to have
+Nk=100					# number of k states to have
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
 N_vib=1					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
-gkb=0.0					# g factor between k and b states
-gbc=0.0					# g factor between b and c states
+gkb=1.0					# g factor between k and b states
+gbc=-1.0					# g factor between b and c states
 gbb=0.0					# g factor between b states
 
 function compile {

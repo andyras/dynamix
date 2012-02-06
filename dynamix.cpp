@@ -7,7 +7,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
-#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
+//#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
 //#define DEBUGf				// otherwise output is enormous
 //#define DEBUG_SAI			// debuggery related to checking against Sai's code
 using namespace std;
@@ -144,7 +144,6 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  int i, j;					// counters
  int scaleV = 1;
  realtype Vkc = 0.007349968763;
- Vkc = 0.0005;
 
  if ((scaleV == 1) && (Nk > 1))
   Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
@@ -601,8 +600,10 @@ void Compute_final_outputs (realtype * time, realtype * tk, realtype * tc, realt
  fprintf(kmax, "%-.7lf", Find_array_maximum(tk, num+1));
  fprintf(cmax, "%-.7lf", Find_array_maximum(tc, num+1));
 
+ // energy.out should be all the energies on one row, since it's used for
+ // the movie maker.
  for (i = 0; i < Nk; i++)
-  fprintf(energy, "%-.7lf\n", energies[Ik_vib + i*N_vib]);
+  fprintf(energy, "%-.7lf ", energies[Ik_vib + i*N_vib]);
  for (i = 0; i < Nc; i++)
   fprintf(energy, "%-.7lf\n", energies[Ic_vib + i*N_vib]);
  for (i = 0; i < Nb; i++) {
@@ -737,7 +738,7 @@ int main (int argc, char * argv[]) {
  Ib_vib = Ic_vib + Nc*N_vib;
  Build_k_energies(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
- Initialize_array(k_pops, Nk, 1.0);		// populate k states (all zero to start off)
+ Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
  //Build_k_pops(k_pops, k_energies, k_bandedge, temperature);	// populate k states (all zero to start off)
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
