@@ -5,13 +5,15 @@
 
 
 ## FLAGS FOR RUN ##
-    do_compile="n"
-	do_run="n"
-       do_plot="n"
-      do_movie="y"
-    do_cleanup="n"
-do_fullcleanup="n"
-     do_backup="n"
+      do_compile="y"
+	  do_run="y"
+    make_plotter="y"
+	 do_plot="y"
+make_movie_maker="y"
+	do_movie="y"
+      do_cleanup="n"
+  do_fullcleanup="n"
+       do_backup="n"
 
 ## INPUT PARAMETERS ##
 
@@ -62,7 +64,7 @@ function run_fail {
  exit
 }
 
-function plot {
+function plot_maker {
 ## GENERATE POPULATION PLOTSCRIPT ##
  echo "### $(date) making plots..."
  echo "set terminal postscript eps  enhanced colour dashed lw 1 \"Helvetica\" 14
@@ -100,24 +102,6 @@ set xtics nomirror scale 0.5" > plot_pops
  [ $((Nb)) -ge 2 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):3 title \'b2\' lt 4 >> plot_pops
  [ $((Nb)) -ge 3 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):4 title \'b3\' lt 5 >> plot_pops
  [ $((Nb)) -ge 4 ] && echo -n $', \\\n'\'outs/tbprob.out\' using \(\$1\/41.34\):5 title \'b4\' lt 1 >> plot_pops
- gnuplot 'plot_pops'
- [ "$do_fullcleanup" == 'y' ] && rm -f plot_pops
- # need to scale k_bandtop a bit so the plot fills properly
- new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
- echo "set terminal postscript eps enhanced colour
-set output \"kprob.eps\"
-set title \"Electron probability density in bulk conduction band\"
-set pm3d map
-set palette model XYZ rgbformulae 7,5,15
-set ylabel \"Energy above band edge (a.u.)\"
-set xlabel \"Time (a.u.)\"
-set xrange [0:$tout]
-set yrange [$k_bandedge:$new_k_bandtop]
-set ytics scale 0
-set xtics scale 0
-set border 0
-unset key
-splot \"./outs/kprob.out\"" > plot_kpops
 echo "
 set terminal postscript eps enhanced colour
 set output \"kprob.eps\"
@@ -133,20 +117,22 @@ unset colorbox
 set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 splot './outs/kprob.out'" > plot_kpops
+}
+
+function plot {
+ gnuplot 'plot_pops'
  gnuplot plot_kpops
+ [ "$do_fullcleanup" == 'y' ] && rm -f plot_pops
  [ "$do_fullcleanup" == 'y' ] && rm -f plot_kpops && echo "### $(date) done plotting!"
 }
 
-function movie {
+function movie_maker {
  ## GENERATE MOVIE MAKER ##
  timestep=$(echo "scale=4; ($tout/$numOutputSteps/41.34)" | bc)
  echo "### $(date) making movie maker..."
  cat outs/energy.out outs/allprob.out > temp.out
  cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
  
- mkdir -p img
- rm -rf img/*
-
  max_pop=$(python findMaxZ.py outs/kprob.out)
  max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
  
@@ -206,18 +192,24 @@ unset title
 unset multiplot" >> plot_movie
  done
  echo "### $(date) done making movie maker!"
+}
+
+
+function movie {
+ ## MAKE MOVIE ##
  echo "### $(date) making .png for each frame of the movie..."
+ mkdir -p img
+ rm -rf img/*
  gnuplot plot_movie && echo "### $(date) done making .pngs!"
- 
  echo "### $(date) making movie..."
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
+ echo "### $(date) done\! movie is bulk_states.avi"
  [ "$do_cleanup" == 'y' ] && rm -rf img
  [ "$do_fullcleanup" == 'y' ] && rm -f plot_movie
+ [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
  [ "$do_cleanup" == 'y' ] && rm -f temp.out
  [ "$do_cleanup" == 'y' ] && rm -f transpose.out
- [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
- echo "### $(date) done\! movie is bulk_states.avi"
 }
 
 
@@ -233,6 +225,8 @@ function backup {
  echo "### $(date) all backed up\!"
 }
 
+### This is where the script actually starts doing things. ###
+
 Nb=`wc -l "ins/b_energies.in" | awk '{print $1}'`
 
 echo "### $(date) dynamix run starting now..."
@@ -246,7 +240,9 @@ fi
 if [ "$do_run" == 'y' ] ; then
  run || run_fail
 fi
+[ "$make_plotter" == 'y' ] && plot_maker
 [ "$do_plot" == 'y' ] && plot
+[ "$make_movie_maker" == 'y' ] && movie_maker
 [ "$do_movie" == 'y' ] && movie
 [ "$do_backup" == 'y' ] && backup
 
