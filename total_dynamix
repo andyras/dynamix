@@ -11,7 +11,7 @@
 	 do_plot="y"
 make_movie_maker="y"
 	do_movie="y"
-      do_cleanup="n"
+      do_cleanup="y"
   do_fullcleanup="n"
        do_backup="n"
 
@@ -27,7 +27,7 @@ numOutputSteps=600			# number of output timesteps
 k_bandedge=0.00				# lower band edge of bulk conduction band
 k_bandtop=0.00734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=10					# number of k states to have
+Nk=100					# number of k states to have
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -102,8 +102,9 @@ set xtics nomirror scale 0.5" > plot_pops
  [ $((Nb)) -ge 2 ] && echo -n $', \\\n'\'outs/bprobs.out\' using \(\$1\/41.34\):3 title \'b2\' lt 4 >> plot_pops
  [ $((Nb)) -ge 3 ] && echo -n $', \\\n'\'outs/bprobs.out\' using \(\$1\/41.34\):4 title \'b3\' lt 5 >> plot_pops
  [ $((Nb)) -ge 4 ] && echo -n $', \\\n'\'outs/bprobs.out\' using \(\$1\/41.34\):5 title \'b4\' lt 1 >> plot_pops
-echo "
-set terminal postscript eps enhanced colour
+ # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
+ new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
+echo "set terminal postscript eps enhanced colour
 set output \"kprob.eps\"
 set title \"Electron probability density in bulk conduction band\"
 set border 0
@@ -112,7 +113,8 @@ set xtics scale 0
 set ylabel \"Energy above band edge \(a.u.\)\"
 set xlabel \"Time (a.u.)\"
 set xrange [0:$tout]
-set yrange [$k_bandedge:$k_bandtop]
+set yrange [$k_bandedge:$new_k_bandtop]
+unset key
 unset colorbox
 set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
@@ -141,6 +143,7 @@ function movie_maker {
  max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
  
  echo "set term png truecolor size 800,800
+set xtics scale 0
 unset key" > plot_movie
 
  xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
@@ -169,7 +172,6 @@ set origin 0,0
 set size 1.1,0.5
 set border 0
 set ytics scale 0
-set xtics scale 0
 set ylabel \"Energy above band edge \(a.u.\)\"
 set xlabel \"Time \($time_unit\)\"
 set xrange [0:$tout]
@@ -185,7 +187,6 @@ unset arrow
 set origin 0,0.5
 set size 1,0.5
 set border 15
-set xtics scale 0 autofreq
 set ytics scale 1 nomirror
 set xlabel \"Energy above band edge \(a.u.\)\"
 set ylabel \"Electron probability\"
@@ -209,10 +210,10 @@ function movie {
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  echo "### $(date) done\! movie is bulk_states.avi"
- [ "$do_cleanup" == 'y' ] && rm -rf img
+ rm -rf img
  [ "$do_fullcleanup" == 'y' ] && rm -f plot_movie
  [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
- [ "$do_cleanup" == 'y' ] && rm -f temp.out
+ [ "$do_cleanup" == 'y' ] && rm -f temp*.out
  [ "$do_cleanup" == 'y' ] && rm -f transpose.out
 }
 

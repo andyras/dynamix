@@ -567,7 +567,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  }
  for (i = 0 ; i < num ; i++) {
   for (j = 0 ; j < Nk ; j++ )
-   fprintf(kprobs_gnuplot, "%-.7lf %-.7lf %-.7lf\n", time[i], energies[Ik_vib + i*N_vib], allprobs[i][Ik+j]);
+   fprintf(kprobs_gnuplot, "%-.7lf %-.7lf %-.7lf\n", time[i], energies[Ik_vib + j*N_vib], allprobs[i][Ik+j]);
   if (i < (num - 1))
    fprintf(kprobs_gnuplot, "\n");			// makes a blank line for gnuplot
  }
