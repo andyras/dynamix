@@ -402,8 +402,8 @@ int Output_checkpoint(
 #ifdef DEBUG
   FILE * realImaginary, 
 #endif
-  double ** allprobs, FILE * kprobFile, N_Vector outputData, realtype time,
-  realtype * totK, realtype * totC, realtype ** totB, realtype ** vibProb, realtype * times,
+  double ** allprobs, N_Vector outputData, realtype time,
+  realtype * totK, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
   realtype * energy_expectation, int index, realtype * energies) {
 
  int i, j, k, l;				// counters
@@ -411,9 +411,10 @@ int Output_checkpoint(
  double sinn, coss;				// these are used for computing observables
  						// in the interaction picture.
  int Idx;
- realtype sumkpop = 0;
- realtype sumcpop = 0;
- realtype temp;
+ double sumkpop = 0;
+ double sumcpop = 0;
+ double sumbpop = 0;
+ double temp;
 
 #ifdef DEBUG
  fprintf(realImaginary, "%-.7lf ", time);
@@ -432,11 +433,9 @@ int Output_checkpoint(
    Idx = Ik_vib + i*N_vib + j;			// indices
    temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
   }
-  fprintf(kprobFile, "%-.7lf %-.7lf %-.7lf\n", time, energies[Ik_vib + i*N_vib], temp);
   allprobs[index][Ik+i] = temp;
   sumkpop += temp;
  }
- fprintf(kprobFile, "\n");			// makes a blank line for gnuplot
  for (i = 0; i < Nc; i++) {			// c populations
   temp = 0.0;
   for (j = 0; j < N_vib; j++) {
@@ -452,7 +451,7 @@ int Output_checkpoint(
    Idx = Ib_vib + i*N_vib + j;			// indices
    temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
   }
-  totB[i][index] = temp;
+  sumbpop += temp;
   allprobs[index][Ib+i] = temp;
  }
  for (i = 0; i < N_vib; i++) {
@@ -464,6 +463,7 @@ int Output_checkpoint(
  }
  totK[index] = sumkpop;
  totC[index] = sumcpop;
+ totB[index] = sumbpop;
  times[index] = time;
 
  temp = 0.0;
@@ -522,13 +522,14 @@ realtype Find_array_maximum (realtype * inputArray, int num) {
 
 
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
-  realtype * tc, realtype ** tb, realtype ** vibProb, realtype * energies,
+  realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num) {
 
  FILE * tkprob;
  FILE * tcprob;
  FILE * vibprob;
  FILE * kprobs;
+ FILE * kprobs_gnuplot;
  FILE * cprobs;
  FILE * bprobs;
  FILE * Ikprob;
@@ -546,6 +547,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  tcprob = fopen("tcprob.out", "w");
  vibprob = fopen("vibprob.out", "w");
  kprobs = fopen("kprobs.out", "w");
+ kprobs_gnuplot = fopen("kprobs_gnuplot.out", "w");
  cprobs = fopen("cprobs.out", "w");
  bprobs = fopen("bprobs.out", "w");
  totprob = fopen("totprob.out", "w");
@@ -563,10 +565,17 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
    fprintf(kprobs, " %-.7lf", allprobs[i][Ik+j]);
   fprintf(kprobs, "\n");
  }
+ for (i = 0 ; i < num ; i++) {
+  for (j = 0 ; j < Nk ; j++ )
+   fprintf(kprobs_gnuplot, "%-.7lf %-.7lf %-.7lf\n", time[i], energies[Ik_vib + i*N_vib], allprobs[i][Ik+j]);
+  if (i < (num - 1))
+   fprintf(kprobs_gnuplot, "\n");			// makes a blank line for gnuplot
+ }
+
 
  for (i = 0 ; i < num ; i++) {				// print c probabilities over time
   fprintf(cprobs, "%-.7lf", time[i]);
-  for (j = 0; j < Nk ; j++)
+  for (j = 0; j < Nc ; j++)
    fprintf(cprobs, " %-.7lf", allprobs[i][Ic+j]);
   fprintf(cprobs, "\n");
  }
@@ -587,61 +596,45 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   Ibprob = fopen("Ibprob.out", "w");
   bmax = fopen("bmax.out", "w");
 
-  for (i = 0; i <= num; i++) {
-   fprintf(tbprob, "%-.7lf %-.7lf", time[i], tb[0][i]);
-   for (j = 1; j < Nb; j++)
-    fprintf(tbprob, " %-.7lf", tb[j][i]);
-   fprintf(tbprob, "\n");
-  }
+  for (i = 0; i <= num; i++)				// print total b population
+   fprintf(tbprob, "%-.7lf %-.7lf\n", time[i], tb[i]);
   
-  fprintf(Ibprob, "%-.7lf", Integrate_arrays(tb[0], time, num+1));
-  for (i = 1; i < Nb; i++)
-   fprintf(Ibprob, " %-.7lf", Integrate_arrays(tb[i], time, num+1));
+  fprintf(Ibprob, "%-.7lf", Integrate_arrays(tb, time, num+1));
   
-  fprintf(bmax, "%-.7lf", Find_array_maximum(tb[0], num+1));
-  for (i = 1; i < Nb; i++)
+  fprintf(bmax, "%-.7lf", Find_array_maximum(tb, num+1));
   
-   fprintf(bmax, "%-.7lf", Find_array_maximum(tb[i], num+1));
   fclose(tbprob);
   fclose(Ibprob);
   fclose(bmax);
  }
 
- fprintf(Ikprob, "%-.7lf", Integrate_arrays(tk, time, num+1));
- 
- for (i = 0; i <= num; i++) {
+ for (i = 0; i <= num; i++) {				// print total k, c population
   fprintf(tkprob, "%-.7lf %-.7lf\n", time[i], tk[i]);
   fprintf(tcprob, "%-.7lf %-.7lf\n", time[i], tc[i]);
   summ = tk[i] + tc[i];
   if (Nb > 0)
-   for (j = 0; j < Nb; j++)
-    summ += tb[j][i];
+   summ += tb[i];
   fprintf(totprob, "%-.7lf %-.15lf\n", time[i], summ);
  }
 
- for (i = 0; i <= num; i++) {
+ for (i = 0; i <= num; i++) {				// print vibrational populations
   fprintf(vibprob, "%-.7lf %-.7lf", time[i], vibProb[i][0]);
   for (j = 1; j < N_vib; j++)
    fprintf(vibprob, " %-.7lf", vibProb[i][j]);
   fprintf(vibprob, "\n");
  }
 
+ fprintf(Ikprob, "%-.7lf", Integrate_arrays(tk, time, num+1));
  fprintf(Icprob, "%-.7lf", Integrate_arrays(tc, time, num+1));
-
+ 
  fprintf(kmax, "%-.7lf", Find_array_maximum(tk, num+1));
  fprintf(cmax, "%-.7lf", Find_array_maximum(tc, num+1));
 
  // energy.out should be all the energies on one row, since it's used for
  // the movie maker.
- for (i = 0; i < Nk; i++)
-  fprintf(energy, "%-.7lf ", energies[Ik_vib + i*N_vib]);
- for (i = 0; i < Nc; i++)
-  fprintf(energy, "%-.7lf ", energies[Ic_vib + i*N_vib]);
- for (i = 0; i < Nb; i++) {
-  fprintf(energy, "%-.7lf ", energies[Ib_vib + i*N_vib]);
-  if (i < (Nb - 1))
-   fprintf(energy, "\n");
- }
+ fprintf(energy, "%-.7lf", energies[0]);
+ for (i = 1; i < NEQ; i++)
+  fprintf(energy, " %-.7lf", energies[i*N_vib]);
 
  for (i = 0; i <= num; i++)
   fprintf(times, "%-.7lf\n", time[i]);
@@ -688,11 +681,10 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  FILE * realImaginary;				// file containing real and imaginary parts of the wavefunction
 #endif
- FILE * kprob;					// file formatted for plotting in gnuplot
- FILE * log;
+ FILE * log;					// log file with run times
  realtype * tkprob; 				// total probability in k, c, b states at each timestep
  realtype * tcprob;
- realtype ** tbprob;
+ realtype * tbprob;
  realtype ** vibprob;
  double ** allprob;				// populations in all states at all times
  realtype * times;
@@ -758,15 +750,13 @@ int main (int argc, char * argv[]) {
  NEQ_vib = (Nk+Nc+Nb)*N_vib;
  tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
  tcprob = new realtype [numOutputSteps+1];
- tbprob = new realtype * [numOutputSteps+1];
- for (i = 0; i < Nb; i++)
-  tbprob[i] = new realtype [numOutputSteps+1];
+ tbprob = new realtype [numOutputSteps+1];
  vibprob = new realtype * [numOutputSteps+1];
  for (i = 0; i < numOutputSteps+1; i++)
   vibprob[i] = new realtype [N_vib];
- allprob = new realtype * [numOutputSteps+1];
+ allprob = new double * [numOutputSteps+1];
  for (i = 0; i < numOutputSteps+1; i++)
-  allprob[i] = new realtype [NEQ];
+  allprob[i] = new double [NEQ];
  times = new realtype [numOutputSteps+1];
  energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
  Ik = 0;					// set index start positions for each type of state
@@ -909,12 +899,11 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
 #endif
- kprob = fopen("kprob.out", "w");
  Output_checkpoint(
 #ifdef DEBUG
    realImaginary, 
 #endif
-   allprob, kprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
+   allprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -960,13 +949,12 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
      realImaginary, 
 #endif
-     allprob, kprob, yout, t, tkprob, tcprob, tbprob, vibprob, times,
+     allprob, yout, t, tkprob, tcprob, tbprob, vibprob, times,
      energy_expectation, (i*numOutputSteps/numsteps), energy);
  }
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
- fclose(kprob);
 
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,
