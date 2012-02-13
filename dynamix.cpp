@@ -521,6 +521,22 @@ realtype Find_array_maximum (realtype * inputArray, int num) {
 }
 
 
+realtype Find_first_array_maximum (realtype * inputArray, int num) {
+
+ int i;
+ realtype currentMax = inputArray[0];
+
+ for (i = 1; i < num; i++) {
+  if (inputArray[i] > currentMax)
+   currentMax = inputArray[i];
+  if (inputArray[i] < currentMax)
+   break;
+ }
+
+ return currentMax;
+}
+
+
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num) {
@@ -536,6 +552,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * Icprob;
  FILE * kmax;
  FILE * cmax;
+ FILE * cmax_first;
  FILE * totprob;
  FILE * energy;
  FILE * times;
@@ -555,6 +572,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  Icprob = fopen("Icprob.out", "w");
  kmax = fopen("kmax.out", "w");
  cmax = fopen("cmax.out", "w");
+ cmax_first = fopen("cmax_first.out", "w");
  energy = fopen("energy.out", "w");
  times = fopen("times.out", "w");
  energy_exp = fopen("energy_exp.out", "w");
@@ -591,6 +609,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   FILE * tbprob;
   FILE * Ibprob;
   FILE * bmax;
+  double max_b_prob = 0;
 
   tbprob = fopen("tbprob.out", "w");
   Ibprob = fopen("Ibprob.out", "w");
@@ -601,7 +620,15 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   
   fprintf(Ibprob, "%-.7lf", Integrate_arrays(tb, time, num+1));
   
-  fprintf(bmax, "%-.7lf", Find_array_maximum(tb, num+1));
+  for (i = 0 ; i < num + 1 ; i++) {
+   for (j = 0 ; j < Nb ; j++) {
+    if (allprobs[i][Ib+j] > max_b_prob) {
+     max_b_prob = allprobs[i][Ib+j];
+    }
+   }
+  }
+  //fprintf(bmax, "%-.7lf", Find_array_maximum(tb, num+1));
+  fprintf(bmax, "%-.7lf", max_b_prob);
   
   fclose(tbprob);
   fclose(Ibprob);
@@ -629,6 +656,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  
  fprintf(kmax, "%-.7lf", Find_array_maximum(tk, num+1));
  fprintf(cmax, "%-.7lf", Find_array_maximum(tc, num+1));
+ fprintf(cmax_first, "%-.7lf", Find_first_array_maximum(tc, num+1));
 
  // energy.out should be all the energies on one row, since it's used for
  // the movie maker.
@@ -653,6 +681,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  fclose(Icprob);
  fclose(kmax);
  fclose(cmax);
+ fclose(cmax_first);
  fclose(energy);
  fclose(times);
 }
@@ -734,6 +763,8 @@ int main (int argc, char * argv[]) {
  c_energies = new realtype [Nc];
  b_energies = new realtype [Nb];
  Vbridge = new realtype [Nb+1];
+ if (Number_of_values("ins/c_pops.in") != Nc)
+  fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.");
  Read_array_from_file(c_pops, "ins/c_pops.in", Nc);
  Read_array_from_file(c_energies, "ins/c_energies.in", Nc);
  if ( Nb > 0) {
@@ -768,6 +799,7 @@ int main (int argc, char * argv[]) {
  Build_k_energies(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
  Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
+ Initialize_array(k_pops, 1, 1.0);		// populate k states (all zero to start off)
  //Build_k_pops(k_pops, k_energies, k_bandedge, temperature);	// populate k states (all zero to start off)
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
