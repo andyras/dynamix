@@ -7,8 +7,8 @@
 ## FLAGS FOR RUN ##
       do_compile="y"
 	  do_run="y"
-    make_plotter="y"
-	 do_plot="y"
+    make_plotter="n"
+	 do_plot="n"
 make_movie_maker="n"
 	do_movie="n"
       do_cleanup="y"

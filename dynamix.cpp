@@ -101,15 +101,15 @@ void Initialize_array(realtype * array, int n, realtype initializeValue) {
 }
 
 
-void Build_k_energies(realtype * kEnergies, int numberOfKStates, realtype kBandEdge, realtype kBandTop) {
+void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {
  
  int i;
 
- kEnergies[0] = kBandEdge;	// the bottom of the conduction band is set
+ Energies[0] = BandEdge;	// the bottom of the conduction band is set
  
- // loop over the remaining states.  This way the top of the band will be at kBandTop
- for (i = 1; i < numberOfKStates; i++) {
-  kEnergies[i] = kEnergies[i-1] + (kBandTop-kBandEdge)/(numberOfKStates-1);
+ // loop over the remaining states.  This way the top of the band will be at BandTop
+ for (i = 1; i < numberOfStates; i++) {
+  Energies[i] = Energies[i-1] + (BandTop-BandEdge)/(numberOfStates-1);
  }
 }
 
@@ -796,7 +796,7 @@ int main (int argc, char * argv[]) {
  Ik_vib = 0;
  Ic_vib = Nk*N_vib;
  Ib_vib = Ic_vib + Nc*N_vib;
- Build_k_energies(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
+ Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
  Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
  Initialize_array(k_pops, 1, 1.0);		// populate k states (all zero to start off)
