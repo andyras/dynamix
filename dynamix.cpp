@@ -142,10 +142,11 @@ void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int num
 void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop) {
  
  int i, j;					// counters
- int scaleV = 1;
+ int scale_kV = 1;				// flag to scale coupling to k states
+ int scale_cV = 0;				// flag to scale coupling to c states
  realtype Vkc = 0.007349968763;
 
- if ((scaleV == 1) && (Nk > 1))
+ if ((scale_kV == 1) && (Nk > 1))
   Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
 
  for (i = 0; i < dim; i++)			// initialize
@@ -160,7 +161,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
    }
  if (Nb > 0) {					// bridge
   // coupling between k and b1
-  if ((scaleV == 1) && (Nk > 1)) {
+  if ((scale_kV == 1) && (Nk > 1)) {
    for (i = 0; i < Nk; i++) {
     vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
     vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
@@ -173,7 +174,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
    }
   }
   // coupling between bN and c
-  if ((scaleV == 1) && (Nc > 1)) {
+  if ((scale_cV == 1) && (Nc > 1)) {
    for (i = 0; i < Nc; i++) {
     vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb]/sqrt(Nc-1);
     vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb]/sqrt(Nc-1);
@@ -698,6 +699,7 @@ int main (int argc, char * argv[]) {
  realtype * k_energies;				// pointers to arrays of energies
  realtype * c_energies;
  realtype * b_energies;
+ int Nk_init;					// number of k states initially populated
  realtype k_bandedge;				// lower edge of bulk conduction band
  realtype k_bandtop;				// upper edge of bulk conduction band
  realtype temperature;				// system temperature
@@ -727,24 +729,30 @@ int main (int argc, char * argv[]) {
  fprintf(log, "Run started at %s\n", asctime(currentTime));
  
  // ASSIGN VARIABLES FROM RUN SCRIPT //
- realtype abstol = atof(argv[1]);		// absolute tolerance (for SUNDIALS)
- realtype reltol = atof(argv[2]);		// relative tolerance (for SUNDIALS)
- realtype tout = atof(argv[3]);			// final time reached by solver in atomic units
- int numsteps = atoi(argv[4]);			// number of time steps
- int numOutputSteps = atoi(argv[5]);
+ i = 0;
+ realtype abstol = atof(argv[++i]);		// absolute tolerance (for SUNDIALS)
+ realtype reltol = atof(argv[++i]);		// relative tolerance (for SUNDIALS)
+ realtype tout = atof(argv[++i]);			// final time reached by solver in atomic units
+ int numsteps = atoi(argv[++i]);			// number of time steps
+ int numOutputSteps = atoi(argv[++i]);
  // bulk parameters //
- k_bandedge = atof(argv[6]);			// lower band edge of conduction band
- k_bandtop = atof(argv[7]);			// upper band edge of bulk conduction band
- Nk = atoi(argv[8]);				// number of k states
+ k_bandedge = atof(argv[++i]);			// lower band edge of conduction band
+ k_bandtop = atof(argv[++i]);			// upper band edge of bulk conduction band
+ Nk = atoi(argv[++i]);				// number of k states
+ Nk_init = atoi(argv[++i]);			// number of k states initially populated
+ if (Nk_init > Nk || Nk_init < 0) {
+  fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk.\n");
+  return -1;
+ }
  // physical parameters //
- temperature = atof(argv[9]);			// temperature of the system
+ temperature = atof(argv[++i]);			// temperature of the system
  // vibronic parameters //
- N_vib = atoi(argv[10]);			// number of vibronic states
- E_vib = atof(argv[11]);			// vibrational energy
- gkc = atof(argv[12]);				// g factor between k and c states
- gkb = atof(argv[13]);				// g factor between k and b states
- gbc = atof(argv[14]);				// g factor between b and c states
- gbb = atof(argv[15]);				// g factor between b states
+ N_vib = atoi(argv[++i]);			// number of vibronic states
+ E_vib = atof(argv[++i]);			// vibrational energy
+ gkc = atof(argv[++i]);				// g factor between k and c states
+ gkb = atof(argv[++i]);				// g factor between k and b states
+ gbc = atof(argv[++i]);				// g factor between b and c states
+ gbb = atof(argv[++i]);				// g factor between b states
 #ifdef DEBUG
  cout << endl;
  for (i = 0; i < argc; i++)
@@ -799,7 +807,7 @@ int main (int argc, char * argv[]) {
  Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
  Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
- Initialize_array(k_pops, 1, 1.0);		// populate k states (all zero to start off)
+ Initialize_array(k_pops, Nk_init, 1.0);	// populate k states
  //Build_k_pops(k_pops, k_energies, k_bandedge, temperature);	// populate k states (all zero to start off)
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)

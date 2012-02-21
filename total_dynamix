@@ -28,6 +28,7 @@ k_bandedge=0.00				# lower band edge of bulk conduction band
 k_bandtop=0.00734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=100					# number of k states to have
+Nk_init=10				# number of k states initially populated
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -54,7 +55,7 @@ function compile_fail {
 function run {
 ## RUN THE PROGRAM! ##
  echo "### $(date) running dynamix..."
- ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run :("
+ ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $Nk_init $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run :("
  mkdir -p outs
  mv *.out outs/
 }
