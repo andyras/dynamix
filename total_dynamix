@@ -5,10 +5,10 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="y"
-	  do_run="y"
-    make_plotter="n"
-	 do_plot="n"
+      do_compile="n"
+	  do_run="n"
+    make_plotter="y"
+	 do_plot="y"
 make_movie_maker="n"
 	do_movie="n"
       do_cleanup="y"
@@ -67,6 +67,7 @@ function run_fail {
 
 function plot_maker {
 ## GENERATE POPULATION PLOTSCRIPT ##
+tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
  echo "### $(date) making plots..."
  echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
 set output 'populations.eps'
@@ -83,6 +84,7 @@ set lmargin 24
 set border 10
 set ytics scale 0.5
 set ylabel 'Population (a.u.)'
+set xrange [0:$tout_fs]
 set xtics nomirror scale 0.5" > plot_pops
  # k and c population plot
  if [ $(($Nb)) == 0 ]
