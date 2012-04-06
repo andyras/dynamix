@@ -399,6 +399,33 @@ int Normalize_NV(N_Vector nv, realtype total) {
 }
 
 
+int Derivative(double *inputArray, double *outputArray, double timestep) {
+
+ int i;		// counter
+ int inputLength;
+ double deriv;	// derivative value at each time
+
+ inputLength = sizeof inputArray;
+
+ if (inputLength < 6 ) {
+  fprintf(stderr, "ERROR [Derivative]: array has length less than 6 elements, cannot proceed");
+  return -1;
+ }
+
+ for (i = 2; i < inputLength-3; i++) {
+  deriv = (2*inputArray[i+3]
+          -15*inputArray[i+2]
+	  +60*inputArray[i+1]
+	  -20*inputArray[i]
+	  -30*inputArray[i-1]
+	  +3 *inputArray[i-2])/(60*timestep);
+  cout << "derivative at point " << i << " is " << deriv << endl;
+ }
+
+ return 0;
+}
+
+
 int Output_checkpoint(
 #ifdef DEBUG
   FILE * realImaginary, 
@@ -541,6 +568,8 @@ realtype Find_first_array_maximum (realtype * inputArray, int num) {
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num) {
+ //KILL
+ Derivative(energies, energies, time[1]-time[0]);
 
  FILE * tkprob;
  FILE * tcprob;

@@ -5,13 +5,13 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="n"
-	  do_run="n"
-    make_plotter="y"
-	 do_plot="y"
+      do_compile="y"
+	  do_run="y"
+    make_plotter="n"
+	 do_plot="n"
 make_movie_maker="n"
 	do_movie="n"
-      do_cleanup="y"
+      do_cleanup="n"
   do_fullcleanup="n"
        do_backup="n"
 
