@@ -5,15 +5,15 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="n"
-	  do_run="n"
-    make_plotter="y"
-	 do_plot="y"
-make_movie_maker="n"
-	do_movie="n"
-      do_cleanup="y"
-  do_fullcleanup="n"
-       do_backup="n"
+	do_compile="n"
+	    do_run="n"
+      make_plotter="y"
+	   do_plot="y"
+  make_movie_maker="n"
+	  do_movie="n"
+	do_cleanup="y"
+    do_fullcleanup="n"
+	 do_backup="n"
 
 ## INPUT PARAMETERS ##
 
@@ -129,12 +129,50 @@ unset colorbox
 set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 splot './outs/kprobs_gnuplot.out'" > plot_kpops
+
+echo "set terminal postscript enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,10'
+set output 'time_and_space.eps'
+
+set multiplot
+
+set style data lines
+set style increment user
+set style line 1 lt 1 lc rgb 'red'
+set style line 2 lt 1 lc rgb 'green'
+set style line 3 lt 1 lc rgb 'blue'
+
+set lmargin 24
+set key lmargin
+
+set xrange [0:$tout]
+
+set ytics nomirror scale 0.5
+unset xtics
+
+set size 1, 0.33
+set origin 0.0,0.66
+plot 'outs/tkprob.out' u 1:2 t 'Bulk' lt 1
+
+set size 1, 0.33
+set origin 0.0,0.0
+set xlabel 'Time (a.u.)'
+set xtics nomirror scale 0.5
+plot 'outs/tcprob.out' u 1:2 t 'QD' lt 2
+unset xtics
+unset xlabel
+
+set size 1, 0.33
+set origin 0.0,0.33
+set ylabel 'Population (a.u.)'
+plot 'outs/tbprob.out' u 1:2 t 'Bridge' lt 3" > time_and_space.plt
 }
 
 function plot {
  gnuplot 'plot_pops'
  gnuplot 'plot_kpops'
+ gnuplot time_and_space.plt
  [ "$do_fullcleanup" == 'y' ] && rm -f plot_pops
+ [ "$do_fullcleanup" == 'y' ] && rm -f time_and_space.plt
  [ "$do_fullcleanup" == 'y' ] && rm -f plot_kpops && echo "### $(date) done plotting!"
 }
 
@@ -257,6 +295,7 @@ if [ "$do_run" == 'y' ] ; then
 fi
 [ "$make_plotter" == 'y' ] && plot_maker
 [ "$do_plot" == 'y' ] && plot
+[ "$do_time_space_plot" == 'y' ] && time_space_plot
 [ "$make_movie_maker" == 'y' ] && movie_maker
 [ "$do_movie" == 'y' ] && movie
 [ "$do_backup" == 'y' ] && backup

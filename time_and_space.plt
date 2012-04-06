@@ -12,6 +12,8 @@ set style line 3 lt 1 lc rgb 'blue'
 set lmargin 24
 set key lmargin
 
+set xrange [0:20000]
+
 set ytics nomirror scale 0.5
 unset xtics
 
