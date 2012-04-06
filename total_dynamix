@@ -5,15 +5,15 @@
 
 
 ## FLAGS FOR RUN ##
-	do_compile="n"
-	    do_run="n"
-      make_plotter="y"
-	   do_plot="y"
-  make_movie_maker="n"
-	  do_movie="n"
-	do_cleanup="y"
-    do_fullcleanup="n"
-	 do_backup="n"
+      do_compile="n"
+	  do_run="n"
+    make_plotter="y"
+	 do_plot="y"
+make_movie_maker="n"
+	do_movie="n"
+      do_cleanup="y"
+  do_fullcleanup="n"
+       do_backup="n"
 
 ## INPUT PARAMETERS ##
 
@@ -85,16 +85,16 @@ set border 10
 set ytics scale 0.5
 set ylabel 'Population (a.u.)'
 set xrange [0:$tout_fs]
-set xtics nomirror scale 0.5" > plot_pops
+set xtics nomirror scale 0.5" > populations.plt
  # k and c population plot
  if [ $(($Nb)) == 0 ]
  then
-  echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> plot_pops
+  echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> populations.plt
   else
-  echo "set size 1, 0.7; set origin 0.0,0.3" >> plot_pops
+  echo "set size 1, 0.7; set origin 0.0,0.3" >> populations.plt
  fi
- echo "plot 'outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> plot_pops
- echo "'outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> plot_pops
+ echo "plot 'outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> populations.plt
+ echo "'outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> populations.plt
  # Bridge population plot
  if [ $((Nb)) -ge 1 ]
   then
@@ -102,19 +102,20 @@ set xtics nomirror scale 0.5" > plot_pops
    echo "set size 1, 0.3
 set origin 0.0,0.0
 set format y '%.2e'
-set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> plot_pops
+set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> populations.plt
  fi
- echo "set xlabel 'Time (fs)'" >> plot_pops
- echo "set ylabel 'Bridge Pop. (a.u.)'" >> plot_pops
- [ $((Nb)) -ge 1 ] && echo -n "plot 'outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> plot_pops
+ echo "set xlabel 'Time (fs)'" >> populations.plt
+ echo "set ylabel 'Bridge Pop. (a.u.)'" >> populations.plt
+ [ $((Nb)) -ge 1 ] && echo -n "plot 'outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> populations.plt
  for ((i=0 ; i < $(($Nb - 1)) ; i++))
  do
-  echo ", \\" >> plot_pops
-  echo -n "'outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> plot_pops
+  echo ", \\" >> populations.plt
+  echo -n "'outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> populations.plt
  done
+
  # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
-echo "set terminal postscript eps enhanced colour
+ echo "set terminal postscript eps enhanced colour
 set output \"kprob.eps\"
 set title \"Electron probability density in bulk conduction band\"
 set border 0
@@ -128,7 +129,7 @@ unset key
 unset colorbox
 set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
-splot './outs/kprobs_gnuplot.out'" > plot_kpops
+splot './outs/kprobs_gnuplot.out'" > kpops.plt
 
 echo "set terminal postscript enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,10'
 set output 'time_and_space.eps'
@@ -168,12 +169,12 @@ plot 'outs/tbprob.out' u 1:2 t 'Bridge' lt 3" > time_and_space.plt
 }
 
 function plot {
- gnuplot 'plot_pops'
- gnuplot 'plot_kpops'
+ gnuplot 'populations.plt'
+ gnuplot 'kpops.plt'
  gnuplot time_and_space.plt
- [ "$do_fullcleanup" == 'y' ] && rm -f plot_pops
+ [ "$do_fullcleanup" == 'y' ] && rm -f populations.plt
  [ "$do_fullcleanup" == 'y' ] && rm -f time_and_space.plt
- [ "$do_fullcleanup" == 'y' ] && rm -f plot_kpops && echo "### $(date) done plotting!"
+ [ "$do_fullcleanup" == 'y' ] && rm -f kpops.plt && echo "### $(date) done plotting!"
 }
 
 function movie_maker {
@@ -192,7 +193,7 @@ function movie_maker {
  
  echo "set term png truecolor size 800,800 font 'Arial-Bold,14'
 set xtics scale 0
-unset key" > plot_movie
+unset key" > movie.plt
 
  xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
  for (( i=0 ; i<=$tout ; i+=1000 ))	# builds the xtics string
@@ -242,7 +243,7 @@ set title \"Bulk populations at time = $time_x $time_unit\"
 plot [$k_bandedge:$k_bandtop] [0:$max_pop] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve x1
 unset title
 
-unset multiplot" >> plot_movie
+unset multiplot" >> movie.plt
  done
  echo "### $(date) done making movie maker!"
 }
@@ -253,13 +254,13 @@ function movie {
  echo "### $(date) making .png for each frame of the movie..."
  mkdir -p img
  rm -rf img/*
- gnuplot plot_movie && echo "### $(date) done making .pngs!"
+ gnuplot movie.plt && echo "### $(date) done making .pngs!"
  echo "### $(date) making movie..."
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  echo "### $(date) done\! movie is bulk_states.avi"
  rm -rf img
- [ "$do_fullcleanup" == 'y' ] && rm -f plot_movie
+ [ "$do_fullcleanup" == 'y' ] && rm -f movie.plt
  [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
  [ "$do_cleanup" == 'y' ] && rm -f temp*.out
  [ "$do_cleanup" == 'y' ] && rm -f transpose.out
