@@ -28,11 +28,12 @@ using namespace std;
  int Ib_vib;
  int NEQ;				// total number of states/equations
  int NEQ_vib;
- double E_vib;					// vibrational energy
- double gkc;					// g factor between k and c states
- double gkb;					// g factor between k and b states
- double gbc;					// g factor between b and c states
- double gbb;					// g factor between b states
+ int numOutputSteps;			// number of timesteps
+ double E_vib;				// vibrational energy
+ double gkc;				// g factor between k and c states
+ double gkb;				// g factor between k and b states
+ double gbc;				// g factor between b and c states
+ double gbb;				// g factor between b states
  realtype ** V;				// pointer to k-c coupling constants
  realtype ** FCkc;			// Franck-Condon factors
  realtype ** FCkb;
@@ -399,13 +400,9 @@ int Normalize_NV(N_Vector nv, realtype total) {
 }
 
 
-int Derivative(double *inputArray, double *outputArray, double timestep) {
+int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep) {
 
  int i;		// counter
- int inputLength;
- double deriv;	// derivative value at each time
-
- inputLength = sizeof inputArray;
 
  if (inputLength < 6 ) {
   fprintf(stderr, "ERROR [Derivative]: array has length less than 6 elements, cannot proceed");
@@ -413,13 +410,12 @@ int Derivative(double *inputArray, double *outputArray, double timestep) {
  }
 
  for (i = 2; i < inputLength-3; i++) {
-  deriv = (2*inputArray[i+3]
+  outputArray[i-2] = (2*inputArray[i+3]
           -15*inputArray[i+2]
 	  +60*inputArray[i+1]
 	  -20*inputArray[i]
 	  -30*inputArray[i-1]
 	  +3 *inputArray[i-2])/(60*timestep);
-  cout << "derivative at point " << i << " is " << deriv << endl;
  }
 
  return 0;
@@ -568,8 +564,6 @@ realtype Find_first_array_maximum (realtype * inputArray, int num) {
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num) {
- //KILL
- Derivative(energies, energies, time[1]-time[0]);
 
  FILE * tkprob;
  FILE * tcprob;
@@ -714,6 +708,25 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  fclose(cmax_first);
  fclose(energy);
  fclose(times);
+
+ // compute derivatives
+ FILE * tkDeriv;
+ FILE * tcDeriv;
+ double * tkderivs = new double [numOutputSteps-5];
+ double * tcderivs = new double [numOutputSteps-5];
+ tkDeriv = fopen("tkderiv.out","w");
+ tcDeriv = fopen("tcderiv.out","w");
+ Derivative(tk, numOutputSteps, tkderivs, time[1]-time[0]);
+ Derivative(tc, numOutputSteps, tcderivs, time[1]-time[0]);
+ for (i = 0; i < numOutputSteps-5; i++) {
+  fprintf(tkDeriv, "%-.7lf %-.9lf\n", time[i+2], tkderivs[i]);
+  fprintf(tcDeriv, "%-.7lf %-.9lf\n", time[i+2], tcderivs[i]);
+  cout << "whoo " << i << "\n";
+  cout << "time[" << i+2 << "+2] " << time[i+2] << endl;
+  cout << "tkderivs[" << i << "] " << tkderivs[i] << endl;
+ }
+ fclose(tkDeriv);
+ fclose(tcDeriv);
 }
 
 int main (int argc, char * argv[]) {
@@ -763,7 +776,7 @@ int main (int argc, char * argv[]) {
  realtype reltol = atof(argv[++i]);		// relative tolerance (for SUNDIALS)
  realtype tout = atof(argv[++i]);			// final time reached by solver in atomic units
  int numsteps = atoi(argv[++i]);			// number of time steps
- int numOutputSteps = atoi(argv[++i]);
+ numOutputSteps = atoi(argv[++i]);
  // bulk parameters //
  k_bandedge = atof(argv[++i]);			// lower band edge of conduction band
  k_bandtop = atof(argv[++i]);			// upper band edge of bulk conduction band
