@@ -783,7 +783,7 @@ int main (int argc, char * argv[]) {
  Nk = atoi(argv[++i]);				// number of k states
  Nk_init = atoi(argv[++i]);			// number of k states initially populated
  if (Nk_init > Nk || Nk_init < 0) {
-  fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk.\n");
+  fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk or less than 0.\n");
   return -1;
  }
  // physical parameters //

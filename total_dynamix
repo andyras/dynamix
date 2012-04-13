@@ -5,13 +5,13 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="y"
-	  do_run="y"
-    make_plotter="n"
-	 do_plot="n"
+      do_compile="n"
+	  do_run="n"
+    make_plotter="y"
+	 do_plot="y"
 make_movie_maker="n"
 	do_movie="n"
-      do_cleanup="n"
+      do_cleanup="y"
   do_fullcleanup="n"
        do_backup="n"
 
@@ -26,17 +26,18 @@ numOutputSteps=600			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band
 k_bandtop=0.00734996876			# upper band edge of bulk conduction band
+k_bandtop=0.00735			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=100					# number of k states to have
-Nk_init=10				# number of k states initially populated
+Nk_init=1				# number of k states initially populated
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
 N_vib=1					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
-gkb=1.0					# g factor between k and b states
-gbc=-1.0					# g factor between b and c states
+gkb=0.0					# g factor between k and b states
+gbc=-0.0					# g factor between b and c states
 gbb=0.0					# g factor between b states
 
 function compile {
@@ -70,7 +71,7 @@ function plot_maker {
 tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
  echo "### $(date) making plots..."
  echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
-set output 'populations.eps'
+set output 'figures/populations.eps'
 set multiplot
 set style data lines
 set style line 1 lw 2 lt 1 lc rgb 'red'
@@ -85,16 +86,16 @@ set border 10
 set ytics scale 0.5
 set ylabel 'Population (a.u.)'
 set xrange [0:$tout_fs]
-set xtics nomirror scale 0.5" > populations.plt
+set xtics nomirror scale 0.5" > figures/populations.plt
  # k and c population plot
  if [ $(($Nb)) == 0 ]
  then
-  echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> populations.plt
+  echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> figures/populations.plt
   else
-  echo "set size 1, 0.7; set origin 0.0,0.3" >> populations.plt
+  echo "set size 1, 0.7; set origin 0.0,0.3" >> figures/populations.plt
  fi
- echo "plot 'outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> populations.plt
- echo "'outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> populations.plt
+ echo "plot './outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> figures/populations.plt
+ echo "'./outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> figures/populations.plt
  # Bridge population plot
  if [ $((Nb)) -ge 1 ]
   then
@@ -102,37 +103,37 @@ set xtics nomirror scale 0.5" > populations.plt
    echo "set size 1, 0.3
 set origin 0.0,0.0
 set format y '%.2e'
-set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> populations.plt
+set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
  fi
- echo "set xlabel 'Time (fs)'" >> populations.plt
- echo "set ylabel 'Bridge Pop. (a.u.)'" >> populations.plt
- [ $((Nb)) -ge 1 ] && echo -n "plot 'outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> populations.plt
+ echo "set xlabel 'Time (fs)'" >> figures/populations.plt
+ echo "set ylabel 'Bridge Pop. (a.u.)'" >> figures/populations.plt
+ [ $((Nb)) -ge 1 ] && echo -n "plot './outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> figures/populations.plt
  for ((i=0 ; i < $(($Nb - 1)) ; i++))
  do
-  echo ", \\" >> populations.plt
-  echo -n "'outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> populations.plt
+  echo ", \\" >> figures/populations.plt
+  echo -n "'./outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> figures/populations.plt
  done
 
  # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
  echo "set terminal postscript eps enhanced colour
-set output \"kprob.eps\"
-set title \"Electron probability density in bulk conduction band\"
+set output 'figures/kprob.eps'
+set title 'Electron probability density in bulk conduction band'
 set border 0
 set ytics scale 0
 set xtics scale 0
-set ylabel \"Energy above band edge \(a.u.\)\"
-set xlabel \"Time (a.u.)\"
+set ylabel 'Energy above band edge (a.u.)'
+set xlabel 'Time (a.u.)'
 set xrange [0:$tout]
 set yrange [$k_bandedge:$new_k_bandtop]
 unset key
 unset colorbox
 set pm3d map
 set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
-splot './outs/kprobs_gnuplot.out'" > kpops.plt
+splot './outs/kprobs_gnuplot.out'" > figures/kpops.plt
 
 echo "set terminal postscript enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,10'
-set output 'time_and_space.eps'
+set output 'figures/time_and_space.eps'
 
 set multiplot
 
@@ -152,29 +153,29 @@ unset xtics
 
 set size 1, 0.33
 set origin 0.0,0.66
-plot 'outs/tkprob.out' u 1:2 t 'Bulk' lt 1
+plot './outs/tkprob.out' u 1:2 t 'Bulk' lt 1
 
 set size 1, 0.33
 set origin 0.0,0.0
 set xlabel 'Time (a.u.)'
 set xtics nomirror scale 0.5
-plot 'outs/tcprob.out' u 1:2 t 'QD' lt 2
+plot './outs/tcprob.out' u 1:2 t 'QD' lt 2
 unset xtics
 unset xlabel
 
 set size 1, 0.33
 set origin 0.0,0.33
 set ylabel 'Population (a.u.)'
-plot 'outs/tbprob.out' u 1:2 t 'Bridge' lt 3" > time_and_space.plt
+plot './outs/tbprob.out' u 1:2 t 'Bridge' lt 3" > figures/time_and_space.plt
 }
 
 function plot {
- gnuplot 'populations.plt'
- gnuplot 'kpops.plt'
- gnuplot time_and_space.plt
- [ "$do_fullcleanup" == 'y' ] && rm -f populations.plt
- [ "$do_fullcleanup" == 'y' ] && rm -f time_and_space.plt
- [ "$do_fullcleanup" == 'y' ] && rm -f kpops.plt && echo "### $(date) done plotting!"
+ gnuplot figures/populations.plt
+ gnuplot figures/kpops.plt
+ gnuplot figures/time_and_space.plt
+ [ "$do_fullcleanup" == 'y' ] && rm -f figures/populations.plt
+ [ "$do_fullcleanup" == 'y' ] && rm -f figures/time_and_space.plt
+ [ "$do_fullcleanup" == 'y' ] && rm -f figures/kpops.plt && echo "### $(date) done plotting!"
 }
 
 function movie_maker {
@@ -193,7 +194,7 @@ function movie_maker {
  
  echo "set term png truecolor size 800,800 font 'Arial-Bold,14'
 set xtics scale 0
-unset key" > movie.plt
+unset key" > figures/movie.plt
 
  xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
  for (( i=0 ; i<=$tout ; i+=1000 ))	# builds the xtics string
@@ -240,10 +241,10 @@ set ytics scale 1 nomirror
 set xlabel \"Energy above band edge \(a.u.\)\"
 set ylabel \"Electron probability\"
 set title \"Bulk populations at time = $time_x $time_unit\"
-plot [$k_bandedge:$k_bandtop] [0:$max_pop] \"transpose.out\" every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve x1
+plot [$k_bandedge:$k_bandtop] [0:$max_pop] '../transpose.out' every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve x1
 unset title
 
-unset multiplot" >> movie.plt
+unset multiplot" >> figures/movie.plt
  done
  echo "### $(date) done making movie maker!"
 }
@@ -254,13 +255,13 @@ function movie {
  echo "### $(date) making .png for each frame of the movie..."
  mkdir -p img
  rm -rf img/*
- gnuplot movie.plt && echo "### $(date) done making .pngs!"
+ gnuplot figures/movie.plt && echo "### $(date) done making .pngs!"
  echo "### $(date) making movie..."
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  echo "### $(date) done\! movie is bulk_states.avi"
  rm -rf img
- [ "$do_fullcleanup" == 'y' ] && rm -f movie.plt
+ [ "$do_fullcleanup" == 'y' ] && rm -f figures/movie.plt
  [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
  [ "$do_cleanup" == 'y' ] && rm -f temp*.out
  [ "$do_cleanup" == 'y' ] && rm -f transpose.out
@@ -282,6 +283,7 @@ function backup {
 ### This is where the script actually starts doing things. ###
 
 Nb=`wc -l "ins/b_energies.in" | awk '{print $1}'`
+mkdir -p figures
 
 echo "### $(date) dynamix run starting now..."
 echo "###"
