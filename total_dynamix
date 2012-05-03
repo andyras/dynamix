@@ -5,8 +5,8 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="n"
-	  do_run="n"
+      do_compile="y"
+	  do_run="y"
     make_plotter="y"
 	 do_plot="y"
 make_movie_maker="n"
@@ -133,6 +133,10 @@ set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
 splot './outs/kprobs_gnuplot.out'" > figures/kpops.plt
 
 echo "set terminal postscript enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,10'
+
+# dummy plot to get GPVAL_DATA_X_MAX
+set output '/dev/null'
+plot './outs/tkprob.out'
 set output 'figures/time_and_space.eps'
 
 set multiplot
@@ -143,30 +147,35 @@ set style line 1 lt 1 lc rgb 'red'
 set style line 2 lt 1 lc rgb 'green'
 set style line 3 lt 1 lc rgb 'blue'
 
-set lmargin 24
-set key lmargin
+set key rmargin
 
-set xrange [0:$tout]
+set rmargin 15
+set lmargin 12
+set tmargin 1
+set bmargin 1
+
+set format y '%.2e'
+
+set xr[0:GPVAL_DATA_X_MAX]
 
 set ytics nomirror scale 0.5
 unset xtics
 
-set size 1, 0.33
-set origin 0.0,0.66
+set size 1, 0.3
+set origin 0.0,0.7
 plot './outs/tkprob.out' u 1:2 t 'Bulk' lt 1
 
-set size 1, 0.33
-set origin 0.0,0.0
+set size 1, 0.3
+set origin 0.0,0.4
+set ylabel 'Population (a.u.)'
+plot './outs/tbprob.out' u 1:2 t 'Bridge' lt 3
+unset ylabel
+
+set size 1, 0.3
+set origin 0.0,0.1
 set xlabel 'Time (a.u.)'
 set xtics nomirror scale 0.5
-plot './outs/tcprob.out' u 1:2 t 'QD' lt 2
-unset xtics
-unset xlabel
-
-set size 1, 0.33
-set origin 0.0,0.33
-set ylabel 'Population (a.u.)'
-plot './outs/tbprob.out' u 1:2 t 'Bridge' lt 3" > figures/time_and_space.plt
+plot './outs/tcprob.out' u 1:2 t 'QD' lt 2" > figures/time_and_space.plt
 }
 
 function plot {
