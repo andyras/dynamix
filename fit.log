@@ -1,0 +1,112 @@
+
+
+ Iteration 0
+ WSSR        : 20.5095           delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 0.284175
+
+initial set of free parameter values
+
+k               = 1
+/
+
+ Iteration 1
+ WSSR        : 0.714681          delta(WSSR)/WSSR   : -27.6974
+ delta(WSSR) : -19.7948          limit for stopping : 1e-05
+ lambda	  : 0.0284175
+
+resultant parameter values
+
+k               = 1.64687
+/
+
+ Iteration 2
+ WSSR        : 0.00424672        delta(WSSR)/WSSR   : -167.29
+ delta(WSSR) : -0.710434         limit for stopping : 1e-05
+ lambda	  : 0.00284175
+
+resultant parameter values
+
+k               = 1.82911
+/
+
+ Iteration 3
+ WSSR        : 0.00245608        delta(WSSR)/WSSR   : -0.729068
+ delta(WSSR) : -0.00179065       limit for stopping : 1e-05
+ lambda	  : 0.000284175
+
+resultant parameter values
+
+k               = 1.83929
+/
+
+ Iteration 4
+ WSSR        : 0.00245607        delta(WSSR)/WSSR   : -3.83231e-07
+ delta(WSSR) : -9.41245e-10      limit for stopping : 1e-05
+ lambda	  : 2.84175e-05
+
+resultant parameter values
+
+k               = 1.83929
+
+After 4 iterations the fit converged.
+final sum of squares of residuals : 0.00245607
+rel. change during last iteration : -3.83231e-07
+
+degrees of freedom    (FIT_NDF)                        : 600
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.00202323
+variance of residuals (reduced chisquare) = WSSR/ndf   : 4.09346e-06
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+k               = 1.83929          +/- 0.0004888    (0.02658%)
+
+
+correlation matrix of the fit parameters:
+
+               k      
+k               1.000 
+
+
+*******************************************************************************
+Thu May  3 19:31:52 2012
+
+
+FIT:    data read from 'outs/tcprob.out' using ($1/GPVAL_X_MAX):2
+        format = x:z
+        #datapoints = 601
+        residuals are weighted equally (unit weight)
+
+function used for fitting: fitfn(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 20.5095           delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 0.284175
+
+initial set of free parameter values
+
+k               = 1
+
+After 4 iterations the fit converged.
+final sum of squares of residuals : 0.00245607
+rel. change during last iteration : -3.83231e-07
+
+degrees of freedom    (FIT_NDF)                        : 600
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.00202323
+variance of residuals (reduced chisquare) = WSSR/ndf   : 4.09346e-06
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+k               = 1.83929          +/- 0.0004888    (0.02658%)
+
+
+correlation matrix of the fit parameters:
+
+               k      
+k               1.000 

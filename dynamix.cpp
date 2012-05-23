@@ -145,7 +145,8 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  int i, j;					// counters
  int scale_kV = 1;				// flag to scale coupling to k states
  int scale_cV = 0;				// flag to scale coupling to c states
- realtype Vkc = 0.007349968763;
+ // realtype Vkc = 0.007349968763;
+ realtype Vkc = 0.0007349968763;
 
  if ((scale_kV == 1) && (Nk > 1))
   Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
@@ -783,7 +784,7 @@ int main (int argc, char * argv[]) {
  Nk = atoi(argv[++i]);				// number of k states
  Nk_init = atoi(argv[++i]);			// number of k states initially populated
  if (Nk_init > Nk || Nk_init < 0) {
-  fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk.\n");
+  fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk or less than 0.\n");
   return -1;
  }
  // physical parameters //

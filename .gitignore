@@ -5,6 +5,7 @@
 *.eps
 *plot*
 *.swp
+*plt
 backup/
 whoo
 debuggery/
