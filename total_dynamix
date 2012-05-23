@@ -118,7 +118,7 @@ set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
 
  awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
- echo "set terminal postscript eps enhanced colour size 6,4 font 'Arial-Bold,14'
+ echo "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'
 set output '/dev/null'
 plot './outs/kprobs_transpose.out' matrix with image
 set output 'figures/kprob.eps'
@@ -134,12 +134,12 @@ unset key
 unset colorbox
 set palette @MATLAB
 repl
-set terminal pdf size 6,4
+set terminal pdfcairo size 10in,8in font 'Arial-Bold,14'
 set output 'kprobs.pdf'
 repl" > figures/kpops.plt
 
 if [ $(($Nb)) -gt 0 ] ; then
- echo "set terminal postscript enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,10'
+ echo "set terminal postscript enhanced colour dashed lw 2 size 15,10 font 'Arial-Bold,10'
 
 # dummy plot to get GPVAL_DATA_X_MAX
 set output '/dev/null'
