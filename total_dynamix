@@ -5,8 +5,8 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="y"
-	  do_run="y"
+      do_compile="n"
+	  do_run="n"
     make_plotter="y"
 	 do_plot="y"
 make_movie_maker="n"
@@ -28,7 +28,7 @@ k_bandedge=-0.01			# lower band edge of bulk conduction band
 k_bandtop=0.01				# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=100					# number of k states to have
-Nk_init=1				# number of k states initially populated
+Nk_init=0				# number of k states initially populated
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -116,7 +116,9 @@ set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
 
  # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
- echo "set terminal postscript eps enhanced colour
+ echo "set terminal postscript eps enhanced colour size 6,4 font 'Arial-Bold,14'
+set output '/dev/null'
+plot './outs/kprobs.transpose.out' matrix with image
 set output 'figures/kprob.eps'
 set title 'Electron probability density in bulk conduction band'
 set border 0
@@ -124,13 +126,16 @@ set ytics scale 0
 set xtics scale 0
 set ylabel 'Energy above band edge (a.u.)'
 set xlabel 'Time (a.u.)'
-set xrange [0:$tout]
-set yrange [$k_bandedge:$new_k_bandtop]
+set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]
+set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]
 unset key
 unset colorbox
-set pm3d map
-set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
-splot './outs/kprobs_gnuplot.out'" > figures/kpops.plt
+set palette @MATLAB
+repl
+set terminal pdf size 6,4
+set output 'kprobs.pdf'
+repl" > figures/kpops.plt
+#plot './outs/kprobs_gnuplot.out' u 1:2:3 matrix w image" > figures/kpops.plt
 
 echo "set terminal postscript enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,10'
 
