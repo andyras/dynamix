@@ -24,12 +24,11 @@ tout=20000				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
-k_bandedge=0.00				# lower band edge of bulk conduction band
-k_bandtop=0.00734996876			# upper band edge of bulk conduction band
-k_bandtop=0.00735			# upper band edge of bulk conduction band
+k_bandedge=-0.01			# lower band edge of bulk conduction band
+k_bandtop=0.01				# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=100					# number of k states to have
-Nk_init=1				# number of k states initially populated
+Nk_init=0				# number of k states initially populated
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -58,6 +57,7 @@ function run {
  echo "### $(date) running dynamix..."
  ./dynamix $abstol $reltol $tout $numsteps $numOutputSteps $k_bandedge $k_bandtop $Nk $Nk_init $temp $N_vib $E_vib $gkc $gkb $gbc $gbb && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run :("
  mkdir -p outs
+ rm -f outs/*
  mv *.out outs/
 }
 
@@ -280,7 +280,7 @@ function movie {
 function backup {
 ## BACK UP FILES ##
  echo "### $(date) backing things up..."
- durr=backup/dynamix_`date +%Y-%m-%d.%H.%M.%S`
+ durr=backup/dynamix_$(date +%F.%H.%M.%S)
  mkdir -p $durr
  cp -rf ins/ outs/ dynamix* total_dynamix $durr
  [ "$do_plot" == 'y' ] && cp *.eps $durr
@@ -291,7 +291,7 @@ function backup {
 
 ### This is where the script actually starts doing things. ###
 
-Nb=`wc -l "ins/b_energies.in" | awk '{print $1}'`
+Nb=$(wc -l "ins/b_energies.in" | awk '{print $1}')
 mkdir -p figures
 
 echo "### $(date) dynamix run starting now..."
