@@ -7,8 +7,8 @@
 ## FLAGS FOR RUN ##
       do_compile="y"
 	  do_run="y"
-    make_plotter="n"
-	 do_plot="n"
+    make_plotter="y"
+	 do_plot="y"
 make_movie_maker="n"
 	do_movie="n"
       do_cleanup="n"
@@ -28,7 +28,7 @@ k_bandedge=0.00				# lower band edge of bulk conduction band
 k_bandtop=0.00734996876			# upper band edge of bulk conduction band
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=100					# number of k states to have
-Nk_init=10				# number of k states initially populated
+Nk_init=1				# number of k states initially populated
 # physical parameters #
 temp=3e2				# temperature in Kelvin
 # vibronic parameters #

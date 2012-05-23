@@ -21,7 +21,7 @@ plot 'outs/tkprob.out' using ($1/41.34):2 title 'k states' lt 1, \
 set size 1, 0.3
 set origin 0.0,0.0
 set format y '%.2e'
-set ytics ('0' 0 ,sprintf('%.1e',0.0009421) 0.0009421)
+set ytics ('0' 0 ,sprintf('%.1e',0.0001277) 0.0001277)
 set xlabel 'Time (fs)'
 set ylabel 'Bridge Pop. (a.u.)'
 plot 'outs/bprobs.out' using ($1/41.34):2 title 'b1' lt 3
