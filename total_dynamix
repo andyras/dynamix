@@ -134,8 +134,8 @@ unset key
 unset colorbox
 set palette @MATLAB
 repl
-set terminal pdfcairo size 10in,8in font 'Arial-Bold,14'
-set output 'kprobs.pdf'
+set terminal epslatex standalone color colortext 10 size 10cm,8cm
+set output 'kprobs.tex'
 repl" > figures/kpops.plt
 
 if [ $(($Nb)) -gt 0 ] ; then
@@ -189,6 +189,11 @@ fi
 function plot {
  gnuplot figures/populations.plt
  gnuplot figures/kpops.plt
+ latex figureskprobs.tex
+ dvipdf -q kprobs.dvi
+ [ -f "kprobs.dvi" ] && rm -f kprobs.dvi
+ [ -f "kprobs.log" ] && rm -f kprobs.log
+ [ -f "kprobs.aux" ] && rm -f kprobs.aux
  if [ $(($Nb)) -gt 0 ] ; then
   gnuplot figures/time_and_space.plt
  fi
