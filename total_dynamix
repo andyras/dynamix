@@ -116,11 +116,12 @@ set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
 
  # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
 
- awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
+ #awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
  echo "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'
 set output '/dev/null'
-plot './outs/kprobs_transpose.out' matrix with image
+!awk 'BEGIN {FS=\" \"}{for (i=1;i<=NF;i++){ arr[NR,i]=\$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf(\"%s\\t\",arr[j,i]); } printf(\"\\n\"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
+plot './outs/kprobs_transpose.out' u (\$1*$tout/$numOutputSteps):(\$2*($k_bandtop-$k_bandedge)/($Nk-1)):3 matrix with image
 set output 'figures/kprob.eps'
 set title 'Electron probability density in bulk conduction band'
 set border 0
@@ -136,7 +137,7 @@ set palette @MATLAB
 repl
 set terminal epslatex standalone color colortext 10 size 10cm,8cm
 set output 'kprobs.tex'
-repl" > figures/kpops.plt
+repl" > figures/kprob.plt
 
 if [ $(($Nb)) -gt 0 ] ; then
  echo "set terminal postscript enhanced colour dashed lw 2 size 15,10 font 'Arial-Bold,10'
@@ -189,9 +190,9 @@ fi
 function plot {
  gnuplot figures/populations.plt
  gnuplot figures/kpops.plt
- latex figureskprobs.tex
+ latex figures/kprobs.tex >> kprobs.log
  dvipdf -q kprobs.dvi
- [ -f "kprobs.dvi" ] && rm -f kprobs.dvi
+ [ -f "figures/kprobs.dvi" ] && rm -f kprobs.dvi
  [ -f "kprobs.log" ] && rm -f kprobs.log
  [ -f "kprobs.aux" ] && rm -f kprobs.aux
  if [ $(($Nb)) -gt 0 ] ; then
@@ -201,7 +202,7 @@ function plot {
  if [ $(($Nb)) -gt 0 ] ; then
   [ "$do_fullcleanup" == 'y' ] && rm -f figures/time_and_space.plt
  fi
- [ "$do_fullcleanup" == 'y' ] && rm -f figures/kpops.plt && echo "### $(date) done plotting!"
+ [ "$do_fullcleanup" == 'y' ] && rm -f figures/kprob.plt && echo "### $(date) done plotting!"
 }
 
 function movie_maker {
