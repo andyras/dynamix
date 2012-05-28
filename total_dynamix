@@ -20,7 +20,7 @@ make_movie_maker="n"
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=20000				# final time reached by solver (atomic units)
+tout=5e3				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
@@ -71,6 +71,8 @@ function plot_maker {
 tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
  echo "### $(date) making plots..."
  echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
+set output '/dev/null'
+plot './outs/tkprob.out'
 set output 'figures/populations.eps'
 set multiplot
 set style data lines
@@ -85,7 +87,8 @@ set lmargin 24
 set border 10
 set ytics scale 0.5
 set ylabel 'Population (a.u.)'
-set xrange [0:$tout_fs]
+set xrange [GPVAL_DATA_X_MIN/41.3414:GPVAL_DATA_X_MAX/41.3414]
+set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]
 set xtics nomirror scale 0.5" > figures/populations.plt
  # k and c population plot
  if [ $(($Nb)) == 0 ]
