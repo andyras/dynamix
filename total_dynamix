@@ -38,6 +38,8 @@ gkc=0.0					# g factor between k and c states
 gkb=0.0					# g factor between k and b states
 gbc=-0.0					# g factor between b and c states
 gbb=0.0					# g factor between b states
+# laser parameters #
+
 
 function compile {
 ## COMPILE ##
