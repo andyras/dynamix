@@ -36,6 +36,11 @@ using namespace std;
  double gkb;				// g factor between k and b states
  double gbc;				// g factor between b and c states
  double gbb;				// g factor between b states
+ double muLK;                           // transition dipole moment from l to k (energy a.u.)
+ double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
+ double pumpPeak;                       // time of peak of pump pulse (a.u.)
+ double pumpFreq;                       // frequency of pump pulse (energy a.u.)
+ double pumpInts;                       // intensity of pump pulse (electric field a.u.)
  realtype ** V;				// pointer to k-c coupling constants
  realtype ** FCkc;			// Franck-Condon factors
  realtype ** FCkb;
@@ -793,6 +798,11 @@ int main (int argc, char * argv[]) {
  gkb = 0.0;				// g factor between k and b states
  gbc = 0.0;				// g factor between b and c states
  gbb = 0.0;				// g factor between b states
+ muLK = 1.0;				// transition dipole moment from l to k (energy a.u.)
+ pumpFWHM = 1000;
+ pumpPeak = 2000;
+ pumpFreq = 0.01;
+ pumpInts = 1.0;
  // DONE ASSIGNING VARIABLE DEFAULTS //
 
  string line;
@@ -932,6 +942,36 @@ int main (int argc, char * argv[]) {
    cout << "gbb is " << param_val << endl;
 #endif
    gbb = atof(param_val.c_str());
+  }
+  else if (input_param == "muLK" ) {
+#ifdef DEBUG
+   cout << "muLK is " << param_val << endl;
+#endif
+   muLK = atof(param_val.c_str());
+  }
+  else if (input_param == "pumpFWHM" ) {
+#ifdef DEBUG
+   cout << "pumpFWHM is " << param_val << endl;
+#endif
+   pumpFWHM = atof(param_val.c_str());
+  }
+  else if (input_param == "pumpPeak" ) {
+#ifdef DEBUG
+   cout << "pumpPeak is " << param_val << endl;
+#endif
+   pumpPeak = atof(param_val.c_str());
+  }
+  else if (input_param == "pumpFreq" ) {
+#ifdef DEBUG
+   cout << "pumpFreq is " << param_val << endl;
+#endif
+   pumpFreq = atof(param_val.c_str());
+  }
+  else if (input_param == "pumpInts" ) {
+#ifdef DEBUG
+   cout << "pumpInts is " << param_val << endl;
+#endif
+   pumpInts = atof(param_val.c_str());
   }
   else {
   }
