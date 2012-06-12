@@ -803,7 +803,7 @@ int main (int argc, char * argv[]) {
 
  ifstream bash_in;	// declare input file stream
 
- bash_in.open("total_dynamix", ios::in);	// open file as input stream
+ bash_in.open("ins/parameters.sh", ios::in);	// open file as input stream
  if (bash_in.good() == false) {
   fprintf(stderr, "ERROR [Inputs]: file 'total_dynamix' not available for reading\n");
   return -1;
