@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <cstdlib>
 #include <vector>
 #include <math.h>
@@ -722,9 +724,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  for (i = 0; i < numOutputSteps-5; i++) {
   fprintf(tkDeriv, "%-.7lf %-.9lf\n", time[i+2], tkderivs[i]);
   fprintf(tcDeriv, "%-.7lf %-.9lf\n", time[i+2], tcderivs[i]);
-  cout << "whoo " << i << "\n";
-  cout << "time[" << i+2 << "+2] " << time[i+2] << endl;
-  cout << "tkderivs[" << i << "] " << tkderivs[i] << endl;
  }
  fclose(tkDeriv);
  fclose(tcDeriv);
@@ -771,38 +770,184 @@ int main (int argc, char * argv[]) {
  currentTime = localtime(&startRun);
  fprintf(log, "Run started at %s\n", asctime(currentTime));
  
- // ASSIGN VARIABLES FROM RUN SCRIPT //
+ // read in parameters from parameter bash script
+
+ // ASSIGN VARIABLE DEFAULTS //
  i = 0;
- realtype abstol = atof(argv[++i]);		// absolute tolerance (for SUNDIALS)
- realtype reltol = atof(argv[++i]);		// relative tolerance (for SUNDIALS)
- realtype tout = atof(argv[++i]);			// final time reached by solver in atomic units
- int numsteps = atoi(argv[++i]);			// number of time steps
- numOutputSteps = atoi(argv[++i]);
+ realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
+ realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
+ realtype tout = 10000;			// final time reached by solver in atomic units
+ int numsteps = 10000;			// number of time steps
+ numOutputSteps = 1000;
  // bulk parameters //
- k_bandedge = atof(argv[++i]);			// lower band edge of conduction band
- k_bandtop = atof(argv[++i]);			// upper band edge of bulk conduction band
- Nk = atoi(argv[++i]);				// number of k states
- Nk_init = atoi(argv[++i]);			// number of k states initially populated
+ k_bandedge = 0.0;			// lower band edge of conduction band
+ k_bandtop = 0.01;			// upper band edge of bulk conduction band
+ Nk = 100;				// number of k states
+ Nk_init = 1;				// number of k states initially populated
+ // physical parameters //
+ temperature = 3e2;			// temperature of the system
+ // vibronic parameters //
+ N_vib = 1;				// number of vibronic states
+ E_vib = 0.001;				// vibrational energy
+ gkc = 0.0;				// g factor between k and c states
+ gkb = 0.0;				// g factor between k and b states
+ gbc = 0.0;				// g factor between b and c states
+ gbb = 0.0;				// g factor between b states
+ // DONE ASSIGNING VARIABLE DEFAULTS //
+
+ string line;
+ string input_param;
+ string param_val;
+ size_t equals_pos;
+ size_t space_pos;
+
+ ifstream bash_in;	// declare input file stream
+
+ bash_in.open("total_dynamix", ios::in);	// open file as input stream
+ if (bash_in.good() == false) {
+  fprintf(stderr, "ERROR [Inputs]: file 'total_dynamix' not available for reading\n");
+  return -1;
+ }
+
+ cout << endl;
+
+ // read first line of input file
+ getline (bash_in,line);
+
+ // skip non-parameter lines
+ while ( line != "## START INPUT PARAMETERS ##") {
+  getline (bash_in,line);
+ }
+
+ while ( line != "## END INPUT PARAMETERS ##") {
+  // skip comment lines
+  if ( line.substr(0,1) == "#" ) {
+   getline (bash_in,line);
+   continue;
+  }
+  // find first equals sign
+  equals_pos=line.find("=");
+  // find first whitespace
+  space_pos=(line.find(" ") > line.find("\t") ? line.find("\t") : line.find(" "));
+  // parameter name is before equals sign
+  input_param = line.substr(0,int(equals_pos));
+  // parameter is after equals sign, before space
+  param_val = line.substr(int(equals_pos)+1,int(space_pos)-int(equals_pos));
+  // extract parameters
+#ifdef DEBUG
+  cout << "Parameter: " << input_param << endl << "    Value: " << atof(param_val.c_str()) << endl;
+#endif
+  if (input_param == "abstol") {
+#ifdef DEBUG
+   cout << "abstol is " << param_val << endl;
+#endif
+   abstol = atof(param_val.c_str());
+  }
+  else if (input_param == "reltol" ) {
+#ifdef DEBUG
+   cout << "reltol is " << param_val << endl;
+#endif
+   reltol = atof(param_val.c_str());
+  }
+  else if (input_param == "tout" ) {
+#ifdef DEBUG
+   cout << "tout is " << param_val << endl;
+#endif
+   tout = atof(param_val.c_str());
+  }
+  else if (input_param == "numsteps" ) {
+#ifdef DEBUG
+   cout << "numsteps is " << param_val << endl;
+#endif
+   numsteps = atoi(param_val.c_str());
+  }
+  else if (input_param == "numOutputSteps" ) {
+#ifdef DEBUG
+   cout << "numOutputSteps is " << param_val << endl;
+#endif
+   numOutputSteps = atoi(param_val.c_str());
+  }
+  else if (input_param == "k_bandedge" ) {
+#ifdef DEBUG
+   cout << "k_bandedge is " << param_val << endl;
+#endif
+   k_bandedge = atof(param_val.c_str());
+  }
+  else if (input_param == "k_bandtop" ) {
+#ifdef DEBUG
+   cout << "k_bandtop is " << param_val << endl;
+#endif
+   k_bandtop = atof(param_val.c_str());
+  }
+  else if (input_param == "Nk" ) {
+#ifdef DEBUG
+   cout << "Nk is " << param_val << endl;
+#endif
+   Nk = atoi(param_val.c_str());
+  }
+  else if (input_param == "Nk_init" ) {
+#ifdef DEBUG
+   cout << "Nk_init is " << param_val << endl;
+#endif
+   Nk_init = atoi(param_val.c_str());
+  }
+  else if (input_param == "temp" ) {
+#ifdef DEBUG
+   cout << "temperature is " << param_val << endl;
+#endif
+   temperature = atof(param_val.c_str());
+  }
+  else if (input_param == "N_vib" ) {
+#ifdef DEBUG
+   cout << "N_vib is " << param_val << endl;
+#endif
+   N_vib = atoi(param_val.c_str());
+  }
+  else if (input_param == "E_vib" ) {
+#ifdef DEBUG
+   cout << "E_vib is " << param_val << endl;
+#endif
+   E_vib = atof(param_val.c_str());
+  }
+  else if (input_param == "gkc" ) {
+#ifdef DEBUG
+   cout << "gkc is " << param_val << endl;
+#endif
+   gkc = atof(param_val.c_str());
+  }
+  else if (input_param == "gkb" ) {
+#ifdef DEBUG
+   cout << "gkb is " << param_val << endl;
+#endif
+   gkb = atof(param_val.c_str());
+  }
+  else if (input_param == "gbc" ) {
+#ifdef DEBUG
+   cout << "gbc is " << param_val << endl;
+#endif
+   gbc = atof(param_val.c_str());
+  }
+  else if (input_param == "gbb" ) {
+#ifdef DEBUG
+   cout << "gbb is " << param_val << endl;
+#endif
+   gbb = atof(param_val.c_str());
+  }
+  else {
+  }
+  getline (bash_in,line);
+ }
+
  if (Nk_init > Nk || Nk_init < 0) {
   fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk or less than 0.\n");
   return -1;
  }
- // physical parameters //
- temperature = atof(argv[++i]);			// temperature of the system
- // vibronic parameters //
- N_vib = atoi(argv[++i]);			// number of vibronic states
- E_vib = atof(argv[++i]);			// vibrational energy
- gkc = atof(argv[++i]);				// g factor between k and c states
- gkb = atof(argv[++i]);				// g factor between k and b states
- gbc = atof(argv[++i]);				// g factor between b and c states
- gbb = atof(argv[++i]);				// g factor between b states
-#ifdef DEBUG
- cout << endl;
- for (i = 0; i < argc; i++)
-  cout << "argv[" << i << "] is " << argv[i] << endl;
-#endif
- // DONE ASSIGNING VARS FROM SCRIPT //
 
+ cout << endl;
+
+ bash_in.close();
+
+ // DONE ASSIGNING VARIABLES FROM RUN SCRIPT //
 
  // READ DATA FROM INPUTS //
  Nc = Number_of_values("ins/c_energies.in");
