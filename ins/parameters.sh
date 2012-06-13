@@ -10,6 +10,7 @@ numOutputSteps=600			# number of output timesteps
 # bulk parameters #
 k_bandedge=-0.01			# lower band edge of bulk conduction band
 k_bandtop=0.01				# upper band edge of bulk conduction band
+bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=4					# number of k states to have
 Nk_init=0				# number of k states initially populated

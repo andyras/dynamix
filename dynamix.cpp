@@ -9,7 +9,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
-//#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
+#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
 //#define DEBUGf				// otherwise output is enormous
 //#define DEBUG_SAI			// debuggery related to checking against Sai's code
 using namespace std;
@@ -21,13 +21,16 @@ using namespace std;
  int Nk;				// number of each type of state
  int Nc;
  int Nb;
+ int Nl;
  int N_vib;				// number of vibronic states
  int Ik;				// index starters for each type of state
  int Ic;
  int Ib;
+ int Il;
  int Ik_vib;				// index starters for each type of vibronic state
  int Ic_vib;
  int Ib_vib;
+ int Il_vib;
  int NEQ;				// total number of states/equations
  int NEQ_vib;
  int numOutputSteps;			// number of timesteps
@@ -213,17 +216,44 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
 }
 
 
+realtype pump(realtype t) {
+ double sigma = pumpFWHM/2.35482005;
+ return (pumpInts/(sigma*sqrt(2*3.1415926535)))*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t);
+}
+
+
 // gives f(y,t) //
 int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  
  int i, j, n, m;
- int IkRe, IkIm, IcRe, IcIm;
+ int IkRe, IkIm, IcRe, IcIm, IlRe, IlIm;
  realtype sinn;
  realtype coss;
  realtype Vee;
  // initialization
  for (i = 0; i < 2*NEQ_vib; i++)
   NV_Ith_S(ydot, i) = 0;
+
+ // pump pulse coupling l and k states
+ for (i = 0; i < Nk; i++)
+  for (j = 0; j < Nl; j++)
+   for (n = 0; n < N_vib; n++)
+    for (m = 0; m < N_vib; m++) {
+     IkRe = Ik_vib + i*N_vib + n;
+     IkIm = IkRe + NEQ_vib;
+     IlRe = Il_vib + j*N_vib + m;
+     IlIm = IlRe + NEQ_vib;
+     coss = cos((energy[IkRe] - energy[IlRe])*t);
+     sinn = sin((energy[IkRe] - energy[IlRe])*t);
+     NV_Ith_S(ydot, IkRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
+     NV_Ith_S(ydot, IkIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
+     NV_Ith_S(ydot, IlRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IkIm) + sinn*NV_Ith_S(y, IkRe)); // l Re
+     NV_Ith_S(ydot, IlIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IkIm) - coss*NV_Ith_S(y, IkRe)); // l Im
+#ifdef DEBUGf
+     cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IlRe " << IcRe << " IlIm ";
+     cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t << endl;
+#endif
+    }
 
  if (Nb == 0) {						// no bridge
   realtype Vkc = V[Ik][Ic];
@@ -363,18 +393,18 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    // cout << NV_Ith_S(ydot, i)*41.3414 << endl;
   for (i = 0; i < Nc ; i++)
    for (j = 0; j < N_vib ; j++) {
-    fprintf(dydt, "Re(c%d,%-.5lf): %-.9lf\n", j, t, NV_Ith_S(ydot, Ic_vib + i*N_vib + j)*41.3414);
-    fprintf(dydt, "Im(c%d,%-.5lf): %-.9lf\n", j, t, NV_Ith_S(ydot, Ic_vib + i*N_vib + j + NEQ_vib)*41.3414);
+    fprintf(dydt, "Re(c%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ic_vib + i*N_vib + j)*41.3414);
+    fprintf(dydt, "Im(c%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ic_vib + i*N_vib + j + NEQ_vib)*41.3414);
    }
   for (i = 0; i < Nb ; i++)
    for (j = 0; j < N_vib ; j++) {
-    fprintf(dydt, "Re(b%d,%-.5lf): %-.9lf\n", j, t, NV_Ith_S(ydot, Ib_vib + i*N_vib + j)*41.3414);
-    fprintf(dydt, "Im(b%d,%-.5lf): %-.9lf\n", j, t, NV_Ith_S(ydot, Ib_vib + i*N_vib + j + NEQ_vib)*41.3414);
+    fprintf(dydt, "Re(b%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ib_vib + i*N_vib + j)*41.3414);
+    fprintf(dydt, "Im(b%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ib_vib + i*N_vib + j + NEQ_vib)*41.3414);
    }
   for (i = 0; i < Nk ; i++)
    for (j = 0; j < N_vib ; j++) {
-    fprintf(dydt, "Re(k%d,%-.5lf): %-.9lf\n", j, t, NV_Ith_S(ydot, Ik_vib + i*N_vib + j)*41.3414);
-    fprintf(dydt, "Im(k%d,%-.5lf): %-.9lf\n", j, t, NV_Ith_S(ydot, Ik_vib + i*N_vib + j + NEQ_vib)*41.3414);
+    fprintf(dydt, "Re(k%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ik_vib + i*N_vib + j)*41.3414);
+    fprintf(dydt, "Im(k%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ik_vib + i*N_vib + j + NEQ_vib)*41.3414);
    }
   fclose(dydt);
   last_t = t;
@@ -435,7 +465,7 @@ int Output_checkpoint(
   FILE * realImaginary, 
 #endif
   double ** allprobs, N_Vector outputData, realtype time,
-  realtype * totK, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
+  realtype * totK, realtype * totL, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
   realtype * energy_expectation, int index, realtype * energies) {
 
  int i, j, k, l;				// counters
@@ -446,6 +476,7 @@ int Output_checkpoint(
  double sumkpop = 0;
  double sumcpop = 0;
  double sumbpop = 0;
+ double sumlpop = 0;
  double temp;
 
 #ifdef DEBUG
@@ -467,6 +498,15 @@ int Output_checkpoint(
   }
   allprobs[index][Ik+i] = temp;
   sumkpop += temp;
+ }
+ for (i = 0; i < Nl; i++) {			// l populations
+  temp = 0.0;
+  for (j = 0; j < N_vib; j++) {
+   Idx = Il_vib + i*N_vib + j;			// indices
+   temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
+  }
+  allprobs[index][Il+i] = temp;
+  sumlpop += temp;
  }
  for (i = 0; i < Nc; i++) {			// c populations
   temp = 0.0;
@@ -494,6 +534,7 @@ int Output_checkpoint(
   vibProb[index][i] = temp;
  }
  totK[index] = sumkpop;
+ totL[index] = sumlpop;
  totC[index] = sumcpop;
  totB[index] = sumbpop;
  times[index] = time;
@@ -570,10 +611,11 @@ realtype Find_first_array_maximum (realtype * inputArray, int num) {
 
 
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
-  realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
+  realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num) {
 
  FILE * tkprob;
+ FILE * tlprob;
  FILE * tcprob;
  FILE * vibprob;
  FILE * kprobs;
@@ -588,11 +630,13 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * totprob;
  FILE * energy;
  FILE * times;
+ FILE * pump_intensity;
  FILE * energy_exp;
  int i, j;
  realtype summ;
 
  tkprob = fopen("tkprob.out", "w");
+ tlprob = fopen("tlprob.out", "w");
  tcprob = fopen("tcprob.out", "w");
  vibprob = fopen("vibprob.out", "w");
  kprobs = fopen("kprobs.out", "w");
@@ -607,33 +651,34 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  cmax_first = fopen("cmax_first.out", "w");
  energy = fopen("energy.out", "w");
  times = fopen("times.out", "w");
+ pump_intensity = fopen("pump_intensity.out", "w");
  energy_exp = fopen("energy_exp.out", "w");
 
  for (i = 0 ; i < num ; i++) {				// print k probabilities over time
-  fprintf(kprobs, "%-.7lf", time[i]);
+  fprintf(kprobs, "%-.7g", time[i]);
   for (j = 0; j < Nk ; j++)
-   fprintf(kprobs, " %-.7lf", allprobs[i][Ik+j]);
+   fprintf(kprobs, " %-.7g", allprobs[i][Ik+j]);
   fprintf(kprobs, "\n");
  }
  for (i = 0 ; i < num ; i++) {
   for (j = 0 ; j < Nk ; j++ )
-   fprintf(kprobs_gnuplot, "%-.7lf %-.7lf %-.7lf\n", time[i], energies[Ik_vib + j*N_vib], allprobs[i][Ik+j]);
+   fprintf(kprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ik_vib + j*N_vib], allprobs[i][Ik+j]);
   if (i < (num - 1))
    fprintf(kprobs_gnuplot, "\n");			// makes a blank line for gnuplot
  }
 
 
  for (i = 0 ; i < num ; i++) {				// print c probabilities over time
-  fprintf(cprobs, "%-.7lf", time[i]);
+  fprintf(cprobs, "%-.7g", time[i]);
   for (j = 0; j < Nc ; j++)
-   fprintf(cprobs, " %-.7lf", allprobs[i][Ic+j]);
+   fprintf(cprobs, " %-.7g", allprobs[i][Ic+j]);
   fprintf(cprobs, "\n");
  }
 
  for (i = 0 ; i < num ; i++) {				// print b probabilities over time
-  fprintf(bprobs, "%-.7lf", time[i]);
+  fprintf(bprobs, "%-.7g", time[i]);
   for (j = 0; j < Nb ; j++)
-   fprintf(bprobs, " %-.7lf", allprobs[i][Ib+j]);
+   fprintf(bprobs, " %-.7g", allprobs[i][Ib+j]);
   fprintf(bprobs, "\n");
  }
 
@@ -648,9 +693,9 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   bmax = fopen("bmax.out", "w");
 
   for (i = 0; i <= num; i++)				// print total b population
-   fprintf(tbprob, "%-.7lf %-.7lf\n", time[i], tb[i]);
+   fprintf(tbprob, "%-.7g %-.7g\n", time[i], tb[i]);
   
-  fprintf(Ibprob, "%-.7lf", Integrate_arrays(tb, time, num+1));
+  fprintf(Ibprob, "%-.7g", Integrate_arrays(tb, time, num+1));
   
   for (i = 0 ; i < num + 1 ; i++) {
    for (j = 0 ; j < Nb ; j++) {
@@ -659,8 +704,8 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
     }
    }
   }
-  //fprintf(bmax, "%-.7lf", Find_array_maximum(tb, num+1));
-  fprintf(bmax, "%-.7lf", max_b_prob);
+  //fprintf(bmax, "%-.7g", Find_array_maximum(tb, num+1));
+  fprintf(bmax, "%-.7g", max_b_prob);
   
   fclose(tbprob);
   fclose(Ibprob);
@@ -668,41 +713,43 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  }
 
  for (i = 0; i <= num; i++) {				// print total k, c population
-  fprintf(tkprob, "%-.7lf %-.7lf\n", time[i], tk[i]);
-  fprintf(tcprob, "%-.7lf %-.7lf\n", time[i], tc[i]);
+  fprintf(tkprob, "%-.7g %-.7g\n", time[i], tk[i]);
+  fprintf(tlprob, "%-.7g %-.7g\n", time[i], tl[i]);
+  fprintf(tcprob, "%-.7g %-.7g\n", time[i], tc[i]);
   summ = tk[i] + tc[i];
   if (Nb > 0)
    summ += tb[i];
-  fprintf(totprob, "%-.7lf %-.15lf\n", time[i], summ);
+  fprintf(totprob, "%-.7g %-.15g\n", time[i], summ);
  }
 
  for (i = 0; i <= num; i++) {				// print vibrational populations
-  fprintf(vibprob, "%-.7lf %-.7lf", time[i], vibProb[i][0]);
+  fprintf(vibprob, "%-.7g %-.7g", time[i], vibProb[i][0]);
   for (j = 1; j < N_vib; j++)
-   fprintf(vibprob, " %-.7lf", vibProb[i][j]);
+   fprintf(vibprob, " %-.7g", vibProb[i][j]);
   fprintf(vibprob, "\n");
  }
 
- fprintf(Ikprob, "%-.7lf", Integrate_arrays(tk, time, num+1));
- fprintf(Icprob, "%-.7lf", Integrate_arrays(tc, time, num+1));
+ fprintf(Ikprob, "%-.7g", Integrate_arrays(tk, time, num+1));
+ fprintf(Icprob, "%-.7g", Integrate_arrays(tc, time, num+1));
  
- fprintf(kmax, "%-.7lf", Find_array_maximum(tk, num+1));
- fprintf(cmax, "%-.7lf", Find_array_maximum(tc, num+1));
- fprintf(cmax_first, "%-.7lf", Find_first_array_maximum(tc, num+1));
+ fprintf(kmax, "%-.7g", Find_array_maximum(tk, num+1));
+ fprintf(cmax, "%-.7g", Find_array_maximum(tc, num+1));
+ fprintf(cmax_first, "%-.7g", Find_first_array_maximum(tc, num+1));
 
  // energy.out should be all the energies on one row, since it's used for
  // the movie maker.
- fprintf(energy, "%-.7lf", energies[0]);
+ fprintf(energy, "%-.7g", energies[0]);
  for (i = 1; i < NEQ; i++)
-  fprintf(energy, " %-.7lf", energies[i*N_vib]);
+  fprintf(energy, " %-.7g", energies[i*N_vib]);
 
- for (i = 0; i <= num; i++)
-  fprintf(times, "%-.7lf\n", time[i]);
-
- for (i = 0; i <= num; i++)
-  fprintf(energy_exp, "%-.7lf %-.9lf\n", time[i], energy_expectation[i]);
+ for (i = 0; i <= num; i++) {
+  fprintf(times, "%-.7g\n", time[i]);
+  fprintf(pump_intensity, "%-.7g %-.7g\n", time[i], pump(time[i]));
+  fprintf(energy_exp, "%-.7g %-.7g\n", time[i], energy_expectation[i]);
+ }
 
  fclose(tkprob);
+ fclose(tlprob);
  fclose(tcprob);
  fclose(vibprob);
  fclose(kprobs);
@@ -727,8 +774,8 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  Derivative(tk, numOutputSteps, tkderivs, time[1]-time[0]);
  Derivative(tc, numOutputSteps, tcderivs, time[1]-time[0]);
  for (i = 0; i < numOutputSteps-5; i++) {
-  fprintf(tkDeriv, "%-.7lf %-.9lf\n", time[i+2], tkderivs[i]);
-  fprintf(tcDeriv, "%-.7lf %-.9lf\n", time[i+2], tcderivs[i]);
+  fprintf(tkDeriv, "%-.7g %-.9g\n", time[i+2], tkderivs[i]);
+  fprintf(tcDeriv, "%-.7g %-.9g\n", time[i+2], tcderivs[i]);
  }
  fclose(tkDeriv);
  fclose(tcDeriv);
@@ -740,15 +787,18 @@ int main (int argc, char * argv[]) {
  int i, j;					// counter!
  int flag;
  realtype * k_pops;				// pointers to arrays of populations
+ realtype * l_pops;
  realtype * c_pops;
  realtype * b_pops;
  realtype * ydata;				// pointer to ydata (contains all populations)
  realtype * k_energies;				// pointers to arrays of energies
  realtype * c_energies;
  realtype * b_energies;
+ realtype * l_energies;
  int Nk_init;					// number of k states initially populated
  realtype k_bandedge;				// lower edge of bulk conduction band
  realtype k_bandtop;				// upper edge of bulk conduction band
+ realtype bulk_gap;				// bulk band gap
  realtype temperature;				// system temperature
  realtype t0 = 0.0;				// initial time
  realtype t = 0;
@@ -760,7 +810,8 @@ int main (int argc, char * argv[]) {
  FILE * realImaginary;				// file containing real and imaginary parts of the wavefunction
 #endif
  FILE * log;					// log file with run times
- realtype * tkprob; 				// total probability in k, c, b states at each timestep
+ realtype * tkprob; 				// total probability in k, l, c, b states at each timestep
+ realtype * tlprob;
  realtype * tcprob;
  realtype * tbprob;
  realtype ** vibprob;
@@ -787,6 +838,7 @@ int main (int argc, char * argv[]) {
  // bulk parameters //
  k_bandedge = 0.0;			// lower band edge of conduction band
  k_bandtop = 0.01;			// upper band edge of bulk conduction band
+ bulk_gap = 0.001;			// bulk band gap
  Nk = 100;				// number of k states
  Nk_init = 1;				// number of k states initially populated
  // physical parameters //
@@ -847,135 +899,54 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   cout << "Parameter: " << input_param << endl << "    Value: " << atof(param_val.c_str()) << endl;
 #endif
-  if (input_param == "abstol") {
+  if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
+  else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
+  else if (input_param == "tout" ) { tout = atof(param_val.c_str()); }
+  else if (input_param == "numsteps" ) { numsteps = atoi(param_val.c_str()); }
+  else if (input_param == "numOutputSteps" ) { numOutputSteps = atoi(param_val.c_str()); }
+  else if (input_param == "k_bandedge" ) { k_bandedge = atof(param_val.c_str()); }
+  else if (input_param == "k_bandtop" ) { k_bandtop = atof(param_val.c_str()); }
+  else if (input_param == "bulk_gap" ) { bulk_gap = atof(param_val.c_str()); }
+  else if (input_param == "Nk" ) { Nk = atoi(param_val.c_str()); }
+  else if (input_param == "Nk_init" ) { Nk_init = atoi(param_val.c_str()); }
+  else if (input_param == "temp" ) { temperature = atof(param_val.c_str()); }
+  else if (input_param == "N_vib" ) { N_vib = atoi(param_val.c_str()); }
+  else if (input_param == "E_vib" ) { E_vib = atof(param_val.c_str()); }
+  else if (input_param == "gkc" ) { gkc = atof(param_val.c_str()); }
+  else if (input_param == "gkb" ) { gkb = atof(param_val.c_str()); }
+  else if (input_param == "gbc" ) { gbc = atof(param_val.c_str()); }
+  else if (input_param == "gbb" ) { gbb = atof(param_val.c_str()); }
+  else if (input_param == "muLK" ) { muLK = atof(param_val.c_str()); }
+  else if (input_param == "pumpFWHM" ) { pumpFWHM = atof(param_val.c_str()); }
+  else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
+  else if (input_param == "pumpFreq" ) { pumpFreq = atof(param_val.c_str()); }
+  else if (input_param == "pumpInts" ) { pumpInts = atof(param_val.c_str()); }
+  else {  }
+  getline (bash_in,line);
 #ifdef DEBUG
    cout << "abstol is " << param_val << endl;
-#endif
-   abstol = atof(param_val.c_str());
-  }
-  else if (input_param == "reltol" ) {
-#ifdef DEBUG
    cout << "reltol is " << param_val << endl;
-#endif
-   reltol = atof(param_val.c_str());
-  }
-  else if (input_param == "tout" ) {
-#ifdef DEBUG
    cout << "tout is " << param_val << endl;
-#endif
-   tout = atof(param_val.c_str());
-  }
-  else if (input_param == "numsteps" ) {
-#ifdef DEBUG
    cout << "numsteps is " << param_val << endl;
-#endif
-   numsteps = atoi(param_val.c_str());
-  }
-  else if (input_param == "numOutputSteps" ) {
-#ifdef DEBUG
    cout << "numOutputSteps is " << param_val << endl;
-#endif
-   numOutputSteps = atoi(param_val.c_str());
-  }
-  else if (input_param == "k_bandedge" ) {
-#ifdef DEBUG
    cout << "k_bandedge is " << param_val << endl;
-#endif
-   k_bandedge = atof(param_val.c_str());
-  }
-  else if (input_param == "k_bandtop" ) {
-#ifdef DEBUG
    cout << "k_bandtop is " << param_val << endl;
-#endif
-   k_bandtop = atof(param_val.c_str());
-  }
-  else if (input_param == "Nk" ) {
-#ifdef DEBUG
+   cout << "bulk_gap is " << param_val << endl;
    cout << "Nk is " << param_val << endl;
-#endif
-   Nk = atoi(param_val.c_str());
-  }
-  else if (input_param == "Nk_init" ) {
-#ifdef DEBUG
    cout << "Nk_init is " << param_val << endl;
-#endif
-   Nk_init = atoi(param_val.c_str());
-  }
-  else if (input_param == "temp" ) {
-#ifdef DEBUG
    cout << "temperature is " << param_val << endl;
-#endif
-   temperature = atof(param_val.c_str());
-  }
-  else if (input_param == "N_vib" ) {
-#ifdef DEBUG
    cout << "N_vib is " << param_val << endl;
-#endif
-   N_vib = atoi(param_val.c_str());
-  }
-  else if (input_param == "E_vib" ) {
-#ifdef DEBUG
    cout << "E_vib is " << param_val << endl;
-#endif
-   E_vib = atof(param_val.c_str());
-  }
-  else if (input_param == "gkc" ) {
-#ifdef DEBUG
    cout << "gkc is " << param_val << endl;
-#endif
-   gkc = atof(param_val.c_str());
-  }
-  else if (input_param == "gkb" ) {
-#ifdef DEBUG
    cout << "gkb is " << param_val << endl;
-#endif
-   gkb = atof(param_val.c_str());
-  }
-  else if (input_param == "gbc" ) {
-#ifdef DEBUG
    cout << "gbc is " << param_val << endl;
-#endif
-   gbc = atof(param_val.c_str());
-  }
-  else if (input_param == "gbb" ) {
-#ifdef DEBUG
    cout << "gbb is " << param_val << endl;
-#endif
-   gbb = atof(param_val.c_str());
-  }
-  else if (input_param == "muLK" ) {
-#ifdef DEBUG
    cout << "muLK is " << param_val << endl;
-#endif
-   muLK = atof(param_val.c_str());
-  }
-  else if (input_param == "pumpFWHM" ) {
-#ifdef DEBUG
    cout << "pumpFWHM is " << param_val << endl;
-#endif
-   pumpFWHM = atof(param_val.c_str());
-  }
-  else if (input_param == "pumpPeak" ) {
-#ifdef DEBUG
    cout << "pumpPeak is " << param_val << endl;
-#endif
-   pumpPeak = atof(param_val.c_str());
-  }
-  else if (input_param == "pumpFreq" ) {
-#ifdef DEBUG
    cout << "pumpFreq is " << param_val << endl;
-#endif
-   pumpFreq = atof(param_val.c_str());
-  }
-  else if (input_param == "pumpInts" ) {
-#ifdef DEBUG
    cout << "pumpInts is " << param_val << endl;
 #endif
-   pumpInts = atof(param_val.c_str());
-  }
-  else {
-  }
-  getline (bash_in,line);
  }
 
  if (Nk_init > Nk || Nk_init < 0) {
@@ -995,9 +966,11 @@ int main (int argc, char * argv[]) {
  k_pops = new realtype [Nk];
  c_pops = new realtype [Nc];
  b_pops = new realtype [Nb];
+ l_pops = new realtype [Nl];
  k_energies = new realtype [Nk];
  c_energies = new realtype [Nc];
  b_energies = new realtype [Nb];
+ l_energies = new realtype [Nl];
  Vbridge = new realtype [Nb+1];
  if (Number_of_values("ins/c_pops.in") != Nc)
   fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.");
@@ -1013,11 +986,13 @@ int main (int argc, char * argv[]) {
 #endif
 
  // PREPROCESS DATA FROM INPUTS //
- NEQ = Nk+Nc+Nb;				// total number of equations set
- NEQ_vib = (Nk+Nc+Nb)*N_vib;
+ Nl = 1;
+ NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
+ NEQ_vib = NEQ*N_vib;
  tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
  tcprob = new realtype [numOutputSteps+1];
  tbprob = new realtype [numOutputSteps+1];
+ tlprob = new realtype [numOutputSteps+1];
  vibprob = new realtype * [numOutputSteps+1];
  for (i = 0; i < numOutputSteps+1; i++)
   vibprob[i] = new realtype [N_vib];
@@ -1029,14 +1004,18 @@ int main (int argc, char * argv[]) {
  Ik = 0;					// set index start positions for each type of state
  Ic = Nk;
  Ib = Ic+Nc;
+ Il = Ib+Nb;
  Ik_vib = 0;
  Ic_vib = Nk*N_vib;
  Ib_vib = Ic_vib + Nc*N_vib;
+ Il_vib = Ib_vib + Nb*N_vib;
  Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
  Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
  Initialize_array(k_pops, Nk_init, 1.0);	// populate k states
  //Build_k_pops(k_pops, k_energies, k_bandedge, temperature);	// populate k states (all zero to start off)
+ Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
+ l_energies[0]=k_bandedge-bulk_gap;             // assign l energy
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
@@ -1050,7 +1029,7 @@ int main (int argc, char * argv[]) {
    cout << "\n FCkc:\n";
    for (i = 0; i < N_vib; i++) {
     for (j = 0; j < N_vib; j++)
-     printf("%+.7lf ", FCkc[i][j]);
+     printf("%+.7g ", FCkc[i][j]);
     cout << endl;
    }
 #endif
@@ -1065,7 +1044,7 @@ int main (int argc, char * argv[]) {
    cout << "\n FCbb:\n";
    for (i = 0; i < N_vib; i++) {
     for (j = 0; j < N_vib; j++)
-     printf("%+.7lf ", FCbb[i][j]);
+     printf("%+.7g ", FCbb[i][j]);
     cout << endl;
    }
 #endif
@@ -1078,7 +1057,7 @@ int main (int argc, char * argv[]) {
    cout << "\n FCkb:\n";
    for (i = 0; i < N_vib; i++) {
     for (j = 0; j < N_vib; j++)
-     printf("%+.7lf ", FCkb[i][j]);
+     printf("%+.7g ", FCkb[i][j]);
     cout << endl;
    }
 #endif
@@ -1090,7 +1069,7 @@ int main (int argc, char * argv[]) {
    cout << "\n FCbc:\n";
    for (i = 0; i < N_vib; i++) {
     for (j = 0; j < N_vib; j++)
-     printf("%+.7lf ", FCbc[i][j]);
+     printf("%+.7g ", FCbc[i][j]);
     cout << endl;
    }
 #endif
@@ -1104,6 +1083,8 @@ int main (int argc, char * argv[]) {
   ydata[Ic_vib + i*N_vib] = c_pops[i];
  for (i = 0; i < Nb; i++)
   ydata[Ib_vib + i*N_vib] = b_pops[i];
+ for (i = 0; i < Nl; i++)
+  ydata[Il_vib + i*N_vib] = l_pops[i];
 //these lines are a test
  //Initialize_array(ydata, 2*NEQ_vib, 0.0000001);
  // for (i = 0; i < NEQ_vib; i += 2) {
@@ -1122,6 +1103,9 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nb; i++)
   for (j = 0; j < N_vib; j++)
   cout << "starting ydata: Re[b(" << i << "," << j << ")] = " << ydata[Ib_vib + i*N_vib + j] << endl;
+ for (i = 0; i < Nl; i++)
+  for (j = 0; j < N_vib; j++)
+  cout << "starting ydata: Re[l(" << i << "," << j << ")] = " << ydata[Il_vib + i*N_vib + j] << endl;
  for (i = 0; i < Nk; i++)
   for (j = 0; j < N_vib; j++)
   cout << "starting ydata: Im[k(" << i << "," << j << ")] = " << ydata[Ik_vib + i*N_vib + j + NEQ_vib] << endl;
@@ -1131,6 +1115,9 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nb; i++)
   for (j = 0; j < N_vib; j++)
   cout << "starting ydata: Im[b(" << i << "," << j << ")] = " << ydata[Ib_vib + i*N_vib + j + NEQ_vib] << endl;
+ for (i = 0; i < Nl; i++)
+  for (j = 0; j < N_vib; j++)
+  cout << "starting ydata: Im[l(" << i << "," << j << ")] = " << ydata[Il_vib + i*N_vib + j + NEQ_vib] << endl;
  cout << endl;
 #endif
  energy = new realtype [NEQ_vib];			// assemble energy array
@@ -1143,6 +1130,9 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nb; i++)
   for (j = 0; j < N_vib; j++)
    energy[Ib_vib + i*N_vib + j] = b_energies[i] + E_vib*j;
+ for (i = 0; i < Nl; i++)
+  for (j = 0; j < N_vib; j++)
+   energy[Il_vib + i*N_vib + j] = l_energies[i] + E_vib*j;
  user_data = energy;
 #ifdef DEBUG
  for (i = 0; i < Nk; i++)
@@ -1154,6 +1144,9 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nb; i++)
   for (j = 0; j < N_vib; j++)
   cout << "energy[b(" << i << "," << j << ")] = " << energy[Ib_vib + i*N_vib + j] << endl;
+ for (i = 0; i < Nb; i++)
+  for (j = 0; j < N_vib; j++)
+  cout << "energy[l(" << i << "," << j << ")] = " << energy[Il_vib + i*N_vib + j] << endl;
  cout << endl;
 #endif
  // DONE PREPROCESSING //
@@ -1171,7 +1164,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
    realImaginary, 
 #endif
-   allprob, y, t0, tkprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
+   allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -1217,7 +1210,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
      realImaginary, 
 #endif
-     allprob, yout, t, tkprob, tcprob, tbprob, vibprob, times,
+     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times,
      energy_expectation, (i*numOutputSteps/numsteps), energy);
  }
 #ifdef DEBUG
@@ -1226,16 +1219,16 @@ int main (int argc, char * argv[]) {
 
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,
-   tcprob, tbprob, vibprob, energy,
+   tlprob, tcprob, tbprob, vibprob, energy,
    energy_expectation, numOutputSteps);
  
  // finalize log file //
  time(&endRun);
  currentTime = localtime(&endRun);
  fprintf(log, "Run ended at %s\n", asctime(currentTime));
- fprintf(log, "Run took %.3lf seconds.", difftime(endRun, startRun));
+ fprintf(log, "Run took %.3g seconds.", difftime(endRun, startRun));
  fclose(log);					// note that the log file is opened after variable declaration
- printf("\nRun took %.3lf seconds.\n", difftime(endRun, startRun));
+ printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
  // deallocate memory for N_Vectors //
  N_VDestroy_Serial(y);
@@ -1246,6 +1239,7 @@ int main (int argc, char * argv[]) {
 
  // delete all these guys
  delete [] tkprob;
+ delete [] tlprob;
  delete [] tcprob;
  delete [] tbprob;
  delete [] vibprob;
@@ -1258,6 +1252,7 @@ int main (int argc, char * argv[]) {
  delete [] k_energies;
  delete [] c_energies;
  delete [] b_energies;
+ delete [] l_energies;
  delete [] ydata;
  delete [] FCkc;
  delete [] FCkb;
