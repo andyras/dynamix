@@ -33,4 +33,9 @@ pumpInts=5.33e-3                        # intensity of pump pulse (electric fiel
 bulk_FDD=0
 bulk_constant=0
 qd_pops=0
+laser_on=1
+scale_bubr=1
+scale_brqd=0
+scale_buqd=1
+bridge_on=0
 ## END INPUT PARAMETERS ##

@@ -1,5 +1,5 @@
 CPP = g++
-CFLAGS = -O3 -Wall -I/home/andyras/bin/include -L/home/andyras/bin/lib \
+CFLAGS = -O2 -Wall -I/home/andyras/bin/include -L/home/andyras/bin/lib \
 	 -lm -lsundials_cvode -lsundials_nvecserial
 
 # Test if new g++ is installed as a different version

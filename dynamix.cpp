@@ -53,6 +53,15 @@ using namespace std;
  realtype * energy;
  realtype * Vbridge;			// pointer to array of bridge coupling constants.
  					// first element [0] is Vkb1, last [Nb] is VcbN
+ realtype * Vnobridge;			// coupling constant when there is no bridge
+ int bulk_FDD = 0;			// switches for starting conditions
+ int bulk_constant = 0;
+ int qd_pops = 0;
+ int laser_on = 0;
+ int scale_bubr = 0;
+ int scale_brqd = 0;
+ int scale_buqd = 0;
+ int bridge_on = 0;
 // END GLOBAL VARIABLES
 #ifdef DEBUG_SAI
  double last_t = -1.0;				// keeps track of last time for which debuggery was printed
@@ -154,27 +163,20 @@ void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int num
 void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop) {
  
  int i, j;					// counters
- int scale_kV = 1;				// flag to scale coupling to k states
- int scale_cV = 0;				// flag to scale coupling to c states
  // realtype Vkc = 0.007349968763;
  realtype Vkc = 0.0007349968763;
 
- if ((scale_kV == 1) && (Nk > 1))
+ if ((scale_buqd) && (Nk > 1))
   Vkc = Vkc/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
 
  for (i = 0; i < dim; i++)			// initialize
   for (j = 0; j < dim; j++)
    vArray[i][j] = 0.0;
- if (Nb == 0)					// no bridge
-  // Vkc
-  for (i = 0; i < Nk; i++)
-   for (j = 0; j < Nc; j++) {
-    vArray[Ik+i][Ic+j] = Vkc;
-    vArray[Ic+j][Ik+i] = Vkc;
-   }
- if (Nb > 0) {					// bridge
+
+
+ if (bridge_on) {				// bridge
   // coupling between k and b1
-  if ((scale_kV == 1) && (Nk > 1)) {
+  if ((scale_bubr) && (Nk > 1)) {
    for (i = 0; i < Nk; i++) {
     vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
     vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
@@ -187,7 +189,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
    }
   }
   // coupling between bN and c
-  if ((scale_cV == 1) && (Nc > 1)) {
+  if ((scale_brqd) && (Nc > 1)) {
    for (i = 0; i < Nc; i++) {
     vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb]/sqrt(Nc-1);
     vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb]/sqrt(Nc-1);
@@ -205,6 +207,15 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
    vArray[Ib+i+1][Ib+i] = Vbridge[i+1];
   }
  }
+ else {					// no bridge
+  for (i = 0; i < Nk; i++) {
+   for (j = 0; j < Nc; j++) {
+    vArray[Ik+i][Ic+j] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+    vArray[Ic+j][Ik+i] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+   }
+  }
+ }
+
 #ifdef DEBUG
  cout << "\nCoupling matrix:\n";
  for (i = 0; i < dim; i++) {
@@ -235,54 +246,30 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  for (i = 0; i < 2*NEQ_vib; i++)
   NV_Ith_S(ydot, i) = 0;
 
- // pump pulse coupling l and k states
- for (i = 0; i < Nk; i++)
-  for (j = 0; j < Nl; j++)
-   for (n = 0; n < N_vib; n++)
-    for (m = 0; m < N_vib; m++) {
-     IkRe = Ik_vib + i*N_vib + n;
-     IkIm = IkRe + NEQ_vib;
-     IlRe = Il_vib + j*N_vib + m;
-     IlIm = IlRe + NEQ_vib;
-     coss = cos((energy[IkRe] - energy[IlRe])*t);
-     sinn = sin((energy[IkRe] - energy[IlRe])*t);
-     NV_Ith_S(ydot, IkRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
-     NV_Ith_S(ydot, IkIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
-     NV_Ith_S(ydot, IlRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IkIm) + sinn*NV_Ith_S(y, IkRe)); // l Re
-     NV_Ith_S(ydot, IlIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IkIm) - coss*NV_Ith_S(y, IkRe)); // l Im
-#ifdef DEBUGf
-     cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IlRe " << IcRe << " IlIm ";
-     cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t << endl;
-#endif
-    }
-
- if (Nb == 0) {						// no bridge
-  realtype Vkc = V[Ik][Ic];
+ if (laser_on) {
+  // pump pulse coupling l and k states
   for (i = 0; i < Nk; i++)
-   for (j = 0; j < Nc; j++)
+   for (j = 0; j < Nl; j++)
     for (n = 0; n < N_vib; n++)
      for (m = 0; m < N_vib; m++) {
-      IkRe = Ik_vib + i*N_vib + n;			// indices
+      IkRe = Ik_vib + i*N_vib + n;
       IkIm = IkRe + NEQ_vib;
-      IcRe = Ic_vib + j*N_vib + m;
-      IcIm = IcRe + NEQ_vib;
-      /* Franck-Condon indices should be consistent in direction from one end of the 
-       * system to the other.  That is, if the first index is for the beginning state
-       * the second should be for the next in the chain, and so on. */
-      Vee = Vkc*FCkc[n][m];
-      coss = Vee*cos((energy[IkRe] - energy[IcRe])*t);	// do the cosine now for speed
-      sinn = Vee*sin((energy[IkRe] - energy[IcRe])*t);	// do the sine now for speed
-      NV_Ith_S(ydot, IkRe) += (coss*NV_Ith_S(y, IcIm) + sinn*NV_Ith_S(y, IcRe)); // k Re
-      NV_Ith_S(ydot, IkIm) += (sinn*NV_Ith_S(y, IcIm) - coss*NV_Ith_S(y, IcRe)); // k Im
-      NV_Ith_S(ydot, IcRe) += (coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // c Re
-      NV_Ith_S(ydot, IcIm) -= (sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // c Im
+      IlRe = Il_vib + j*N_vib + m;
+      IlIm = IlRe + NEQ_vib;
+      coss = cos((energy[IkRe] - energy[IlRe])*t);
+      sinn = sin((energy[IkRe] - energy[IlRe])*t);
+      NV_Ith_S(ydot, IkRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
+      NV_Ith_S(ydot, IkIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
+      NV_Ith_S(ydot, IlRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IkIm) + sinn*NV_Ith_S(y, IkRe)); // l Re
+      NV_Ith_S(ydot, IlIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IkIm) - coss*NV_Ith_S(y, IkRe)); // l Im
 #ifdef DEBUGf
-      cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IcRe " << IcRe << " IcIm ";
-      cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
+      cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IlRe " << IcRe << " IlIm ";
+      cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t << endl;
 #endif
      }
  }
- if (Nb > 0) {						// bridge
+
+ if (bridge_on) {					// bridge
   int IbRe, IbIm, IBRe, IBIm;
   realtype Vkb = V[Ik][Ib];
   realtype Vbc = V[Ic][Ib+Nb-1];
@@ -343,8 +330,32 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
      cout << IBIm << " Vbb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
 #endif
     }
-
-
+ }
+ else {						// no bridge
+  realtype Vkc = V[Ik][Ic];
+  for (i = 0; i < Nk; i++)
+   for (j = 0; j < Nc; j++)
+    for (n = 0; n < N_vib; n++)
+     for (m = 0; m < N_vib; m++) {
+      IkRe = Ik_vib + i*N_vib + n;			// indices
+      IkIm = IkRe + NEQ_vib;
+      IcRe = Ic_vib + j*N_vib + m;
+      IcIm = IcRe + NEQ_vib;
+      /* Franck-Condon indices should be consistent in direction from one end of the 
+       * system to the other.  That is, if the first index is for the beginning state
+       * the second should be for the next in the chain, and so on. */
+      Vee = Vkc*FCkc[n][m];
+      coss = Vee*cos((energy[IkRe] - energy[IcRe])*t);	// do the cosine now for speed
+      sinn = Vee*sin((energy[IkRe] - energy[IcRe])*t);	// do the sine now for speed
+      NV_Ith_S(ydot, IkRe) += (coss*NV_Ith_S(y, IcIm) + sinn*NV_Ith_S(y, IcRe)); // k Re
+      NV_Ith_S(ydot, IkIm) += (sinn*NV_Ith_S(y, IcIm) - coss*NV_Ith_S(y, IcRe)); // k Im
+      NV_Ith_S(ydot, IcRe) += (coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // c Re
+      NV_Ith_S(ydot, IcIm) -= (sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // c Im
+#ifdef DEBUGf
+      cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IcRe " << IcRe << " IcIm ";
+      cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
+#endif
+     }
  }
 
 #ifdef DEBUGf
@@ -819,9 +830,6 @@ int main (int argc, char * argv[]) {
  double ** allprob;				// populations in all states at all times
  realtype * times;
  realtype * energy_expectation;			// expectation value of energy at each timestep
- int bulk_FDD = 0;				// switches for starting conditions
- int bulk_constant = 0;
- int qd_pops = 0;
  // END VARIABLES //
 
  // OPEN LOG FILE; PUT IN START TIME //
@@ -925,9 +933,14 @@ int main (int argc, char * argv[]) {
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
   else if (input_param == "pumpFreq" ) { pumpFreq = atof(param_val.c_str()); }
   else if (input_param == "pumpInts" ) { pumpInts = atof(param_val.c_str()); }
-  else if (input_param == "bulk_FDD" ) { bulk_FDD = atof(param_val.c_str()); }
-  else if (input_param == "bulk_constant" ) { bulk_constant = atof(param_val.c_str()); }
-  else if (input_param == "qd_pops" ) { qd_pops = atof(param_val.c_str()); }
+  else if (input_param == "bulk_FDD" ) { bulk_FDD = atoi(param_val.c_str()); }
+  else if (input_param == "bulk_constant" ) { bulk_constant = atoi(param_val.c_str()); }
+  else if (input_param == "qd_pops" ) { qd_pops = atoi(param_val.c_str()); }
+  else if (input_param == "laser_on" ) { laser_on = atoi(param_val.c_str()); }
+  else if (input_param == "scale_bubr" ) { scale_bubr = atoi(param_val.c_str()); }
+  else if (input_param == "scale_brqd" ) { scale_brqd = atoi(param_val.c_str()); }
+  else if (input_param == "scale_buqd" ) { scale_buqd = atoi(param_val.c_str()); }
+  else if (input_param == "bridge_on" ) { bridge_on = atoi(param_val.c_str()); }
   else {  }
   getline (bash_in,line);
  }
@@ -958,10 +971,15 @@ int main (int argc, char * argv[]) {
  cout << "bulk_FDD is " << bulk_FDD << endl;
  cout << "bulk_constant is " << bulk_constant << endl;
  cout << "qd_pops is " << qd_pops << endl;
+ cout << "laser_on is " << laser_on << endl;
+ cout << "scale_bubr is " << scale_bubr << endl;
+ cout << "scale_brqd is " << scale_brqd << endl;
+ cout << "scale_buqd is " << scale_buqd << endl;
+ cout << "bridge_on is " << bridge_on << endl;
 #endif
 
  // Error checking
- if ((bulk_FDD == 1 && qd_pops == 1) || (bulk_constant == 1 && qd_pops == 1)) {
+ if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops)) {
   cerr << "\nWARNING: population starting both in bulk and QD.\n";
  }
  if (Nk_init > Nk || Nk_init < 0) {
@@ -980,7 +998,27 @@ int main (int argc, char * argv[]) {
   cerr << "\nERROR: qd_pops switch is not 0 or 1.\n";
   return -1;
  }
- if (bulk_FDD == 1 && bulk_constant == 1) {
+ if (laser_on != 0 && laser_on != 1) {
+  cerr << "\nERROR: laser_on switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (scale_bubr != 0 && scale_bubr != 1) {
+  cerr << "\nERROR: scale_bubr switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (scale_brqd != 0 && scale_brqd != 1) {
+  cerr << "\nERROR: scale_brqd switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (scale_buqd != 0 && scale_buqd != 1) {
+  cerr << "\nERROR: scale_buqd switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (bridge_on != 0 && bridge_on != 1) {
+  cerr << "\nERROR: bridge_on switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (bulk_FDD && bulk_constant) {
   cerr << "\nERROR: bulk_FDD and bulk_constant switches are both on.\n";
   return -1;
  }
@@ -1002,13 +1040,22 @@ int main (int argc, char * argv[]) {
  c_energies = new realtype [Nc];
  b_energies = new realtype [Nb];
  l_energies = new realtype [Nl];
- Vbridge = new realtype [Nb+1];
  if (Number_of_values("ins/c_pops.in") != Nc)
   fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.");
  Read_array_from_file(c_energies, "ins/c_energies.in", Nc);
- if ( Nb > 0) {
+ if (bridge_on) {
+  if (bridge_on && (Nb < 1)) {
+   cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
+   return -1;
+  }
+  Vbridge = new realtype [Nb+1];
   Read_array_from_file(b_energies, "ins/b_energies.in", Nb);
   Read_array_from_file(Vbridge, "ins/Vbridge.in", Nb + 1);
+ }
+ else {
+  Nb = 0;
+  Vnobridge = new realtype [1];
+  Read_array_from_file(Vnobridge, "ins/Vnobridge.in", 1);
  }
  // DONE READING //
 #ifdef DEBUG
@@ -1067,7 +1114,7 @@ int main (int argc, char * argv[]) {
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
- Build_v(V, NEQ, k_bandedge, k_bandtop);	// assign k-c coupling constants
+ Build_v(V, NEQ, k_bandedge, k_bandtop);	// assign coupling constants
  if (Nb == 0) {					// assign Franck-Condon factors
   FCkc = new realtype * [N_vib];
   for (i = 0; i < N_vib; i++)
@@ -1082,7 +1129,7 @@ int main (int argc, char * argv[]) {
    }
 #endif
  }
- else if (Nb > 0) {
+ else if (bridge_on) {
   if (Nb > 1) {
    FCbb = new realtype * [N_vib];
    for (i = 0; i < N_vib; i++)
@@ -1304,6 +1351,7 @@ int main (int argc, char * argv[]) {
  delete [] energy;
  delete [] V;
  delete [] Vbridge;
+ delete [] Vnobridge;
  delete [] k_energies;
  delete [] c_energies;
  delete [] b_energies;
