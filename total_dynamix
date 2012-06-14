@@ -7,8 +7,8 @@
 ## FLAGS FOR RUN ##
       do_compile="y"
 	  do_run="y"
-    make_plotter="n"
-	 do_plot="n"
+    make_plotter="y"
+	 do_plot="y"
 make_movie_maker="n"
 	do_movie="n"
       do_cleanup="y"
@@ -52,7 +52,7 @@ tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
  echo "### $(date) making plots..."
  echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
 set output '/dev/null'
-plot './outs/tkprob.out'
+plot './outs/tkprob.out', './outs/tcprob.out'
 set output 'figures/populations.eps'
 set multiplot
 set style data lines

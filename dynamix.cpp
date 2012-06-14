@@ -5,6 +5,7 @@
 #include <vector>
 #include <math.h>
 #include <time.h>
+#include <numeric>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
@@ -208,7 +209,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  cout << "\nCoupling matrix:\n";
  for (i = 0; i < dim; i++) {
   for (j = 0; j < dim; j++)
-   cout << vArray[i][j] << " ";
+   cout << scientific << vArray[i][j] << " ";
   cout << endl;
  }
 #endif
@@ -818,6 +819,9 @@ int main (int argc, char * argv[]) {
  double ** allprob;				// populations in all states at all times
  realtype * times;
  realtype * energy_expectation;			// expectation value of energy at each timestep
+ int bulk_FDD = 0;				// switches for starting conditions
+ int bulk_constant = 0;
+ int qd_pops = 0;
  // END VARIABLES //
 
  // OPEN LOG FILE; PUT IN START TIME //
@@ -897,7 +901,7 @@ int main (int argc, char * argv[]) {
   param_val = line.substr(int(equals_pos)+1,int(space_pos)-int(equals_pos));
   // extract parameters
 #ifdef DEBUG
-  cout << "Parameter: " << input_param << endl << "    Value: " << atof(param_val.c_str()) << endl;
+  cout << "Parameter: " << input_param << endl << "New value: " << atof(param_val.c_str()) << endl;
 #endif
   if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
@@ -909,7 +913,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bulk_gap" ) { bulk_gap = atof(param_val.c_str()); }
   else if (input_param == "Nk" ) { Nk = atoi(param_val.c_str()); }
   else if (input_param == "Nk_init" ) { Nk_init = atoi(param_val.c_str()); }
-  else if (input_param == "temp" ) { temperature = atof(param_val.c_str()); }
+  else if (input_param == "temperature" ) { temperature = atof(param_val.c_str()); }
   else if (input_param == "N_vib" ) { N_vib = atoi(param_val.c_str()); }
   else if (input_param == "E_vib" ) { E_vib = atof(param_val.c_str()); }
   else if (input_param == "gkc" ) { gkc = atof(param_val.c_str()); }
@@ -921,36 +925,63 @@ int main (int argc, char * argv[]) {
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
   else if (input_param == "pumpFreq" ) { pumpFreq = atof(param_val.c_str()); }
   else if (input_param == "pumpInts" ) { pumpInts = atof(param_val.c_str()); }
+  else if (input_param == "bulk_FDD" ) { bulk_FDD = atof(param_val.c_str()); }
+  else if (input_param == "bulk_constant" ) { bulk_constant = atof(param_val.c_str()); }
+  else if (input_param == "qd_pops" ) { qd_pops = atof(param_val.c_str()); }
   else {  }
   getline (bash_in,line);
-#ifdef DEBUG
-   cout << "abstol is " << param_val << endl;
-   cout << "reltol is " << param_val << endl;
-   cout << "tout is " << param_val << endl;
-   cout << "numsteps is " << param_val << endl;
-   cout << "numOutputSteps is " << param_val << endl;
-   cout << "k_bandedge is " << param_val << endl;
-   cout << "k_bandtop is " << param_val << endl;
-   cout << "bulk_gap is " << param_val << endl;
-   cout << "Nk is " << param_val << endl;
-   cout << "Nk_init is " << param_val << endl;
-   cout << "temperature is " << param_val << endl;
-   cout << "N_vib is " << param_val << endl;
-   cout << "E_vib is " << param_val << endl;
-   cout << "gkc is " << param_val << endl;
-   cout << "gkb is " << param_val << endl;
-   cout << "gbc is " << param_val << endl;
-   cout << "gbb is " << param_val << endl;
-   cout << "muLK is " << param_val << endl;
-   cout << "pumpFWHM is " << param_val << endl;
-   cout << "pumpPeak is " << param_val << endl;
-   cout << "pumpFreq is " << param_val << endl;
-   cout << "pumpInts is " << param_val << endl;
-#endif
  }
+#ifdef DEBUG
+ cout << endl;
+ cout << "abstol is " << abstol << endl;
+ cout << "reltol is " << reltol << endl;
+ cout << "tout is " << tout << endl;
+ cout << "numsteps is " << numsteps << endl;
+ cout << "numOutputSteps is " << numOutputSteps << endl;
+ cout << "k_bandedge is " << k_bandedge << endl;
+ cout << "k_bandtop is " << k_bandtop << endl;
+ cout << "bulk_gap is " << bulk_gap << endl;
+ cout << "Nk is " << Nk << endl;
+ cout << "Nk_init is " << Nk_init << endl;
+ cout << "temperature is " << temperature << endl;
+ cout << "N_vib is " << N_vib << endl;
+ cout << "E_vib is " << E_vib << endl;
+ cout << "gkc is " << gkc << endl;
+ cout << "gkb is " << gkb << endl;
+ cout << "gbc is " << gbc << endl;
+ cout << "gbb is " << gbb << endl;
+ cout << "muLK is " << muLK << endl;
+ cout << "pumpFWHM is " << pumpFWHM << endl;
+ cout << "pumpPeak is " << pumpPeak << endl;
+ cout << "pumpFreq is " << pumpFreq << endl;
+ cout << "pumpInts is " << pumpInts << endl;
+ cout << "bulk_FDD is " << bulk_FDD << endl;
+ cout << "bulk_constant is " << bulk_constant << endl;
+ cout << "qd_pops is " << qd_pops << endl;
+#endif
 
+ // Error checking
+ if ((bulk_FDD == 1 && qd_pops == 1) || (bulk_constant == 1 && qd_pops == 1)) {
+  cerr << "\nWARNING: population starting both in bulk and QD.\n";
+ }
  if (Nk_init > Nk || Nk_init < 0) {
   fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk or less than 0.\n");
+  return -1;
+ }
+ if (bulk_FDD != 0 && bulk_FDD != 1) {
+  cerr << "\nERROR: bulk_FDD switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (bulk_constant != 0 && bulk_constant != 1) {
+  cerr << "\nERROR: bulk_constant switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (qd_pops != 0 && qd_pops != 1) {
+  cerr << "\nERROR: qd_pops switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (bulk_FDD == 1 && bulk_constant == 1) {
+  cerr << "\nERROR: bulk_FDD and bulk_constant switches are both on.\n";
   return -1;
  }
 
@@ -974,7 +1005,6 @@ int main (int argc, char * argv[]) {
  Vbridge = new realtype [Nb+1];
  if (Number_of_values("ins/c_pops.in") != Nc)
   fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.");
- Read_array_from_file(c_pops, "ins/c_pops.in", Nc);
  Read_array_from_file(c_energies, "ins/c_energies.in", Nc);
  if ( Nb > 0) {
   Read_array_from_file(b_energies, "ins/b_energies.in", Nb);
@@ -989,6 +1019,29 @@ int main (int argc, char * argv[]) {
  Nl = 1;
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
  NEQ_vib = NEQ*N_vib;
+ // assign populations
+ Initialize_array(b_pops, Nb, 0.0);		// populate b states
+ if (bulk_FDD == 1) {
+  Build_k_pops(k_pops, k_energies, k_bandedge, temperature);   // populate k states with FDD
+  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+ }
+ else if (bulk_constant == 1) {
+  Initialize_array(k_pops, Nk, 0.0);
+  Initialize_array(k_pops, Nk_init, 1.0);
+  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+ }
+ else {
+  Initialize_array(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
+  Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
+ }
+ if (qd_pops == 1) {
+  Read_array_from_file(c_pops, "ins/c_pops.in", Nc);	// QD populations from file
+  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+ }
+ else {
+  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
+  Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
+ }
  tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
  tcprob = new realtype [numOutputSteps+1];
  tbprob = new realtype [numOutputSteps+1];
@@ -1010,11 +1063,6 @@ int main (int argc, char * argv[]) {
  Ib_vib = Ic_vib + Nc*N_vib;
  Il_vib = Ib_vib + Nb*N_vib;
  Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
- Initialize_array(b_pops, Nb, 0.0);		// populate b states
- Initialize_array(k_pops, Nk, 0.0);		// populate k states (all zero to start off)
- Initialize_array(k_pops, Nk_init, 1.0);	// populate k states
- //Build_k_pops(k_pops, k_energies, k_bandedge, temperature);	// populate k states (all zero to start off)
- Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
  l_energies[0]=k_bandedge-bulk_gap;             // assign l energy
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
@@ -1029,7 +1077,7 @@ int main (int argc, char * argv[]) {
    cout << "\n FCkc:\n";
    for (i = 0; i < N_vib; i++) {
     for (j = 0; j < N_vib; j++)
-     printf("%+.7g ", FCkc[i][j]);
+     printf("%+.7e ", FCkc[i][j]);
     cout << endl;
    }
 #endif
@@ -1092,6 +1140,13 @@ int main (int argc, char * argv[]) {
  // }
  // Activate the following line to have the electron start on the first bridge
  // ydata[Ib_vib] = 1.0;
+ if ( accumulate(ydata, ydata+NEQ_vib, 0) == 0 ) {
+  cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+  return -1;
+ }
+ if ( accumulate(ydata, ydata+NEQ_vib, 0) != 1.0 ) {
+  cerr << "\nWARNING [populations]: total population is not 1!\n";
+ }
 #ifdef DEBUG
  cout << endl;
  for (i = 0; i < Nk; i++)

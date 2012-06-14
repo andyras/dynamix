@@ -15,7 +15,7 @@ bulk_gap=0.01				# bulk band gap
 Nk=4					# number of k states to have
 Nk_init=0				# number of k states initially populated
 # physical parameters #
-temp=3e2				# temperature in Kelvin
+temperature=3e2				# temperature in Kelvin
 # vibronic parameters #
 N_vib=1					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
@@ -29,4 +29,8 @@ pumpFWHM=2000                           # FWHM of pump pulse (time a.u.)
 pumpPeak=2000                           # time of peak of pump pulse (a.u.)
 pumpFreq=1e-2                           # frequency of pump pulse (energy a.u.)
 pumpInts=5.33e-3                        # intensity of pump pulse (electric field a.u.)
+# starting condition switches
+bulk_FDD=0
+bulk_constant=0
+qd_pops=0
 ## END INPUT PARAMETERS ##
