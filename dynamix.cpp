@@ -139,8 +139,16 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
 
  int i;
 
- for (i = 0; i < Nk; i++)
+ for (i = 0; i < Nk; i++) {
   kPops[i] = 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp)));	// dunno where the actual Fermi level is
+#ifdef DEBUG
+ cout << "\nk population at state " << i << " is: "
+      << 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp)));
+#endif
+ }
+#ifdef DEBUG
+ cout << endl;
+#endif
 }
 
 
@@ -1071,6 +1079,29 @@ int main (int argc, char * argv[]) {
  cout << "\nTotal number of states: " << NEQ << endl;
  cout << Nk << " bulk, " << Nc << " QD, " << Nb << " bridge, " << Nl << " bulk VB.\n";
 #endif
+ tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
+ tcprob = new realtype [numOutputSteps+1];
+ tbprob = new realtype [numOutputSteps+1];
+ tlprob = new realtype [numOutputSteps+1];
+ vibprob = new realtype * [numOutputSteps+1];
+ for (i = 0; i < numOutputSteps+1; i++)
+  vibprob[i] = new realtype [N_vib];
+ allprob = new double * [numOutputSteps+1];
+ for (i = 0; i < numOutputSteps+1; i++)
+  allprob[i] = new double [NEQ];
+ times = new realtype [numOutputSteps+1];
+ energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
+ Ik = 0;					// set index start positions for each type of state
+ Ic = Nk;
+ Ib = Ic+Nc;
+ Il = Ib+Nb;
+ Ik_vib = 0;
+ Ic_vib = Nk*N_vib;
+ Ib_vib = Ic_vib + Nc*N_vib;
+ Il_vib = Ib_vib + Nb*N_vib;
+ // assign bulk energies
+ Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
+ l_energies[0]=k_bandedge-bulk_gap;             // assign l energy
  // assign populations
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
  if (bulk_FDD) {
@@ -1094,28 +1125,6 @@ int main (int argc, char * argv[]) {
   Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
- tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
- tcprob = new realtype [numOutputSteps+1];
- tbprob = new realtype [numOutputSteps+1];
- tlprob = new realtype [numOutputSteps+1];
- vibprob = new realtype * [numOutputSteps+1];
- for (i = 0; i < numOutputSteps+1; i++)
-  vibprob[i] = new realtype [N_vib];
- allprob = new double * [numOutputSteps+1];
- for (i = 0; i < numOutputSteps+1; i++)
-  allprob[i] = new double [NEQ];
- times = new realtype [numOutputSteps+1];
- energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
- Ik = 0;					// set index start positions for each type of state
- Ic = Nk;
- Ib = Ic+Nc;
- Il = Ib+Nb;
- Ik_vib = 0;
- Ic_vib = Nk*N_vib;
- Ib_vib = Ic_vib + Nc*N_vib;
- Il_vib = Ib_vib + Nb*N_vib;
- Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);	// create bulk conduction quasicontinuum
- l_energies[0]=k_bandedge-bulk_gap;             // assign l energy
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
