@@ -460,12 +460,12 @@ int Derivative(double *inputArray, int inputLength, double *outputArray, double 
  }
 
  for (i = 2; i < inputLength-3; i++) {
-  outputArray[i-2] = (2*inputArray[i+3]
-          -15*inputArray[i+2]
-	  +60*inputArray[i+1]
-	  -20*inputArray[i]
-	  -30*inputArray[i-1]
-	  +3 *inputArray[i-2])/(60*timestep);
+  outputArray[i-2] = (2* inputArray[i+3]
+		     -15*inputArray[i+2]
+		     +60*inputArray[i+1]
+		     -20*inputArray[i]
+		     -30*inputArray[i-1]
+		     +3 *inputArray[i-2])/(60*timestep);
  }
 
  return 0;
@@ -842,6 +842,7 @@ int main (int argc, char * argv[]) {
 
  // ASSIGN VARIABLE DEFAULTS //
  i = 0;
+ double summ = 0;			// sum variable
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -1086,6 +1087,7 @@ int main (int argc, char * argv[]) {
  else if (qd_pops) {
   Read_array_from_file(c_pops, "ins/c_pops.in", Nc);	// QD populations from file
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  Initialize_array(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
  }
  else {
   Initialize_array(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
@@ -1217,6 +1219,11 @@ int main (int argc, char * argv[]) {
   for (j = 0; j < N_vib; j++)
   cout << "starting ydata: Im[l(" << i << "," << j << ")] = " << ydata[Il_vib + i*N_vib + j + NEQ_vib] << endl;
  cout << endl;
+ summ = 0;
+ for (i = 0; i < NEQ_vib; i++) {
+  summ += pow(ydata[i],2);
+ }
+ cout << "\nTotal population is " << summ << "\n\n";
 #endif
  energy = new realtype [NEQ_vib];			// assemble energy array
  for (i = 0; i < Nk; i++)
@@ -1255,12 +1262,19 @@ int main (int argc, char * argv[]) {
 
  // print t = 0 information //
  Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
- if ( accumulate(ydata, ydata+NEQ_vib, 0) == 0.0 ) {
+ summ = 0;
+ for (i = 0; i < NEQ_vib; i++) {
+  summ += pow(ydata[i],2);
+ }
+#ifdef DEBUG
+  cout << "\nAfter normalization, total population is " << summ << "\n\n";
+#endif
+ if ( summ == 0.0 ) {
   cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
   return -1;
  }
- if ( accumulate(ydata, ydata+NEQ_vib, 0) != 1.0 ) {
-  cerr << "\nWARNING [populations]: total population is not 1!\n";
+ if ( summ != 1.0 ) {
+  cerr << "\nWARNING [populations]: total population is not 1, it is " << summ << "!\n";
  }
 #ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
