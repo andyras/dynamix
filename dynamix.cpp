@@ -140,7 +140,7 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
  int i;
 
  for (i = 0; i < Nk; i++)
-  kPops[i] = 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.1)*3.185e5/(temp)));	// dunno where the actual Fermi level is
+  kPops[i] = 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp)));	// dunno where the actual Fermi level is
 }
 
 
@@ -1066,28 +1066,31 @@ int main (int argc, char * argv[]) {
  Nl = 1;
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
  NEQ_vib = NEQ*N_vib;
+#ifdef DEBUG
+ cout << "\nTotal number of states: " << NEQ << endl;
+ cout << Nk << " bulk, " << Nc << " QD, " << Nb << " bridge, " << Nl << " bulk VB.\n";
+#endif
  // assign populations
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
- if (bulk_FDD == 1) {
+ if (bulk_FDD) {
   Build_k_pops(k_pops, k_energies, k_bandedge, temperature);   // populate k states with FDD
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
- else if (bulk_constant == 1) {
+ else if (bulk_constant) {
   Initialize_array(k_pops, Nk, 0.0);
   Initialize_array(k_pops, Nk_init, 1.0);
+  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
+ }
+ else if (qd_pops) {
+  Read_array_from_file(c_pops, "ins/c_pops.in", Nc);	// QD populations from file
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
  }
  else {
   Initialize_array(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
   Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
- }
- if (qd_pops == 1) {
-  Read_array_from_file(c_pops, "ins/c_pops.in", Nc);	// QD populations from file
-  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
- }
- else {
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
-  Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
  }
  tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
  tcprob = new realtype [numOutputSteps+1];
@@ -1187,13 +1190,6 @@ int main (int argc, char * argv[]) {
  // }
  // Activate the following line to have the electron start on the first bridge
  // ydata[Ib_vib] = 1.0;
- if ( accumulate(ydata, ydata+NEQ_vib, 0) == 0 ) {
-  cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-  return -1;
- }
- if ( accumulate(ydata, ydata+NEQ_vib, 0) != 1.0 ) {
-  cerr << "\nWARNING [populations]: total population is not 1!\n";
- }
 #ifdef DEBUG
  cout << endl;
  for (i = 0; i < Nk; i++)
@@ -1259,6 +1255,13 @@ int main (int argc, char * argv[]) {
 
  // print t = 0 information //
  Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
+ if ( accumulate(ydata, ydata+NEQ_vib, 0) == 0.0 ) {
+  cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+  return -1;
+ }
+ if ( accumulate(ydata, ydata+NEQ_vib, 0) != 1.0 ) {
+  cerr << "\nWARNING [populations]: total population is not 1!\n";
+ }
 #ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
 #endif

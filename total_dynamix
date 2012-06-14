@@ -7,11 +7,11 @@
 ## FLAGS FOR RUN ##
       do_compile="y"
 	  do_run="y"
-    make_plotter="n"
-	 do_plot="n"
+    make_plotter="y"
+	 do_plot="y"
 make_movie_maker="n"
 	do_movie="n"
-      do_cleanup="y"
+      do_cleanup="n"
   do_fullcleanup="n"
        do_backup="n"
 
@@ -23,7 +23,12 @@ function compile {
  echo "### $(date) compiling dynamix.cpp..."
 # g++ -Wall dynamix.cpp -O3 -o dynamix -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling\!"
  #g++ -Wall dynamix.cpp -O3 -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling!"
- make && echo "### $(date) done compiling!"
+ CPP=g++
+ #which g++-4.7.0 > /dev/null
+ #if [ $? == 0 ] ; then
+  #CPP=g++-4.7.0
+ #fi
+ make CPP=$CPP && echo "### $(date) done compiling!"
 }
 
 function compile_fail {
@@ -80,7 +85,7 @@ set xtics nomirror scale 0.5" > figures/populations.plt
  echo "plot './outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> figures/populations.plt
  echo "'./outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> figures/populations.plt
  # Bridge population plot
- if [ $((Nb)) -ge 1 ]
+ if [ $bridge_on == 1 ]
   then
    bmax=$(cat outs/bmax.out)
    echo "set size 1, 0.3
