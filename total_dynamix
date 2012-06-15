@@ -24,10 +24,10 @@ function compile {
 # g++ -Wall dynamix.cpp -O3 -o dynamix -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling\!"
  #g++ -Wall dynamix.cpp -O3 -o dynamix -I/home/andyras/bin/include -L/home/andyras/bin/lib -lm -lsundials_cvode -lsundials_nvecserial && echo "### $(date) done compiling!"
  CPP=g++
- #which g++-4.7.0 > /dev/null
- #if [ $? == 0 ] ; then
-  #CPP=g++-4.7.0
- #fi
+ which g++-4.7.0 &> /dev/null
+ if [ $? == 0 ] ; then CPP=g++-4.7.0 ; fi
+ which g++-4.7.1 &> /dev/null
+ if [ $? == 0 ] ; then CPP=g++-4.7.1 ; fi
  make CPP=$CPP && echo "### $(date) done compiling!"
 }
 

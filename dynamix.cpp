@@ -10,7 +10,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
-#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
+//#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
 //#define DEBUGf				// otherwise output is enormous
 //#define DEBUG_SAI			// debuggery related to checking against Sai's code
 using namespace std;
@@ -268,8 +268,8 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
       sinn = sin((energy[IkRe] - energy[IlRe])*t);
       NV_Ith_S(ydot, IkRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
       NV_Ith_S(ydot, IkIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
-      NV_Ith_S(ydot, IlRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IkIm) + sinn*NV_Ith_S(y, IkRe)); // l Re
-      NV_Ith_S(ydot, IlIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IkIm) - coss*NV_Ith_S(y, IkRe)); // l Im
+      NV_Ith_S(ydot, IlRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // l Re
+      NV_Ith_S(ydot, IlIm) -= muLK*pump(t)*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // l Im
 #ifdef DEBUGf
       cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IlRe " << IcRe << " IlIm ";
       cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t << endl;
@@ -630,6 +630,46 @@ realtype Find_first_array_maximum (realtype * inputArray, int num) {
 }
 
 
+int Find_first_array_maximum_index (realtype * inputArray, int num) {
+ // This function returns the index of the first maximum in an array.
+ //
+ // Warning: will return 0 as index of first maximum if the second array element
+ // is less than the first.  This may not be what you want.
+
+ int i;
+ realtype currentMax = inputArray[0];
+ int currentMax_index = 0;
+
+ for (i = 1; i < num; i++) {
+  if (inputArray[i] > currentMax) {
+   currentMax = inputArray[i];
+   currentMax_index = i;
+  }
+  if (inputArray[i] < currentMax)
+   break;
+ }
+
+ return currentMax_index;
+}
+
+
+int Find_array_maximum_index (realtype * inputArray, int num) {
+
+ int i;
+ realtype currentMax = inputArray[0];
+ int currentMax_index = 0;
+
+ for (i = 1; i < num; i++) {
+  if (inputArray[i] > currentMax) {
+   currentMax = inputArray[i];
+   currentMax_index = i;
+  }
+ }
+
+ return currentMax_index;
+}
+
+
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num) {
@@ -646,7 +686,9 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * Icprob;
  FILE * kmax;
  FILE * cmax;
+ FILE * cmax_t;
  FILE * cmax_first;
+ FILE * cmax_first_t;
  FILE * totprob;
  FILE * energy;
  FILE * times;
@@ -668,7 +710,9 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  Icprob = fopen("Icprob.out", "w");
  kmax = fopen("kmax.out", "w");
  cmax = fopen("cmax.out", "w");
+ cmax_t = fopen("cmax_t.out", "w");
  cmax_first = fopen("cmax_first.out", "w");
+ cmax_first_t = fopen("cmax_first_t.out", "w");
  energy = fopen("energy.out", "w");
  times = fopen("times.out", "w");
  pump_intensity = fopen("pump_intensity.out", "w");
@@ -755,6 +799,8 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  fprintf(kmax, "%-.7g", Find_array_maximum(tk, num+1));
  fprintf(cmax, "%-.7g", Find_array_maximum(tc, num+1));
  fprintf(cmax_first, "%-.7g", Find_first_array_maximum(tc, num+1));
+ fprintf(cmax_t, "%-.7g", time[Find_array_maximum_index(tc, num+1)]);
+ fprintf(cmax_first_t, "%-.7g", time[Find_first_array_maximum_index(tc, num+1)]);
 
  // energy.out should be all the energies on one row, since it's used for
  // the movie maker.
@@ -781,6 +827,8 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  fclose(kmax);
  fclose(cmax);
  fclose(cmax_first);
+ fclose(cmax_t);
+ fclose(cmax_first_t);
  fclose(energy);
  fclose(times);
 
