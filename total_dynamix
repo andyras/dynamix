@@ -142,6 +142,7 @@ set style increment user
 set style line 1 lt 1 lc rgb 'red'
 set style line 2 lt 1 lc rgb 'green'
 set style line 3 lt 1 lc rgb 'blue'
+set style line 4 lt 1 lc rgb 'black'
 
 set key rmargin
 
@@ -157,21 +158,25 @@ set xr[0:GPVAL_DATA_X_MAX]
 set ytics nomirror scale 0.5
 unset xtics
 
-set size 1, 0.3
-set origin 0.0,0.7
+set size 1, 0.23
+set origin 0.0,0.77
 plot './outs/tkprob.out' u 1:2 t 'Bulk' lt 1
 
-set size 1, 0.3
-set origin 0.0,0.4
+set size 1, 0.23
+set origin 0.0,0.54
 set ylabel 'Population (a.u.)'
 plot './outs/tbprob.out' u 1:2 t 'Bridge' lt 3
 unset ylabel
 
-set size 1, 0.3
-set origin 0.0,0.1
+set size 1, 0.23
+set origin 0.0,0.31
+plot './outs/tcprob.out' u 1:2 t 'QD' lt 2
+
+set size 1, 0.23
+set origin 0.0,0.08
 set xlabel 'Time (a.u.)'
 set xtics nomirror scale 0.5
-plot './outs/tcprob.out' u 1:2 t 'QD' lt 2" > figures/time_and_space.plt
+plot './outs/pump_intensity.out' u 1:2 t 'Laser' lt 4" > figures/time_and_space.plt
 fi
 }
 

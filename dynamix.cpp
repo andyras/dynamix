@@ -780,7 +780,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   fprintf(tkprob, "%-.7g %-.7g\n", time[i], tk[i]);
   fprintf(tlprob, "%-.7g %-.7g\n", time[i], tl[i]);
   fprintf(tcprob, "%-.7g %-.7g\n", time[i], tc[i]);
-  summ = tk[i] + tc[i];
+  summ = tk[i] + tc[i] + tl[i];
   if (Nb > 0)
    summ += tb[i];
   fprintf(totprob, "%-.7g %-.15g\n", time[i], summ);
