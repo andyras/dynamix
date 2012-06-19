@@ -30,10 +30,10 @@ pumpPeak=4000                           # time of peak of pump pulse (a.u.)
 pumpFreq=1e-2                           # frequency of pump pulse (energy a.u.)
 pumpInts=5.33e-1                        # intensity of pump pulse (electric field a.u.)
 # starting condition switches
-bulk_FDD=0
+bulk_FDD=1
 bulk_constant=0
 qd_pops=0
-laser_on=1
+laser_on=0
 scale_bubr=1
 scale_brqd=0
 scale_buqd=1
