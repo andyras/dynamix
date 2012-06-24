@@ -20,20 +20,20 @@ temperature=3e2				# temperature in Kelvin
 N_vib=1					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
-gkb=1.0					# g factor between k and b states
-gbc=-1.0				# g factor between b and c states
+gkb=0.0					# g factor between k and b states
+gbc=-0.0				# g factor between b and c states
 gbb=0.0					# g factor between b states
 # laser parameters #
 muLK=1e0                                # transition dipole moment from l to k (energy a.u.)
 pumpFWHM=1000                           # FWHM of pump pulse (time a.u.)
 pumpPeak=4000                           # time of peak of pump pulse (a.u.)
 pumpFreq=1e-2                           # frequency of pump pulse (energy a.u.)
-pumpInts=5.33e-1                        # intensity of pump pulse (electric field a.u.)
+pumpInts=5.33e-3                        # intensity of pump pulse (electric field a.u.)
 # starting condition switches
-bulk_FDD=1
+bulk_FDD=0
 bulk_constant=0
 qd_pops=0
-laser_on=0
+laser_on=1
 scale_bubr=1
 scale_brqd=0
 scale_buqd=1
