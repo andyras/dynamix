@@ -232,6 +232,16 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
   cout << endl;
  }
 #endif
+
+ FILE * couplings;
+ couplings = fopen("couplings.out","w");
+ for (i = 0; i < dim; i++) {
+  for (j = 0; j < dim; j++) {
+   fprintf(couplings,"%.7g ",vArray[i][j]);
+  }
+  fprintf(couplings,"\n");
+ }
+ fclose(couplings);
  
 }
 
