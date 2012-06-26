@@ -35,6 +35,8 @@ using namespace std;
  int NEQ;				// total number of states/equations
  int NEQ_vib;
  int numOutputSteps;			// number of timesteps
+ realtype k_bandedge;			// lower edge of bulk conduction band
+ realtype k_bandtop;			// upper edge of bulk conduction band
  double E_vib;				// vibrational energy
  double gkc;				// g factor between k and c states
  double gkb;				// g factor between k and b states
@@ -61,6 +63,7 @@ using namespace std;
  int scale_bubr = 0;
  int scale_brqd = 0;
  int scale_buqd = 0;
+ int scale_laser = 0;
  int bridge_on = 0;
 // END GLOBAL VARIABLES
 #ifdef DEBUG_SAI
@@ -265,6 +268,15 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   NV_Ith_S(ydot, i) = 0;
 
  if (laser_on) {
+  realtype pumpTerm = 0.0;
+  if (scale_laser) {
+   // pumpTerm gives the strength of the pump's interaction, accounting for scaling.
+   pumpTerm = muLK*pump(t)*sqrt((k_bandtop - k_bandedge)/(Nk - 1));
+  }
+  else {
+   // pumpTerm gives the strength of the pump's interaction, not accounting for scaling.
+   pumpTerm = muLK*pump(t);
+  }
   // pump pulse coupling l and k states
   for (i = 0; i < Nk; i++)
    for (j = 0; j < Nl; j++)
@@ -276,10 +288,10 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
       IlIm = IlRe + NEQ_vib;
       coss = cos((energy[IkRe] - energy[IlRe])*t);
       sinn = sin((energy[IkRe] - energy[IlRe])*t);
-      NV_Ith_S(ydot, IkRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
-      NV_Ith_S(ydot, IkIm) += muLK*pump(t)*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
-      NV_Ith_S(ydot, IlRe) += muLK*pump(t)*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // l Re
-      NV_Ith_S(ydot, IlIm) -= muLK*pump(t)*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // l Im
+      NV_Ith_S(ydot, IkRe) += pumpTerm*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
+      NV_Ith_S(ydot, IkIm) += pumpTerm*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
+      NV_Ith_S(ydot, IlRe) += pumpTerm*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // l Re
+      NV_Ith_S(ydot, IlIm) -= pumpTerm*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // l Im
 #ifdef DEBUGf
       cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IlRe " << IcRe << " IlIm ";
       cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t << endl;
@@ -874,8 +886,6 @@ int main (int argc, char * argv[]) {
  realtype * b_energies;
  realtype * l_energies;
  int Nk_init;					// number of k states initially populated
- realtype k_bandedge;				// lower edge of bulk conduction band
- realtype k_bandtop;				// upper edge of bulk conduction band
  realtype bulk_gap;				// bulk band gap
  realtype temperature;				// system temperature
  realtype t0 = 0.0;				// initial time
@@ -1007,6 +1017,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "scale_bubr" ) { scale_bubr = atoi(param_val.c_str()); }
   else if (input_param == "scale_brqd" ) { scale_brqd = atoi(param_val.c_str()); }
   else if (input_param == "scale_buqd" ) { scale_buqd = atoi(param_val.c_str()); }
+  else if (input_param == "scale_laser" ) { scale_laser = atoi(param_val.c_str()); }
   else if (input_param == "bridge_on" ) { bridge_on = atoi(param_val.c_str()); }
   else {  }
   getline (bash_in,line);
@@ -1042,6 +1053,7 @@ int main (int argc, char * argv[]) {
  cout << "scale_bubr is " << scale_bubr << endl;
  cout << "scale_brqd is " << scale_brqd << endl;
  cout << "scale_buqd is " << scale_buqd << endl;
+ cout << "scale_laser is " << scale_laser << endl;
  cout << "bridge_on is " << bridge_on << endl;
 #endif
 
@@ -1079,6 +1091,10 @@ int main (int argc, char * argv[]) {
  }
  if (scale_buqd != 0 && scale_buqd != 1) {
   cerr << "\nERROR: scale_buqd switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (scale_laser != 0 && scale_laser != 1) {
+  cerr << "\nERROR: scale_laser switch is not 0 or 1.\n";
   return -1;
  }
  if (bridge_on != 0 && bridge_on != 1) {
