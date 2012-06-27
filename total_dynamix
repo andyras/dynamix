@@ -5,8 +5,8 @@
 
 
 ## FLAGS FOR RUN ##
-       do_compile="n"
-	   do_run="n"
+       do_compile="y"
+	   do_run="y"
      make_plotter="y"
 	  do_plot="y"
 timeandspace_plot="y"

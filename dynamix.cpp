@@ -46,7 +46,7 @@ using namespace std;
  double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
  double pumpPeak;                       // time of peak of pump pulse (a.u.)
  double pumpFreq;                       // frequency of pump pulse (energy a.u.)
- double pumpInts;                       // intensity of pump pulse (electric field a.u.)
+ double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
  realtype ** V;				// pointer to k-c coupling constants
  realtype ** FCkc;			// Franck-Condon factors
  realtype ** FCkb;
@@ -251,7 +251,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
 
 realtype pump(realtype t) {
  double sigma = pumpFWHM/2.35482005;
- return pumpInts*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t);
+ return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t);
 }
 
 
@@ -943,7 +943,7 @@ int main (int argc, char * argv[]) {
  pumpFWHM = 1000;
  pumpPeak = 2000;
  pumpFreq = 0.01;
- pumpInts = 1.0;
+ pumpAmpl = 1.0;
  // DONE ASSIGNING VARIABLE DEFAULTS //
 
  string line;
@@ -1009,7 +1009,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "pumpFWHM" ) { pumpFWHM = atof(param_val.c_str()); }
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
   else if (input_param == "pumpFreq" ) { pumpFreq = atof(param_val.c_str()); }
-  else if (input_param == "pumpInts" ) { pumpInts = atof(param_val.c_str()); }
+  else if (input_param == "pumpAmpl" ) { pumpAmpl = atof(param_val.c_str()); }
   else if (input_param == "bulk_FDD" ) { bulk_FDD = atoi(param_val.c_str()); }
   else if (input_param == "bulk_constant" ) { bulk_constant = atoi(param_val.c_str()); }
   else if (input_param == "qd_pops" ) { qd_pops = atoi(param_val.c_str()); }
@@ -1045,7 +1045,7 @@ int main (int argc, char * argv[]) {
  cout << "pumpFWHM is " << pumpFWHM << endl;
  cout << "pumpPeak is " << pumpPeak << endl;
  cout << "pumpFreq is " << pumpFreq << endl;
- cout << "pumpInts is " << pumpInts << endl;
+ cout << "pumpAmpl is " << pumpAmpl << endl;
  cout << "bulk_FDD is " << bulk_FDD << endl;
  cout << "bulk_constant is " << bulk_constant << endl;
  cout << "qd_pops is " << qd_pops << endl;
@@ -1056,6 +1056,9 @@ int main (int argc, char * argv[]) {
  cout << "scale_laser is " << scale_laser << endl;
  cout << "bridge_on is " << bridge_on << endl;
 #endif
+
+ // make a note about the laser intensity.
+ fprintf(log,"The laser intensity is %.7e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
 
  // Error checking
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops)) {

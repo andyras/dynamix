@@ -4,7 +4,7 @@
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=17000				# final time reached by solver (atomic units)
+tout=20000				# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=1500			# number of output timesteps
 # bulk parameters #
@@ -24,11 +24,11 @@ gkb=0.0					# g factor between k and b states
 gbc=-0.0				# g factor between b and c states
 gbb=0.0					# g factor between b states
 # laser parameters #
-muLK=1e0                                # transition dipole moment from l to k (dipole a.u.)
-pumpFWHM=1000                           # FWHM of pump pulse (time a.u.)
-pumpPeak=4000                           # time of peak of pump pulse (a.u.)
-pumpFreq=1e-2                           # frequency of pump pulse (energy a.u.)
-pumpInts=5.33e-1                        # intensity of pump pulse (electric field a.u.)
+muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
+pumpFWHM=20000				# FWHM of pump pulse (time a.u.)
+pumpPeak=30000				# time of peak of pump pulse (a.u.)
+pumpFreq=1e-2				# frequency of pump pulse (energy a.u.)
+pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 # starting condition switches
 bulk_FDD=0
 bulk_constant=0
