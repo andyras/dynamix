@@ -5,15 +5,18 @@
 
 
 ## FLAGS FOR RUN ##
-      do_compile="y"
-	  do_run="y"
-    make_plotter="y"
-	 do_plot="y"
-make_movie_maker="n"
-	do_movie="n"
-      do_cleanup="n"
-  do_fullcleanup="n"
-       do_backup="n"
+       do_compile="n"
+	   do_run="n"
+     make_plotter="y"
+	  do_plot="y"
+timeandspace_plot="y"
+ populations_plot="y"
+      kprobs_plot="n"
+ make_movie_maker="n"
+	 do_movie="n"
+       do_cleanup="n"
+   do_fullcleanup="n"
+	do_backup="n"
 
 ## INPUT PARAMETERS ##
 source ./ins/parameters.sh
@@ -52,10 +55,11 @@ function run_fail {
 }
 
 function plot_maker {
+ if [ "$populations_plot" == 'y' ] ; then
 ## GENERATE POPULATION PLOTSCRIPT ##
-tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
- echo "### $(date) making plots..."
- echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
+  tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
+  echo "### $(date) making plots..."
+  echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
 set output '/dev/null'
 plot './outs/tkprob.out', './outs/tcprob.out'
 set output 'figures/populations.eps'
@@ -75,38 +79,40 @@ set ylabel 'Population (a.u.)'
 set xrange [GPVAL_DATA_X_MIN/41.3414:GPVAL_DATA_X_MAX/41.3414]
 set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]
 set xtics nomirror scale 0.5" > figures/populations.plt
- # k and c population plot
- if [ $(($Nb)) == 0 ]
- then
-  echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> figures/populations.plt
-  else
-  echo "set size 1, 0.7; set origin 0.0,0.3" >> figures/populations.plt
- fi
- echo "plot './outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> figures/populations.plt
- echo "'./outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> figures/populations.plt
- # Bridge population plot
- if [ $bridge_on == 1 ]
+  # k and c population plot
+  if [ $(($Nb)) == 0 ]
   then
-   bmax=$(cat outs/bmax.out)
-   echo "set size 1, 0.3
+   echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> figures/populations.plt
+   else
+   echo "set size 1, 0.7; set origin 0.0,0.3" >> figures/populations.plt
+  fi
+  echo "plot './outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> figures/populations.plt
+  echo "'./outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> figures/populations.plt
+  # Bridge population plot
+  if [ $bridge_on == 1 ]
+   then
+    bmax=$(cat outs/bmax.out)
+    echo "set size 1, 0.3
 set origin 0.0,0.0
 set format y '%.2e'
 set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
+  fi
+  echo "set xlabel 'Time (fs)'" >> figures/populations.plt
+  echo "set ylabel 'Bridge Pop. (a.u.)'" >> figures/populations.plt
+  [ $((Nb)) -ge 1 ] && echo -n "plot './outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> figures/populations.plt
+  for ((i=0 ; i < $(($Nb - 1)) ; i++))
+  do
+   echo ", \\" >> figures/populations.plt
+   echo -n "'./outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> figures/populations.plt
+  done
  fi
- echo "set xlabel 'Time (fs)'" >> figures/populations.plt
- echo "set ylabel 'Bridge Pop. (a.u.)'" >> figures/populations.plt
- [ $((Nb)) -ge 1 ] && echo -n "plot './outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> figures/populations.plt
- for ((i=0 ; i < $(($Nb - 1)) ; i++))
- do
-  echo ", \\" >> figures/populations.plt
-  echo -n "'./outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> figures/populations.plt
- done
 
- # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
+ if [ "$kprobs_plot" == 'y' ] ; then
+  # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
 
- #awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
- new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
- echo "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'
+  #awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
+  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
+  echo "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'
 set output '/dev/null'
 !awk 'BEGIN {FS=\" \"}{for (i=1;i<=NF;i++){ arr[NR,i]=\$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf(\"%s\\t\",arr[j,i]); } printf(\"\\n\"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
 plot './outs/kprobs_transpose.out' u (\$1*$tout/$numOutputSteps):(\$2*($k_bandtop-$k_bandedge)/($Nk-1)):3 matrix with image
@@ -126,9 +132,11 @@ repl
 set terminal epslatex standalone color colortext 10 size 10cm,8cm
 set output 'figures/kprobs.tex'
 repl" > figures/kprobs.plt
+ fi
 
-if [ $(($Nb)) -gt 0 ] ; then
- echo "set terminal postscript enhanced colour dashed lw 2 size 15,10 font 'Arial-Bold,10'
+ if [ "$timeandspace_plot" == 'y' ] ; then
+  if [ $(($Nb)) -gt 0 ] ; then
+  echo "set terminal postscript enhanced colour dashed lw 2 size 15,10 font 'Arial-Bold,10'
 
 # dummy plot to get GPVAL_DATA_X_MAX
 set output '/dev/null'
@@ -177,27 +185,35 @@ set origin 0.0,0.08
 set xlabel 'Time (a.u.)'
 set xtics nomirror scale 0.5
 plot './outs/pump_intensity.out' u 1:2 t 'Laser' lt 4" > figures/time_and_space.plt
-fi
+  fi
+ fi
 }
 
 function plot {
- gnuplot figures/populations.plt
- gnuplot figures/kprobs.plt
- latex figures/kprobs.tex
- dvipdf kprobs.dvi
- [ -f "kprobs.dvi" ] && rm -f kprobs.dvi
- [ -f "kprobs.log" ] && rm -f kprobs.log
- [ -f "kprobs.aux" ] && rm -f kprobs.aux
- [ -f "kprobs.pdf" ] && mv kprobs.pdf figures/
- [ -f "kprobs-inc.eps" ] && mv kprobs-inc.eps figures/
- if [ $(($Nb)) -gt 0 ] ; then
-  gnuplot figures/time_and_space.plt
+# make populations plot
+ if [ "$populations_plot" == 'y' ] ; then
+  gnuplot figures/populations.plt
+  [ "$do_fullcleanup" == 'y' ] && rm -f figures/populations.plt
  fi
- [ "$do_fullcleanup" == 'y' ] && rm -f figures/populations.plt
- if [ $(($Nb)) -gt 0 ] ; then
-  [ "$do_fullcleanup" == 'y' ] && rm -f figures/time_and_space.plt
+# make kprobs plot
+ if [ "$kprobs_plot" == 'y' ] ; then
+  gnuplot figures/kprobs.plt
+  latex figures/kprobs.tex
+  dvipdf kprobs.dvi
+  [ -f "kprobs.dvi" ] && rm -f kprobs.dvi
+  [ -f "kprobs.log" ] && rm -f kprobs.log
+  [ -f "kprobs.aux" ] && rm -f kprobs.aux
+  [ -f "kprobs.pdf" ] && mv kprobs.pdf figures/
+  [ -f "kprobs-inc.eps" ] && mv kprobs-inc.eps figures/
+  [ "$do_fullcleanup" == 'y' ] && rm -f figures/kprob.plt && echo "### $(date) done plotting!"
  fi
- [ "$do_fullcleanup" == 'y' ] && rm -f figures/kprob.plt && echo "### $(date) done plotting!"
+# make time and space plot
+ if [ "$timeandspace_plot" == 'y' ] ; then
+  if [ $(($Nb)) -gt 0 ] ; then
+   gnuplot figures/time_and_space.plt
+   [ "$do_fullcleanup" == 'y' ] && rm -f figures/time_and_space.plt
+  fi
+ fi
 }
 
 function movie_maker {
