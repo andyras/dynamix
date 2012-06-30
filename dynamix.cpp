@@ -251,7 +251,8 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
 
 realtype pump(realtype t) {
  double sigma = pumpFWHM/2.35482005;
- return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t);
+ return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)));
+ //return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t);
 }
 
 
