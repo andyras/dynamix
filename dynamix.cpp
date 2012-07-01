@@ -47,6 +47,7 @@ using namespace std;
  double pumpPeak;                       // time of peak of pump pulse (a.u.)
  double pumpFreq;                       // frequency of pump pulse (energy a.u.)
  double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
+ double pumpPhase;                      // pump pulse phase (in units of radians)
  realtype ** V;				// pointer to k-c coupling constants
  realtype ** FCkc;			// Franck-Condon factors
  realtype ** FCkb;
@@ -251,8 +252,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
 
 realtype pump(realtype t) {
  double sigma = pumpFWHM/2.35482005;
- return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)));
- //return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t);
+ return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t + pumpPhase);
 }
 
 
@@ -945,6 +945,7 @@ int main (int argc, char * argv[]) {
  pumpPeak = 2000;
  pumpFreq = 0.01;
  pumpAmpl = 1.0;
+ pumpPhase = 0.0;
  // DONE ASSIGNING VARIABLE DEFAULTS //
 
  string line;
@@ -1011,6 +1012,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
   else if (input_param == "pumpFreq" ) { pumpFreq = atof(param_val.c_str()); }
   else if (input_param == "pumpAmpl" ) { pumpAmpl = atof(param_val.c_str()); }
+  else if (input_param == "pumpPhase" ) { pumpPhase = atof(param_val.c_str()); }
   else if (input_param == "bulk_FDD" ) { bulk_FDD = atoi(param_val.c_str()); }
   else if (input_param == "bulk_constant" ) { bulk_constant = atoi(param_val.c_str()); }
   else if (input_param == "qd_pops" ) { qd_pops = atoi(param_val.c_str()); }
@@ -1047,6 +1049,7 @@ int main (int argc, char * argv[]) {
  cout << "pumpPeak is " << pumpPeak << endl;
  cout << "pumpFreq is " << pumpFreq << endl;
  cout << "pumpAmpl is " << pumpAmpl << endl;
+ cout << "pumpPhase is " << pumpPhase << endl;
  cout << "bulk_FDD is " << bulk_FDD << endl;
  cout << "bulk_constant is " << bulk_constant << endl;
  cout << "qd_pops is " << qd_pops << endl;
@@ -1432,7 +1435,7 @@ int main (int argc, char * argv[]) {
  time(&endRun);
  currentTime = localtime(&endRun);
  fprintf(log, "Run ended at %s\n", asctime(currentTime));
- fprintf(log, "Run took %.3g seconds.", difftime(endRun, startRun));
+ fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
  fclose(log);					// note that the log file is opened after variable declaration
  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
