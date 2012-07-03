@@ -270,7 +270,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
  if (laser_on) {
   realtype pumpTerm = 0.0;
-  if (scale_laser) {
+  if ((scale_laser) && (Nk > 1)) {
    // pumpTerm gives the strength of the pump's interaction, accounting for scaling.
    pumpTerm = muLK*pump(t)*sqrt((k_bandtop - k_bandedge)/(Nk - 1));
   }

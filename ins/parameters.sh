@@ -29,7 +29,7 @@ pumpFWHM=4000				# FWHM of pump pulse (time a.u.)
 pumpPeak=6000				# time of peak of pump pulse (a.u.)
 pumpFreq=1e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
-pumpPhase=3.0				# pump pulse phase (units of radians)
+pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
 bulk_FDD=0
 bulk_constant=0
