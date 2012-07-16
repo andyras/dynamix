@@ -31,10 +31,10 @@ pumpFreq=1e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
-bulk_FDD=0
+bulk_FDD=1
 bulk_constant=0
 qd_pops=0
-laser_on=1
+laser_on=0
 scale_bubr=1
 scale_brqd=0
 scale_buqd=1

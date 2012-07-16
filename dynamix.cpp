@@ -870,6 +870,22 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  }
  fclose(tkDeriv);
  fclose(tcDeriv);
+ delete [] tkderivs;
+ delete [] tcderivs;
+
+ // compute rates.  Rate is calculated as (dP(t)/dt)/P(t), where P(t) is
+ // the population at time t.
+ FILE * tkRate;
+ FILE * tcRate;
+ tkRate = fopen("tkrate.out","w");
+ tcRate = fopen("tcrate.out","w");
+ for (i = 0; i < numOutputSteps-5; i++) {
+  fprintf(tkRate, "%-.7g %-.9g\n", time[i+2], tkderivs[i]/tk[i+2]);
+  fprintf(tcRate, "%-.7g %-.9g\n", time[i+2], tcderivs[i]/tc[i+2]);
+ }
+ fclose(tkRate);
+ fclose(tcRate);
+
 }
 
 int main (int argc, char * argv[]) {
@@ -1363,7 +1379,7 @@ int main (int argc, char * argv[]) {
   cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
   return -1;
  }
- if ( summ != 1.0 ) {
+ if ( fabs(summ-1.0) > 1e-12 ) {
   cerr << "\nWARNING [populations]: total population is not 1, it is " << summ << "!\n";
  }
 #ifdef DEBUG
