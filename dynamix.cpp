@@ -704,6 +704,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * kprobs;
  FILE * kprobs_gnuplot;
  FILE * cprobs;
+ FILE * cprobs_gnuplot;
  FILE * bprobs;
  FILE * Ikprob;
  FILE * Icprob;
@@ -726,6 +727,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  vibprob = fopen("vibprob.out", "w");
  kprobs = fopen("kprobs.out", "w");
  kprobs_gnuplot = fopen("kprobs_gnuplot.out", "w");
+ cprobs_gnuplot = fopen("cprobs_gnuplot.out", "w");
  cprobs = fopen("cprobs.out", "w");
  bprobs = fopen("bprobs.out", "w");
  totprob = fopen("totprob.out", "w");
@@ -760,6 +762,12 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   for (j = 0; j < Nc ; j++)
    fprintf(cprobs, " %-.7g", allprobs[i][Ic+j]);
   fprintf(cprobs, "\n");
+ }
+ for (i = 0 ; i < num ; i++) {
+  for (j = 0 ; j < Nc ; j++ )
+   fprintf(cprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ic_vib + j*N_vib], allprobs[i][Ic+j]);
+  if (i < (num - 1))
+   fprintf(cprobs_gnuplot, "\n");			// makes a blank line for gnuplot
  }
 
  for (i = 0 ; i < num ; i++) {				// print b probabilities over time
@@ -842,7 +850,9 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  fclose(tcprob);
  fclose(vibprob);
  fclose(kprobs);
+ fclose(kprobs_gnuplot);
  fclose(cprobs);
+ fclose(cprobs_gnuplot);
  fclose(bprobs);
  fclose(totprob);
  fclose(Ikprob);

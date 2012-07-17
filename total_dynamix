@@ -7,10 +7,10 @@
 ## FLAGS FOR RUN ##
        do_compile="y"
 	   do_run="y"
-     make_plotter="n"
-	  do_plot="n"
-timeandspace_plot="n"
- populations_plot="n"
+     make_plotter="y"
+	  do_plot="y"
+timeandspace_plot="y"
+ populations_plot="y"
       kprobs_plot="n"
  make_movie_maker="n"
 	 do_movie="n"
@@ -43,7 +43,7 @@ function compile_fail {
 function run {
 ## RUN THE PROGRAM! ##
  echo "### $(date) running dynamix..."
- ./dynamix  && echo "### $(date) dynamix done\!" || echo "### $(date) dynamix did not run :("
+ ./dynamix  && echo "### $(date) dynamix done!" || echo "### $(date) dynamix did not run :("
  mkdir -p outs
  rm -f outs/*
  mv *.out outs/
@@ -341,6 +341,6 @@ fi
 [ "$do_movie" == 'y' ] && movie
 [ "$do_backup" == 'y' ] && backup
 
-echo "### $(date) all done\!"
+echo "### $(date) all done!"
 echo "###"
 echo "###"

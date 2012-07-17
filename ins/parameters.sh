@@ -24,16 +24,16 @@ gkb=0.0					# g factor between k and b states
 gbc=-0.0				# g factor between b and c states
 gbb=0.0					# g factor between b states
 # laser parameters #
-muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
+muLK=0e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)
 pumpPeak=6000				# time of peak of pump pulse (a.u.)
 pumpFreq=1e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
-bulk_FDD=1
+bulk_FDD=0
 bulk_constant=0
-qd_pops=0
+qd_pops=1
 laser_on=0
 scale_bubr=1
 scale_brqd=0
