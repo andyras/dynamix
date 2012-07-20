@@ -10,9 +10,15 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
-//#define DEBUG				// DANGER! Only turn on DEBUGf for small test runs, 
-//#define DEBUGf				// otherwise output is enormous
-//#define DEBUG_SAI			// debuggery related to checking against Sai's code
+/* DEBUG compiler flag: turn this on to generate basic debug outputs.         */
+//#define DEBUG
+/* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
+/* enormous (many GB).  This flag turns on debug output within the f          */
+/* function.                                                                  */
+//#define DEBUGf
+/* This flag is debuggery related to checking against Sai's code.             */
+//#define DEBUG_SAI
+
 using namespace std;
 
 // GLOBAL VARIABLES GO HERE //
