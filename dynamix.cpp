@@ -1440,13 +1440,15 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUGf
   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
-  if (i % (numsteps/numOutputSteps) == 0)
+  if (i % (numsteps/numOutputSteps) == 0) {
+   fprintf(stdout, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
    Output_checkpoint(
 #ifdef DEBUG
      realImaginary, 
 #endif
      allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times,
      energy_expectation, (i*numOutputSteps/numsteps), energy);
+  }
  }
 #ifdef DEBUG
  fclose(realImaginary);
