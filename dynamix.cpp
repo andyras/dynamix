@@ -1094,7 +1094,7 @@ int main (int argc, char * argv[]) {
 #endif
 
  // make a note about the laser intensity.
- fprintf(log,"The laser intensity is %.7e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
+ fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
 
  // Error checking
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops)) {
