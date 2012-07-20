@@ -1462,6 +1462,7 @@ int main (int argc, char * argv[]) {
  // finalize log file //
  time(&endRun);
  currentTime = localtime(&endRun);
+ fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
  fprintf(log, "Run ended at %s\n", asctime(currentTime));
  fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
  fclose(log);					// note that the log file is opened after variable declaration
