@@ -12,8 +12,10 @@ k_bandedge=0.01				# lower band edge of bulk conduction band
 k_bandtop=0.08350			# upper band edge of bulk conduction band
 bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=25					# number of k states to have
+Nk=250					# number of k states to have
 Nk_init=0				# number of k states initially populated
+bulkGaussSigma=0.005			# width of initial Gaussian in bulk
+bulkGaussMu=0.01			# position of initial Gaussian above band edge
 # physical parameters #
 temperature=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -32,8 +34,9 @@ pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
 bulk_FDD=0
+bulk_Gauss=1
 bulk_constant=0
-qd_pops=1
+qd_pops=0
 laser_on=0
 scale_bubr=1
 scale_brqd=0

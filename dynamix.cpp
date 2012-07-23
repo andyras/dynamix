@@ -64,6 +64,7 @@ using namespace std;
  					// first element [0] is Vkb1, last [Nb] is VcbN
  realtype * Vnobridge;			// coupling constant when there is no bridge
  int bulk_FDD = 0;			// switches for starting conditions
+ int bulk_Gauss = 0;
  int bulk_constant = 0;
  int qd_pops = 0;
  int laser_on = 0;
@@ -154,6 +155,23 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
 #ifdef DEBUG
  cout << "\nk population at state " << i << " is: "
       << 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp)));
+#endif
+ }
+#ifdef DEBUG
+ cout << endl;
+#endif
+}
+
+
+void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu) {
+
+ int i;
+
+ for (i = 0; i < Nk; i++) {
+  kPops[i] = (1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
+#ifdef DEBUG
+ cout << "\nk population at state " << i << " is: "
+      << (1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
 #endif
  }
 #ifdef DEBUG
@@ -920,7 +938,9 @@ int main (int argc, char * argv[]) {
  realtype * l_energies;
  int Nk_init;					// number of k states initially populated
  realtype bulk_gap;				// bulk band gap
- realtype temperature;				// system temperature
+ double temperature;				// system temperature
+ double bulkGaussSigma;				// width of initial Gaussian in bulk
+ double bulkGaussMu;				// position of initial Gaussian above band edge
  realtype t0 = 0.0;				// initial time
  realtype t = 0;
  realtype tret;					// time returned by the solver
@@ -963,6 +983,8 @@ int main (int argc, char * argv[]) {
  bulk_gap = 0.001;			// bulk band gap
  Nk = 100;				// number of k states
  Nk_init = 1;				// number of k states initially populated
+ bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
+ bulkGaussMu = 0.01;			// position of initial Gaussian above band edge
  // physical parameters //
  temperature = 3e2;			// temperature of the system
  // vibronic parameters //
@@ -1032,6 +1054,8 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bulk_gap" ) { bulk_gap = atof(param_val.c_str()); }
   else if (input_param == "Nk" ) { Nk = atoi(param_val.c_str()); }
   else if (input_param == "Nk_init" ) { Nk_init = atoi(param_val.c_str()); }
+  else if (input_param == "bulkGaussSigma" ) { bulkGaussSigma = atof(param_val.c_str()); }
+  else if (input_param == "bulkGaussMu" ) { bulkGaussMu = atof(param_val.c_str()); }
   else if (input_param == "temperature" ) { temperature = atof(param_val.c_str()); }
   else if (input_param == "N_vib" ) { N_vib = atoi(param_val.c_str()); }
   else if (input_param == "E_vib" ) { E_vib = atof(param_val.c_str()); }
@@ -1046,6 +1070,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "pumpAmpl" ) { pumpAmpl = atof(param_val.c_str()); }
   else if (input_param == "pumpPhase" ) { pumpPhase = atof(param_val.c_str()); }
   else if (input_param == "bulk_FDD" ) { bulk_FDD = atoi(param_val.c_str()); }
+  else if (input_param == "bulk_Gauss" ) { bulk_Gauss = atoi(param_val.c_str()); }
   else if (input_param == "bulk_constant" ) { bulk_constant = atoi(param_val.c_str()); }
   else if (input_param == "qd_pops" ) { qd_pops = atoi(param_val.c_str()); }
   else if (input_param == "laser_on" ) { laser_on = atoi(param_val.c_str()); }
@@ -1069,6 +1094,8 @@ int main (int argc, char * argv[]) {
  cout << "bulk_gap is " << bulk_gap << endl;
  cout << "Nk is " << Nk << endl;
  cout << "Nk_init is " << Nk_init << endl;
+ cout << "bulkGaussSigma is " << bulkGaussSigma << endl;
+ cout << "bulkGaussMu is " << bulkGaussMu << endl;
  cout << "temperature is " << temperature << endl;
  cout << "N_vib is " << N_vib << endl;
  cout << "E_vib is " << E_vib << endl;
@@ -1083,6 +1110,7 @@ int main (int argc, char * argv[]) {
  cout << "pumpAmpl is " << pumpAmpl << endl;
  cout << "pumpPhase is " << pumpPhase << endl;
  cout << "bulk_FDD is " << bulk_FDD << endl;
+ cout << "bulk_Gauss is " << bulk_Gauss << endl;
  cout << "bulk_constant is " << bulk_constant << endl;
  cout << "qd_pops is " << qd_pops << endl;
  cout << "laser_on is " << laser_on << endl;
@@ -1097,7 +1125,7 @@ int main (int argc, char * argv[]) {
  fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
 
  // Error checking
- if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops)) {
+ if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
   cerr << "\nWARNING: population starting both in bulk and QD.\n";
  }
  if (Nk_init > Nk || Nk_init < 0) {
@@ -1106,6 +1134,10 @@ int main (int argc, char * argv[]) {
  }
  if (bulk_FDD != 0 && bulk_FDD != 1) {
   cerr << "\nERROR: bulk_FDD switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (bulk_Gauss != 0 && bulk_Gauss != 1) {
+  cerr << "\nERROR: bulk_Gauss switch is not 0 or 1.\n";
   return -1;
  }
  if (bulk_constant != 0 && bulk_constant != 1) {
@@ -1140,8 +1172,8 @@ int main (int argc, char * argv[]) {
   cerr << "\nERROR: bridge_on switch is not 0 or 1.\n";
   return -1;
  }
- if (bulk_FDD && bulk_constant) {
-  cerr << "\nERROR: bulk_FDD and bulk_constant switches are both on.\n";
+ if ((bulk_FDD && bulk_constant) || (bulk_FDD && bulk_Gauss) || (bulk_constant && bulk_Gauss)) {
+  cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
   return -1;
  }
 
@@ -1225,6 +1257,12 @@ int main (int argc, char * argv[]) {
  else if (bulk_constant) {
   Initialize_array(k_pops, Nk, 0.0);
   Initialize_array(k_pops, Nk_init, 1.0);
+  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
+ }
+ else if (bulk_Gauss) {
+  Build_k_pops_Gaussian(k_pops, k_energies, k_bandedge,
+                        bulkGaussSigma, bulkGaussMu);   // populate k states with FDD
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
