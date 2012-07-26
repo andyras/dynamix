@@ -216,6 +216,8 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
    for (i = 0; i < Nk; i++) {
     vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
     vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+    //vArray[Ik+i][Ib] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+    //vArray[Ib][Ik+i] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
    }
   }
   else {
