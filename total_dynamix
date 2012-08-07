@@ -6,10 +6,10 @@
 
 ## FLAGS FOR RUN ##
        do_compile="y"
-	   do_run="y"
-     make_plotter="y"
-	  do_plot="y"
-timeandspace_plot="y"
+	   do_run="n"
+     make_plotter="n"
+	  do_plot="n"
+timeandspace_plot="n"
  populations_plot="n"
       kprobs_plot="n"
  make_movie_maker="n"

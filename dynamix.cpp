@@ -151,10 +151,10 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
  int i;
 
  for (i = 0; i < Nk; i++) {
-  kPops[i] = 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp)));	// dunno where the actual Fermi level is
+  kPops[i] = sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));	// dunno where the actual Fermi level is
 #ifdef DEBUG
  cout << "\nk population at state " << i << " is: "
-      << 1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp)));
+      << sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
 #endif
  }
 #ifdef DEBUG
@@ -168,10 +168,10 @@ void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBan
  int i;
 
  for (i = 0; i < Nk; i++) {
-  kPops[i] = (1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
+  kPops[i] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #ifdef DEBUG
  cout << "\nk population at state " << i << " is: "
-      << (1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
+      << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #endif
  }
 #ifdef DEBUG
@@ -214,10 +214,8 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
   // coupling between k and b1
   if ((scale_bubr) && (Nk > 1)) {
    for (i = 0; i < Nk; i++) {
-    vArray[Ik+i][Ib] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
-    vArray[Ib][Ik+i] = Vbridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
-    //vArray[Ik+i][Ib] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
-    //vArray[Ib][Ik+i] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+    vArray[Ik+i][Ib] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+    vArray[Ib][Ik+i] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
    }
   }
   else {

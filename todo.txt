@@ -1,0 +1,3 @@
+# add switch for vibrational mode
+ # when off, should default to setting g-factors to 0
+ # error check for whether bridge is on
