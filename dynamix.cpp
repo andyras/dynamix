@@ -533,7 +533,7 @@ int Output_checkpoint(
 #endif
   double ** allprobs, N_Vector outputData, realtype time,
   realtype * totK, realtype * totL, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
-  realtype * energy_expectation, int index, realtype * energies) {
+  realtype * qd_est, realtype * energy_expectation, int index, realtype * energies) {
 
  int i, j, k, l;				// counters
  int Re1, Im1, Re2, Im2;			// indices for real and imaginary components
@@ -631,6 +631,19 @@ int Output_checkpoint(
   }
  }
  energy_expectation[index] = temp;
+ /*qd_est[index] = 0;
+ (pow(NV_Ith_S(outputData,Re1),2)+pow(NV_Ith_S(outputData,Im1)))
+ for (i = 0; i < Nk; i++) {		// index over continuum states
+  for (j = 0; j < N_vib; j++) {
+   Re1 = i*N_vib + j;
+   Im1 = Re1 + NEQ_vib;
+   for (k = 0; k < Nk; k++) {		// index over continuum states
+    for (l = 0; l < N_vib; l++) {
+     Re2 = k*N_vib + l;
+     Im2 = Re2 + NEQ_vib;
+     qd_est[index] += 0.01*0.01
+      *sqrt((pow(NV_Ith_S(outputData,Re1),2)+pow(NV_Ith_S(outputData,Im1)))
+      *(pow(NV_Ith_S(outputData,Re2),2)+pow(NV_Ith_S(outputData,Im2))))*/
 
  return 0;
 }
@@ -958,6 +971,7 @@ int main (int argc, char * argv[]) {
  realtype ** vibprob;
  double ** allprob;				// populations in all states at all times
  realtype * times;
+ realtype * qd_est;
  realtype * energy_expectation;			// expectation value of energy at each timestep
  // END VARIABLES //
 
@@ -1235,6 +1249,7 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < numOutputSteps+1; i++)
   allprob[i] = new double [NEQ];
  times = new realtype [numOutputSteps+1];
+ qd_est = new realtype [numOutputSteps+1];
  energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
  Ik = 0;					// set index start positions for each type of state
  Ic = Nk;
@@ -1443,7 +1458,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
    realImaginary, 
 #endif
-   allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, energy_expectation, 0, energy);
+   allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est, energy_expectation, 0, energy);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -1491,7 +1506,7 @@ int main (int argc, char * argv[]) {
      realImaginary, 
 #endif
      allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times,
-     energy_expectation, (i*numOutputSteps/numsteps), energy);
+     qd_est, energy_expectation, (i*numOutputSteps/numsteps), energy);
   }
  }
 #ifdef DEBUG
