@@ -203,7 +203,7 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  realtype Vkc = 0.0007349968763;
 
  if ((scale_buqd) && (Nk > 1))
-  Vkc = sqrt(Vkc*(kBandTop-kBandEdge)/(Nk-1));
+  Vnobridge[0] = sqrt(Vnobridge[0]*(kBandTop-kBandEdge)/(Nk-1));
 
  for (i = 0; i < dim; i++)			// initialize
   for (j = 0; j < dim; j++)
