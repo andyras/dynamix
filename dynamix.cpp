@@ -199,8 +199,6 @@ void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int num
 void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop) {
  
  int i, j;					// counters
- // realtype Vkc = 0.007349968763;
- realtype Vkc = 0.0007349968763;
 
  if ((scale_buqd) && (Nk > 1))
   Vnobridge[0] = sqrt(Vnobridge[0]*(kBandTop-kBandEdge)/(Nk-1));
@@ -533,7 +531,7 @@ int Output_checkpoint(
 #endif
   double ** allprobs, N_Vector outputData, realtype time,
   realtype * totK, realtype * totL, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
-  realtype * qd_est, realtype * energy_expectation, int index, realtype * energies,
+  realtype * qd_est, realtype * qd_est_diag, realtype * energy_expectation, int index, realtype * energies,
   double kBandEdge, double kBandTop, double * k_pops) {
 
  int i, j, k, l;				// counters
@@ -646,28 +644,35 @@ int Output_checkpoint(
  double wmM;
  double wMm;
  qd_est[index] = 0;
+ // Diagonal part of sum
+ for (i = 0; i < Nk; i++) {
+  wmn = energies[Ik + i] - energies[Ic];
+  qd_est[index] 
+   += pow(Vee*k_pops[i],2)*(1 - 2*cos(wmn*time)*exp(-1*A0*time) + exp(-2*A0*time))
+   / (pow(A0,2)+pow(wmn,2));
+ }
+ qd_est_diag[index] = qd_est[index];
+ // Off-diagonal part of sum
  for (i = 0; i < Nk; i++) {
   for (j = 0; j < i; j++) {
-   bm = k_pops[Ik + i];
-   bM = k_pops[Ik + j];
+   bm = k_pops[i];
+   bM = k_pops[j];
    wmn = energies[Ik + i] - energies[Ic];
    wMn = energies[Ik + j] - energies[Ic];
    wmM = energies[Ik + i] - energies[Ik + j];
    wMm = -1*wmM;
-   qd_est[index] += bm*bM/((pow(A0,2)+pow(wmn,2))*(pow(A0,2)+pow(wMn,2)))
-  *(pow(A0,2)+wmn*wMn)
-  *(cos(wmM*time) - exp(-1*A0*time)*(cos(wmn*time)+cos(wMn*time))+exp(-2*A0*time))
-  + A0*wMm*(sin(wmM*time) + exp(-1*A0*time)*(sin(wmn*time) - sin(wMn*time)));
+   qd_est[index]
+    += 2*(pow(Vee,2)*bm*bM / ((pow(A0,2) + pow(wmn,2))*(pow(A0,2) + pow(wMn,2))))
+    *(
+      (pow(A0,2)+wmn*wMn)
+      *(cos(wmM*time)
+        - exp(-1*A0*time)*(cos(wmn*time) + cos(wMn*time))
+       	+ exp(-2*A0*time)
+       )
+      +A0*wMm*(sin(wmM*time) - exp(-1*A0*time)*(sin(wmn*time) - sin(wMn*time)))
+     );
   }
  }
- for (i = 0; i < Nk; i++) {
-  bm = k_pops[Ik + i];
-  wmn = energies[Ik + i] - energies[Ic];
-  qd_est[index] += pow(bm,2)
-   *(1 - 2*cos(wmn*time) + exp(-2*A0*time))
-   /(pow(A0,2) + pow(wmn,2));
- }
- qd_est[index] *= 2*pow(Vee,2);
 
  return 0;
 }
@@ -756,7 +761,7 @@ int Find_array_maximum_index (realtype * inputArray, int num) {
 
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
-  realtype * energy_expectation, int num, double * qd_est) {
+  realtype * energy_expectation, int num, double * qd_est, double * qd_est_diag) {
 
  FILE * tkprob;
  FILE * tlprob;
@@ -780,6 +785,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * pump_intensity;
  FILE * energy_exp;
  FILE * qd_estimate;
+ FILE * qd_estimate_diag;
  int i, j;
  realtype summ;
 
@@ -805,6 +811,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  pump_intensity = fopen("pump_intensity.out", "w");
  energy_exp = fopen("energy_exp.out", "w");
  qd_estimate = fopen("qd_est.out", "w");
+ qd_estimate_diag = fopen("qd_est_diag.out", "w");
 
  for (i = 0 ; i < num ; i++) {				// print k probabilities over time
   fprintf(kprobs, "%-.7g", time[i]);
@@ -907,6 +914,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   fprintf(pump_intensity, "%-.7g %-.7g\n", time[i], pump(time[i]));
   fprintf(energy_exp, "%-.7g %-.7g\n", time[i], energy_expectation[i]);
   fprintf(qd_estimate, "%-.7g %-.7g\n", time[i], qd_est[i]);
+  fprintf(qd_estimate_diag, "%-.7g %-.7g\n", time[i], qd_est_diag[i]);
  }
 
  fclose(tkprob);
@@ -929,6 +937,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  fclose(energy);
  fclose(times);
  fclose(qd_estimate);
+ fclose(qd_estimate_diag);
 
  // compute derivatives
  FILE * tkDeriv;
@@ -1000,6 +1009,7 @@ int main (int argc, char * argv[]) {
  double ** allprob;				// populations in all states at all times
  realtype * times;
  realtype * qd_est;
+ realtype * qd_est_diag;
  realtype * energy_expectation;			// expectation value of energy at each timestep
  // END VARIABLES //
 
@@ -1278,6 +1288,7 @@ int main (int argc, char * argv[]) {
   allprob[i] = new double [NEQ];
  times = new realtype [numOutputSteps+1];
  qd_est = new realtype [numOutputSteps+1];
+ qd_est_diag = new realtype [numOutputSteps+1];
  energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
  Ik = 0;					// set index start positions for each type of state
  Ic = Nk;
@@ -1300,6 +1311,7 @@ int main (int argc, char * argv[]) {
  else if (bulk_constant) {
   Initialize_array(k_pops, Nk, 0.0);
   Initialize_array(k_pops, Nk_init, 1.0);
+  //k_pops[(Nk/2)+(Nk%2)-1] = 1.0;		// populate just the middle state in the bulk
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
@@ -1487,7 +1499,7 @@ int main (int argc, char * argv[]) {
    realImaginary, 
 #endif
    allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
-   energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
+   qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
@@ -1534,8 +1546,9 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
      realImaginary, 
 #endif
-     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times,
-     qd_est, energy_expectation, (i*numOutputSteps/numsteps), energy, k_bandedge, k_bandtop, k_pops);
+     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
+     qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
+     k_bandedge, k_bandtop, k_pops);
   }
  }
 #ifdef DEBUG
@@ -1545,7 +1558,7 @@ int main (int argc, char * argv[]) {
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,
    tlprob, tcprob, tbprob, vibprob, energy,
-   energy_expectation, numOutputSteps, qd_est);
+   energy_expectation, numOutputSteps, qd_est, qd_est_diag);
  
  // finalize log file //
  time(&endRun);
