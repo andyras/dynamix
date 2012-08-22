@@ -4,18 +4,18 @@
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=20000				# final time reached by solver (atomic units)
+tout=16536.284390654313			# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
-numOutputSteps=3000			# number of output timesteps
+numOutputSteps=600			# number of output timesteps
 # bulk parameters #
-k_bandedge=-0.05				# lower band edge of bulk conduction band
-k_bandtop=0.05			# upper band edge of bulk conduction band
+k_bandedge=-0.011024953143949138	# lower band edge of bulk conduction band
+k_bandtop=0.011024953143949138		# upper band edge of bulk conduction band
 bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=101					# number of k states to have
-Nk_init=101				# number of k states initially populated
-bulkGaussSigma=0.005			# width of initial Gaussian in bulk
-bulkGaussMu=0.01			# position of initial Gaussian above band edge
+Nk=61					# number of k states to have
+Nk_init=61				# number of k states initially populated
+bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
+bulkGaussMu=0.0110249			# position of initial Gaussian above band edge
 # physical parameters #
 temperature=3e2				# temperature in Kelvin
 # vibronic parameters #
@@ -34,8 +34,8 @@ pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
 bulk_FDD=0
-bulk_Gauss=0
-bulk_constant=1
+bulk_Gauss=1
+bulk_constant=0
 qd_pops=0
 laser_on=0
 scale_bubr=1

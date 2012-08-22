@@ -636,43 +636,21 @@ int Output_checkpoint(
  // DANGER: This code only works for the purely electronic case.
  double Vee = V[Ik][Ic];
  double deltaE = (kBandTop-kBandEdge)/(Nk-1);
- double A0 = 3.1415926535*pow(Vee,2)/(deltaE);
- double bm;
- double bM;
- double wmn;
- double wMn;
- double wmM;
- double wMm;
+ double k = 3.1415926535*pow(Vee,2)/(deltaE);
+ double c;
+ double w;
  qd_est[index] = 0;
- // Diagonal part of sum
+ double ss_est_re = 0;	// real part of the estimate
+ double ss_est_im = 0;	// imag part ""
  for (i = 0; i < Nk; i++) {
-  wmn = energies[Ik + i] - energies[Ic];
-  qd_est[index] 
-   += pow(Vee*k_pops[i],2)*(1 - 2*cos(wmn*time)*exp(-1*A0*time) + exp(-2*A0*time))
-   / (pow(A0,2)+pow(wmn,2));
+  w = energies[Ik + i] - energies[Ic];
+  c = k_pops[i];
+  ss_est_re += c*Vee*sqrt(deltaE)*(w*(cos(w*time) - exp(-k*time)) - k*sin(w*time))
+	       /(pow(k,2) + pow(w,2));
+  ss_est_im -= c*Vee*sqrt(deltaE)*(k*(cos(w*time) - exp(-k*time)) + w*sin(w*time))
+	       /(pow(k,2) + pow(w,2));
  }
- qd_est_diag[index] = qd_est[index];
- // Off-diagonal part of sum
- for (i = 0; i < Nk; i++) {
-  for (j = 0; j < i; j++) {
-   bm = k_pops[i];
-   bM = k_pops[j];
-   wmn = energies[Ik + i] - energies[Ic];
-   wMn = energies[Ik + j] - energies[Ic];
-   wmM = energies[Ik + i] - energies[Ik + j];
-   wMm = -1*wmM;
-   qd_est[index]
-    += 2*(pow(Vee,2)*bm*bM / ((pow(A0,2) + pow(wmn,2))*(pow(A0,2) + pow(wMn,2))))
-    *(
-      (pow(A0,2)+wmn*wMn)
-      *(cos(wmM*time)
-        - exp(-1*A0*time)*(cos(wmn*time) + cos(wMn*time))
-       	+ exp(-2*A0*time)
-       )
-      +A0*wMm*(sin(wmM*time) - exp(-1*A0*time)*(sin(wmn*time) - sin(wMn*time)))
-     );
-  }
- }
+ qd_est[index] = pow(ss_est_re,2) + pow(ss_est_im,2);
 
  return 0;
 }
