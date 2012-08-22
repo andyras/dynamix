@@ -636,7 +636,27 @@ int Output_checkpoint(
  // DANGER: This code only works for the purely electronic case.
  double Vee = V[Ik][Ic];
  double deltaE = (kBandTop-kBandEdge)/(Nk-1);
- double k = 3.1415926535*pow(Vee,2)/(deltaE);
+ double K = 3.1415926535*pow(Vee,2)/(deltaE);
+ double cm;		// coefficient at t=0 for bulk state m
+ double cM;		// coefficient at t=0 for bulk state m'
+ double wm;		// frequency between bulk state m and single state
+ double wM;		// frequency between bulk state m' and single state
+ double wmM;		// frequency between two bulk states
+ qd_est[index] = 0;
+ for (i = 0; i < Nk; i++) {
+  for (j = 0; j < Nk; j++) {
+   cm = k_pops[i];
+   cM = k_pops[j];
+   wm = energies[Ik + i] - energies[Ic];
+   wM = energies[Ik + j] - energies[Ic];
+   wmM = energies[Ik + i] - energies[Ik + j];
+   qd_est[index] += Vee*Vee*cm*cM*deltaE/((pow(K,2)+pow(wm,2))*(pow(K,2)+pow(wM,2)))
+    *((pow(K,2) + wm*wM)
+      *(cos(wmM*time) - exp(-1*K*time)*(cos(wm*time) + cos(wM*time)) + exp(-2*K*time))
+      +K*wmM
+      *(sin(wmM*time) - exp(-1*K*time)*(sin(wm*time) - sin(wM*time))));
+  }
+ /* uncomment this bit to try calculating cn(t) with a simpler expression
  double c;
  double w;
  qd_est[index] = 0;
@@ -645,12 +665,13 @@ int Output_checkpoint(
  for (i = 0; i < Nk; i++) {
   w = energies[Ik + i] - energies[Ic];
   c = k_pops[i];
-  ss_est_re += c*Vee*sqrt(deltaE)*(w*(cos(w*time) - exp(-k*time)) - k*sin(w*time))
-	       /(pow(k,2) + pow(w,2));
-  ss_est_im -= c*Vee*sqrt(deltaE)*(k*(cos(w*time) - exp(-k*time)) + w*sin(w*time))
-	       /(pow(k,2) + pow(w,2));
+  ss_est_re += c*Vee*sqrt(deltaE)*(w*(cos(w*time) - exp(-K*time)) - K*sin(w*time))
+	       /(pow(K,2) + pow(w,2));
+  ss_est_im -= c*Vee*sqrt(deltaE)*(K*(cos(w*time) - exp(-K*time)) + w*sin(w*time))
+	       /(pow(K,2) + pow(w,2));
  }
- qd_est[index] = pow(ss_est_re,2) + pow(ss_est_im,2);
+ qd_est[index] = pow(ss_est_re,2) + pow(ss_est_im,2);*/
+ }
 
  return 0;
 }
