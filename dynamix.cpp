@@ -690,7 +690,7 @@ int Analytical_c (
  double sum2;
  double cm, cM;
  // energy differences
- double wm, wmn, wnm, wnnp;
+ double wm, wmn, wnm, wnnp, wmnp;
  double wM, wmM;
  // Re/Im parts for coefficient, 1st-3rd terms
  double c_re, c_im, c_re1, c_im1, c_re2, c_im2, c_re3, c_im3;
@@ -726,38 +726,39 @@ int Analytical_c (
        +K*wmM*(sin(wmM*t) - exp(-1*K*t)*(sin(wm*t) - sin(wM*t))));
    }
   }
-   fprintf(ms_est, "%.7g ", t);
-   for (int n = 0; n < Nc; n++) {
-    c_re = 0;
-    c_im = 0;
-    for (int m = 0; m < Nk; m++) {
-     cm = k_pops[m];
-     wmn = energies[Ik + m] - energies[Ic + n];
-     wnm = -1*wmn;
-     c_re1 = (wmn*(cos(wmn*t) - exp(-K*t)) - K*sin(wmn*t))/(pow(K,2) + pow(wmn,2));;
-     c_im1 = (K*(cos(wmn*t) - exp(-K*t)) + wmn*sin(wmn*t))/(pow(K,2) + pow(wmn,2));;
-     c_re2 = 0;
-     c_im2 = 0;
-     c_re3 = 0;
-     c_im3 = 0;
-     for (int np = 0; np < Nc; np++) {
-      if (np == n) break;
-      wnnp = energies[Ic + n] - energies[Ic + np];
-      pref2 = 1.0/(pow(pow(K,2) - pow(wnm,2),2) + 4*pow(wnm,4));
-      pref3 = wnnp*exp(-1*K*t)/(pow(wnnp,2)*(pow(K,2) + pow(wmn,2)));
-      c_re2 += pref2*(2*pow(wnm,2)*(cos(wnm*t) - exp(-1*K*t))
-                      - (pow(K,2) - pow(wnm,2))*sin(wnm*t));
-      c_im2 += pref2*(2*pow(wnm,2)*sin(wnm*t)
-               + (pow(K,2) + pow(wnm,2))*(cos(wnm*t) - exp(-1*K*t)));
-      c_re3 += pref3*(K*(cos(wnnp*t) - 1) - wmn*sin(wnnp*t));
-      c_im3 += pref3*(K*sin(wnnp*t) + wmn*(cos(wnnp*t) - 1));
-     }
-     c_re += cm*(c_re1 + K*(c_re2 + c_re3));
-     c_im += cm*(c_im1 + K*(c_im2 + c_im3));
+  fprintf(ms_est, "%.7g", t);
+  for (int n = 0; n < Nc; n++) {
+   c_re = 0;
+   c_im = 0;
+   for (int m = 0; m < Nk; m++) {
+    cm = k_pops[m];
+    wmn = energies[Ik + m] - energies[Ic + n];
+    wnm = -1*wmn;
+    c_re1 = (wmn*(cos(wmn*t) - exp(-K*t)) - K*sin(wmn*t))/(pow(K,2) + pow(wmn,2));;
+    c_im1 = (K*(cos(wmn*t) - exp(-K*t)) + wmn*sin(wmn*t))/(pow(K,2) + pow(wmn,2));;
+    c_re2 = 0;
+    c_im2 = 0;
+    c_re3 = 0;
+    c_im3 = 0;
+    for (int np = 0; np < Nc; np++) {
+     if (np == n) break;
+     wnnp = energies[Ic + n] - energies[Ic + np];
+     wmnp = energies[Ik + m] - energies[Ic + np];
+     pref2 = 1.0/((pow(K,2) + pow(wmnp,2))*(pow(K,2) + pow(wnm,2)));
+     pref3 = exp(-1*K*t)/((pow(K,2) + pow(wmnp,2))*wnnp);
+     c_re2 += pref2*((K*(wnm - wmnp)*(cos(wnm*t) - exp(-1*K*t))
+	             - (pow(K,2) + wmnp*wnm)*sin(wnm*t)));
+     c_im2 += pref2*(K*(wnm - wmnp)*sin(wnm*t)
+                     + (pow(K,2) + pow(wnm,2))*(cos(wnm*t) - exp(-1*K*t)));
+     c_re3 += pref3*(K*(cos(wnnp*t) - 1) - wmnp*sin(wnnp*t));
+     c_im3 += pref3*(K*sin(wnnp*t) + wmnp*(cos(wnnp*t) - 1));
     }
-    fprintf(ms_est, " %.7g",pow(Vee,2)*deltaE*(pow(c_re,2)+pow(c_im,2)));
+    c_re += cm*(-1*c_re1 + K*deltaE*(c_re2 + c_re3));
+    c_im += cm*(-1*c_im1 + K*deltaE*(c_im2 + c_im3));
    }
-   fprintf(ms_est, "\n");
+   fprintf(ms_est, " %.7g",pow(Vee,2)*deltaE*(pow(c_re,2)+pow(c_im,2)));
+  }
+  fprintf(ms_est, "\n");
   sum1 *= pow(Vee,2)*deltaE;
   sum2 *= pow(Vee,2)*deltaE;
   fprintf(ss_est, "%.7g %.7g\n", t, sum1+sum2);
