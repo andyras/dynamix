@@ -652,7 +652,7 @@ int Output_checkpoint(
    wmM = energies[Ik + i] - energies[Ik + j];
    qd_est[index] += Vee*Vee*cm*cM*deltaE/((pow(K,2)+pow(wm,2))*(pow(K,2)+pow(wM,2)))
     *((pow(K,2) + wm*wM)
-      *(cos(wmM*time) - exp(-1*K*time)*(cos(wm*time) + cos(wM*time)) + exp(-2*K*time))
+      *(cos(wmM*time) - exp(-1*K*time)*(cos(wm*time) + cos(wM*time))/* + exp(-2*K*time)*/)
       +K*wmM
       *(sin(wmM*time) - exp(-1*K*time)*(sin(wm*time) - sin(wM*time))));
   }
@@ -672,6 +672,61 @@ int Output_checkpoint(
  }
  qd_est[index] = pow(ss_est_re,2) + pow(ss_est_im,2);*/
  }
+
+ return 0;
+}
+
+
+int Analytical_c (
+ double tout, int timesteps, realtype * energies,
+ double kBandEdge, double kBandTop, double * k_pops) {
+
+ double deltaE = (kBandTop-kBandEdge)/(Nk-1);
+ double Vee = V[Ik][Ic];
+ double K = 3.1415926535*pow(Vee,2)/(deltaE);
+
+ double t;
+ double sum1;
+ double sum2;
+ double cm, cM, wm, wM, wmM;
+
+ FILE * ss_est;
+ FILE * ss_est_exp;
+ FILE * ss_est_other;
+
+ ss_est = fopen("ss_est.out", "w");
+ ss_est_exp = fopen("ss_est_exp.out", "w");
+ ss_est_other = fopen("ss_est_other.out", "w");
+
+ for (t = 0; t <= tout; t += tout/timesteps) {
+  sum1 = 0;
+  sum2 = 0;
+  for (int i = 0; i < Nk; i++) {
+   for (int j = 0; j < Nk; j++) {
+    cm = k_pops[i];
+    cM = k_pops[j];
+    wm = energies[Ik + i] - energies[Ic];
+    wM = energies[Ik + j] - energies[Ic];
+    wmM = energies[Ik + i] - energies[Ik + j];
+    /*sum1 += cm*cM/((pow(K,2)+pow(wm,2))*(pow(K,2)+pow(wM,2)))
+     *((pow(K,2) + wm*wM)*(cos(wmM*t) - exp(-1*K*t)*(cos(wm*t) + cos(wM*t)) + exp(-2*K*t))
+       +K*wmM*(sin(wmM*t) - exp(-1*K*t)*(sin(wm*t) - sin(wM*t))));*/
+    sum1 += cm*cM/((pow(K,2)+pow(wm,2))*(pow(K,2)+pow(wM,2)))*((pow(K,2) + wm*wM)*exp(-2*K*t));
+    sum2 += cm*cM/((pow(K,2)+pow(wm,2))*(pow(K,2)+pow(wM,2)))
+     *((pow(K,2) + wm*wM)*(cos(wmM*t) - exp(-1*K*t)*(cos(wm*t) + cos(wM*t)))
+       +K*wmM*(sin(wmM*t) - exp(-1*K*t)*(sin(wm*t) - sin(wM*t))));
+   }
+  }
+  sum1 *= pow(Vee,2)*deltaE;
+  sum2 *= pow(Vee,2)*deltaE;
+  fprintf(ss_est, "%.7g %.7g\n", t, sum1+sum2);
+  fprintf(ss_est_exp, "%.7g %.7g\n", t, sum1);
+  fprintf(ss_est_other, "%.7g %.7g\n", t, sum2);
+ }
+
+ fclose(ss_est);
+ fclose(ss_est_exp);
+ fclose(ss_est_other);
 
  return 0;
 }
@@ -1499,6 +1554,9 @@ int main (int argc, char * argv[]) {
 #endif
    allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
    qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
+
+ // Compute the analytical population on a single "QD" state
+ Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, k_pops);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
