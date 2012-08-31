@@ -6,6 +6,7 @@
 #include <math.h>
 #include <time.h>
 #include <numeric>
+#include <complex>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
@@ -634,9 +635,11 @@ int Output_checkpoint(
  // This section calculates an analytical expression for the dynamics in a single
  // electronic state upon injection from a quasicontinuum.
  // DANGER: This code only works for the purely electronic case.
- double Vee = V[Ik][Ic];
  double deltaE = (kBandTop-kBandEdge)/(Nk-1);
- double A0 = 3.1415926535*pow(Vee,2)/(deltaE);
+ //double Vee = V[Ik][Ic];
+ double Vee = V[Ik][Ic]*sqrt(deltaE);
+ //double A0 = 3.1415926535*pow(Vee,2)/(deltaE);
+ double A0 = 3.1415926535*pow(Vee,2);
  double bm;
  double bM;
  double wmn;
@@ -675,6 +678,39 @@ int Output_checkpoint(
  }
 
  return 0;
+}
+
+int Analytical_single_state(realtype time, realtype * energies,
+  double kBandEdge, double kBandTop, double * k_pops) {
+
+ FILE * SS_EST;
+ complex <double> ss (0.0,0.0);	// single state
+ //cout << "ss " << ss << "\n";
+ complex<double> I = complex<double>(0.0,1.0);	// i
+ //cout << "I  " << I << "\n";
+ complex<double> w;
+ complex<double> kpop;
+ complex<double> Vee = complex<double>(V[Ik][Ic],0.0);
+ complex<double> k = complex<double>(pow(V[Ik][Ic],2)/(kBandTop-kBandEdge)*(Nk-1),0.0);
+ //cout << "k  " << k << "\n";
+
+ SS_EST = fopen("ss_est.out","w");
+
+ for (int i = 0; i < Nk; i++) {
+  w = complex<double>(energies[Ik +i]-energies[Ic], 0.0);
+  //cout << "w  " << w << " = " << energies[Ik+i] << " - " << energies[Ic] << ".\n";
+  kpop = complex<double>(k_pops[i],0.0);
+  //cout << "kpop  " << kpop << "\n";
+  ss -= (0.0,Vee*kpop*(exp((0.0,-1*(energies[Ik +i]-energies[Ic])*time)) - exp(-k*time))/(k - I*w));
+  cout << "ss(" << i << ") " << ss << "\n";
+ }
+ //cout << "\n\nWHOOOOOOOOOOOOOOOOOOOO\n\n" << real(conj(ss)*ss) << "\n\n";
+ cout << "\n" << real(conj(ss)*ss) << "\n";
+
+ fclose(SS_EST);
+
+ return 0;
+ 
 }
 
 
@@ -1536,6 +1572,10 @@ int main (int argc, char * argv[]) {
  // advance the solution in time! //
  for (i = 1; i <= numsteps; ++i) {
   t = (tout*((double) i)/((double) numsteps));
+
+ //// testing analytical bit
+ Analytical_single_state(t, energy, k_bandedge, k_bandtop, k_pops);
+
   flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
