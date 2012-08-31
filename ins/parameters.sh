@@ -2,20 +2,20 @@
 
 ## START INPUT PARAMETERS ##
 # numerical parameters #
-abstol=1.0e-7				# absolute tolerance
-reltol=1.0e-7				# relative tolerance
-tout=20000				# final time reached by solver (atomic units)
+abstol=1.0e-10				# absolute tolerance
+reltol=1.0e-10				# relative tolerance
+tout=16536.284390654313			# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
-numOutputSteps=500			# number of output timesteps
+numOutputSteps=600			# number of output timesteps
 # bulk parameters #
-k_bandedge=-0.011				# lower band edge of bulk conduction band
-k_bandtop=0.011			# upper band edge of bulk conduction band
+k_bandedge=-0.011024953143949138	# lower band edge of bulk conduction band
+k_bandtop=0.011024953143949138		# upper band edge of bulk conduction band
 bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=61					# number of k states to have
 Nk_init=61				# number of k states initially populated
-bulkGaussSigma=0.0008			# width of initial Gaussian in bulk
-bulkGaussMu=0.011			# position of initial Gaussian above band edge
+bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
+bulkGaussMu=0.0110249			# position of initial Gaussian above band edge
 # physical parameters #
 temperature=3e2				# temperature in Kelvin
 # vibronic parameters #
