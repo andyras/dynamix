@@ -6,7 +6,6 @@
 #include <math.h>
 #include <time.h>
 #include <numeric>
-#include <complex>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
@@ -632,81 +631,7 @@ int Output_checkpoint(
  }
  energy_expectation[index] = temp;
 
- // This section calculates an analytical expression for the dynamics in a single
- // electronic state upon injection from a quasicontinuum.
- // DANGER: This code only works for the purely electronic case.
- double deltaE = (kBandTop-kBandEdge)/(Nk-1);
- double K = 3.1415926535*pow(Vee,2)/(deltaE);
- double cm;		// coefficient at t=0 for bulk state m
- double cM;		// coefficient at t=0 for bulk state m'
- double wm;		// frequency between bulk state m and single state
- double wM;		// frequency between bulk state m' and single state
- double wmM;		// frequency between two bulk states
- qd_est[index] = 0;
- for (i = 0; i < Nk; i++) {
-  for (j = 0; j < Nk; j++) {
-   cm = k_pops[i];
-   cM = k_pops[j];
-   wm = energies[Ik + i] - energies[Ic];
-   wM = energies[Ik + j] - energies[Ic];
-   wmM = energies[Ik + i] - energies[Ik + j];
-   qd_est[index] += Vee*Vee*cm*cM*deltaE/((pow(K,2)+pow(wm,2))*(pow(K,2)+pow(wM,2)))
-    *((pow(K,2) + wm*wM)
-      *(cos(wmM*time) - exp(-1*K*time)*(cos(wm*time) + cos(wM*time))/* + exp(-2*K*time)*/)
-      +K*wmM
-      *(sin(wmM*time) - exp(-1*K*time)*(sin(wm*time) - sin(wM*time))));
-  }
- /* uncomment this bit to try calculating cn(t) with a simpler expression
- double c;
- double w;
- qd_est[index] = 0;
- double ss_est_re = 0;	// real part of the estimate
- double ss_est_im = 0;	// imag part ""
- for (i = 0; i < Nk; i++) {
-  w = energies[Ik + i] - energies[Ic];
-  c = k_pops[i];
-  ss_est_re += c*Vee*sqrt(deltaE)*(w*(cos(w*time) - exp(-K*time)) - K*sin(w*time))
-	       /(pow(K,2) + pow(w,2));
-  ss_est_im -= c*Vee*sqrt(deltaE)*(K*(cos(w*time) - exp(-K*time)) + w*sin(w*time))
-	       /(pow(K,2) + pow(w,2));
- }
- qd_est[index] = pow(ss_est_re,2) + pow(ss_est_im,2);*/
- }
-
  return 0;
-}
-
-int Analytical_single_state(realtype time, realtype * energies,
-  double kBandEdge, double kBandTop, double * k_pops) {
-
- FILE * SS_EST;
- complex <double> ss (0.0,0.0);	// single state
- //cout << "ss " << ss << "\n";
- complex<double> I = complex<double>(0.0,1.0);	// i
- //cout << "I  " << I << "\n";
- complex<double> w;
- complex<double> kpop;
- complex<double> Vee = complex<double>(V[Ik][Ic],0.0);
- complex<double> k = complex<double>(pow(V[Ik][Ic],2)/(kBandTop-kBandEdge)*(Nk-1),0.0);
- //cout << "k  " << k << "\n";
-
- SS_EST = fopen("ss_est.out","w");
-
- for (int i = 0; i < Nk; i++) {
-  w = complex<double>(energies[Ik +i]-energies[Ic], 0.0);
-  //cout << "w  " << w << " = " << energies[Ik+i] << " - " << energies[Ic] << ".\n";
-  kpop = complex<double>(k_pops[i],0.0);
-  //cout << "kpop  " << kpop << "\n";
-  ss -= (0.0,Vee*kpop*(exp((0.0,-1*(energies[Ik +i]-energies[Ic])*time)) - exp(-k*time))/(k - I*w));
-  cout << "ss(" << i << ") " << ss << "\n";
- }
- //cout << "\n\nWHOOOOOOOOOOOOOOOOOOOO\n\n" << real(conj(ss)*ss) << "\n\n";
- cout << "\n" << real(conj(ss)*ss) << "\n";
-
- fclose(SS_EST);
-
- return 0;
- 
 }
 
 
@@ -786,8 +711,8 @@ int Analytical_c (
      c_re3 += pref3*(K*(cos(wnnp*t) - 1) - wmnp*sin(wnnp*t));
      c_im3 += pref3*(K*sin(wnnp*t) + wmnp*(cos(wnnp*t) - 1));
     }
-    c_re += cm*(-1*c_re1 + K*deltaE*(c_re2 + c_re3));
-    c_im += cm*(-1*c_im1 + K*deltaE*(c_im2 + c_im3));
+    c_re += cm*(-1*c_re1 + K*deltaE*(c_re2 - c_re3));
+    c_im += cm*(-1*c_im1 + K*deltaE*(c_im2 - c_im3));
    }
    fprintf(ms_est, " %.7g",pow(Vee,2)*deltaE*(pow(c_re,2)+pow(c_im,2)));
   }
@@ -1668,10 +1593,6 @@ int main (int argc, char * argv[]) {
  // advance the solution in time! //
  for (i = 1; i <= numsteps; ++i) {
   t = (tout*((double) i)/((double) numsteps));
-
- //// testing analytical bit
- Analytical_single_state(t, energy, k_bandedge, k_bandtop, k_pops);
-
   flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
