@@ -652,8 +652,10 @@ int Analytical_c (
  double wM, wmM;
  // Re/Im parts for coefficient, 1st-3rd terms
  double c_re, c_im, c_re1, c_im1, c_re2, c_im2, c_re3, c_im3;
+ double re1, im1, re2, im2;
  // prefactors for second and third terms
  double pref2, pref3;
+ double pref;
 
  FILE * ss_est;
  FILE * ss_est_exp;
@@ -666,7 +668,7 @@ int Analytical_c (
  ms_est = fopen("ms_est.out", "w");
 
  for (t = 0; t <= tout; t += tout/timesteps) {
-  sum1 = 0;
+  /*sum1 = 0;
   sum2 = 0;
   for (int i = 0; i < Nk; i++) {
    for (int j = 0; j < Nk; j++) {
@@ -683,9 +685,72 @@ int Analytical_c (
      *((pow(K,2) + wm*wM)*(cos(wmM*t) - exp(-1*K*t)*(cos(wm*t) + cos(wM*t)))
        +K*wmM*(sin(wmM*t) - exp(-1*K*t)*(sin(wm*t) - sin(wM*t))));
    }
-  }
+  }*/
   fprintf(ms_est, "%.7g", t);
   for (int n = 0; n < Nc; n++) {
+   c_re = 0;
+   c_im = 0;
+   // First term
+   c_re1 = 0;
+   c_im1 = 0;
+   for (int m = 0; m < Nk; m++) {
+    cm = k_pops[m];
+    wmn = energies[Ik + m] - energies[Ic + n];
+    wnm = -1*wmn;
+    pref = Vee*sqrt(deltaE)*cm/(pow(K,2) + pow(wmn,2));
+    re1 = cos(wmn*t) - exp(-1*K*t);
+    im1 = sin(wmn*t);
+    re2 = wmn;
+    im2 = -1*K;
+    c_re1 += pref*(re1*re2 - im1*im2);
+    c_im1 += pref*(re1*im2 + im1*re2);
+   }
+   // Second term
+   c_re2 = 0;
+   c_im2 = 0;
+   for (int np = 0; np < Nc; np++) {
+    if (np == n) continue;
+    for (int m = 0; m < Nk; m++) {
+     cm = k_pops[m];
+     wmnp = energies[Ik + m] - energies[Ic + np];
+     wnm = energies[Ic + n] - energies[Ik + m];
+     wmn = -1*wnm;
+     pref = Vee*sqrt(deltaE)*K*deltaE*cm/((pow(K,2) + pow(wmnp,2))*(pow(K,2) + pow(wnm,2)));
+     re1 = cos(wmn*t) - exp(-1*K*t);
+     im1 = sin(wmn*t);
+     re2 = K*(wnm - wmnp);
+     im2 = pow(K,2) + wmnp*wnm;
+     c_re2 += pref*(re1*re2 - im1*im2);
+     c_im2 += pref*(re1*im2 + im1*re2);
+    }
+   }
+   // Third term
+   c_re3 = 0;
+   c_im3 = 0;
+   for (int np = 0; np < Nc; np++) {
+    if (np == n) continue;
+    for (int m = 0; m < Nk; m++) {
+     cm = k_pops[m];
+     wnnp = energies[Ic + n] - energies[Ic + np];
+     wmnp = energies[Ik + m] - energies[Ic + np];
+     pref = Vee*sqrt(deltaE)*K*deltaE*cm*exp(-1*K*t)/(wnnp*(pow(K,2) + pow(wmnp,2)));
+     re1 = cos(wnnp*t) - 1;
+     im1 = sin(wnnp*t);
+     re2 = -1*K;
+     im2 = -1*wnnp;
+     c_re3 += pref*(re1*re2 - im1*im2);
+     c_im3 += pref*(re1*im2 + im1*re2);
+    }
+   }
+   c_re = c_re1 + c_re2 + c_re3;
+   c_im = c_im1 + c_im2 + c_im3;
+   // print the estimated population on each state
+   fprintf(ms_est," %.7g",pow(c_re,2)+pow(c_im,2));
+  }
+  fprintf(ms_est, "\n");
+ }
+
+  /*for (int n = 0; n < Nc; n++) {
    c_re = 0;
    c_im = 0;
    for (int m = 0; m < Nk; m++) {
@@ -722,7 +787,7 @@ int Analytical_c (
   fprintf(ss_est, "%.7g %.7g\n", t, sum1+sum2);
   fprintf(ss_est_exp, "%.7g %.7g\n", t, sum1);
   fprintf(ss_est_other, "%.7g %.7g\n", t, sum2);
- }
+ }*/
 
  fclose(ss_est);
  fclose(ss_est_exp);
