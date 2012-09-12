@@ -660,16 +660,16 @@ int Analytical_c (
  complex <double> II (0, 1);
  complex <double> I2 (-1, 0);
 
- FILE * c_ms_est;
- FILE * c_ms_est_tot;
+ FILE * ms_est;
+ FILE * ms_est_tot;
 
- c_ms_est = fopen("c_ms_est.out", "w");
- c_ms_est_tot = fopen("c_ms_est_tot.out", "w");
+ ms_est = fopen("ms_est.out", "w");
+ ms_est_tot = fopen("ms_est_tot.out", "w");
 
  for (t = complex<double>(0,0); real(t) <= tout; t += complex<double>(tout/timesteps,0)) {
   cn_tot = 0.0;
-  fprintf(c_ms_est, "%.7g", real(t));
-  fprintf(c_ms_est_tot, "%.7g", real(t));
+  fprintf(ms_est, "%.7g", real(t));
+  fprintf(ms_est_tot, "%.7g", real(t));
   for (int n = 0; n < Nc; n++) {
    cn = complex<double>(0, 0);
    for (int m = 0; m < Nk; m++) {
@@ -690,11 +690,14 @@ int Analytical_c (
     }
    }
    cn_tot += real(cn*conj(cn));
-   fprintf(c_ms_est, " %.7g", real(cn*conj(cn)));
+   fprintf(ms_est, " %.7g", real(cn*conj(cn)));
   }
-  fprintf(c_ms_est, "\n");
-  fprintf(c_ms_est_tot, " %.7g\n", cn_tot);
+  fprintf(ms_est, "\n");
+  fprintf(ms_est_tot, " %.7g\n", cn_tot);
  }
+
+ fclose(ms_est);
+ fclose(ms_est_tot);
 
  return 0;
 }
