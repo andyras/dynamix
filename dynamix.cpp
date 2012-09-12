@@ -6,6 +6,7 @@
 #include <math.h>
 #include <time.h>
 #include <numeric>
+#include <complex>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
@@ -793,6 +794,68 @@ int Analytical_c (
 }
 
 
+int cAnalytical_c (
+ double tout, int timesteps, realtype * energies,
+ double kBandEdge, double kBandTop, double * k_pops) {
+
+ // energy spacing in bulk
+ complex <double> dE ((kBandTop-kBandEdge)/(Nk-1), 0);
+ // bulk-QD coupling
+ complex <double> Vee (V[Ik][Ic], 0);
+ // rate constant (can be defined also as K/2)
+ complex <double> K = complex <double> (3.1415926535,0)*pow(Vee,2)/dE;
+ // time
+ complex <double> t (0, 0);
+ // energy differences
+ complex <double> wnm (0, 0);
+ complex <double> wnnp (0, 0);
+ complex <double> wnpm (0, 0);
+ // coefficients
+ complex <double> cm (0, 0);
+ complex <double> cn (0, 0);
+ double cn_tot;
+ // complex numbers are dumb
+ complex <double> II (0, 1);
+ complex <double> I2 (-1, 0);
+
+ FILE * c_ms_est;
+ FILE * c_ms_est_tot;
+
+ c_ms_est = fopen("c_ms_est.out", "w");
+ c_ms_est_tot = fopen("c_ms_est_tot.out", "w");
+
+ for (t = complex<double>(0,0); real(t) <= tout; t += complex<double>(tout/timesteps,0)) {
+  cn_tot = 0.0;
+  fprintf(c_ms_est, "%.7g", real(t));
+  fprintf(c_ms_est_tot, "%.7g", real(t));
+  for (int n = 0; n < Nc; n++) {
+   cn = complex<double>(0, 0);
+   for (int m = 0; m < Nk; m++) {
+    cm = complex<double>(k_pops[m], 0);
+    wnm = complex<double>(energies[Ic + n] - energies[Ik + m], 0);
+    cn -= II*Vee*sqrt(dE)*cm
+       *(exp(II*wnm*t) - exp(I2*K*t))
+       /(K + II*wnm);
+    for (int np = 0; np < Nc; np++) {
+     if (np == n) continue;
+     wnnp = complex<double>(energies[Ic + n] - energies[Ic + np], 0);
+     wnpm = complex<double>(energies[Ic + np] - energies[Ik + m], 0);
+     cn += II*Vee*K*sqrt(dE)*cm
+	*((exp(II*wnm*t) - exp(I2*K*t))
+	  /((K+II*wnpm)*(K + II*wnm))
+	  -(exp(I2*(K-II*wnnp)*t) - exp(I2*K*t))
+	  /((K+II*wnpm)*II*wnnp));
+    }
+   }
+   cn_tot += real(cn*conj(cn));
+   fprintf(c_ms_est, " %.7g", real(cn*conj(cn)));
+  }
+  fprintf(c_ms_est, "\n");
+  fprintf(c_ms_est_tot, " %.7g\n", cn_tot);
+ }
+
+ return 0;
+}
 realtype Integrate_arrays (realtype * values, realtype * time, int num) {
 
  int i;
@@ -1618,6 +1681,8 @@ int main (int argc, char * argv[]) {
 
  // Compute the analytical population on a single "QD" state
  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, k_pops);
+ // Complex version, ooooo
+ cAnalytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, k_pops);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
