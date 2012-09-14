@@ -243,6 +243,13 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
   }
  }
  else {					// no bridge
+  // this is goofy, I should probably not have the sqrt(27.211) scaling factor
+  for (i = 0; i < Nk; i++) {
+   for (j = 0; j < Nc; j++) {
+    vArray[Ik+i][Ic+j] = Vnobridge[0];
+    vArray[Ic+j][Ik+i] = Vnobridge[0];
+   }
+  }
   for (i = 0; i < Nk; i++) {
    for (j = 0; j < Nc; j++) {
     vArray[Ik+i][Ic+j] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
@@ -690,7 +697,10 @@ int Analytical_c (
     }
    }
    cn_tot += real(cn*conj(cn));
-   fprintf(ms_est, " %.7g", real(cn*conj(cn)));
+
+   complex<double>thexfactor (1.0/pow(sqrt((kBandTop-kBandEdge)/(Nk-1)),3), 0);
+   // complex<double>thexfactor (1, 0);
+   fprintf(ms_est, " %.7g", real(thexfactor*cn*conj(cn)));
   }
   fprintf(ms_est, "\n");
   fprintf(ms_est_tot, " %.7g\n", cn_tot);

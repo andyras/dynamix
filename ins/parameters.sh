@@ -17,7 +17,7 @@ Nk_init=61				# number of k states initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
 bulkGaussMu=0.0110249			# position of initial Gaussian above band edge
 # physical parameters #
-temperature=3e2				# temperature in Kelvin
+temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
 N_vib=1					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
@@ -33,8 +33,8 @@ pumpFreq=1e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
-bulk_FDD=0
-bulk_Gauss=1
+bulk_FDD=1
+bulk_Gauss=0
 bulk_constant=0
 qd_pops=0
 laser_on=0
