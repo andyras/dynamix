@@ -645,7 +645,7 @@ int Output_checkpoint(
 
 int Analytical_c (
  double tout, int timesteps, realtype * energies,
- double kBandEdge, double kBandTop, double * k_pops) {
+ double kBandEdge, double kBandTop, N_Vector y) {
 
  // energy spacing in bulk
  complex <double> dE ((kBandTop-kBandEdge)/(Nk-1), 0);
@@ -680,7 +680,7 @@ int Analytical_c (
   for (int n = 0; n < Nc; n++) {
    cn = complex<double>(0, 0);
    for (int m = 0; m < Nk; m++) {
-    cm = complex<double>(k_pops[m], 0);
+    cm = complex<double>(NV_Ith_S(y,m), 0);
     wnm = complex<double>(energies[Ic + n] - energies[Ik + m], 0);
     cn -= II*Vee*sqrt(dE)*cm
        *(exp(II*wnm*t) - exp(I2*K*t))
@@ -698,7 +698,7 @@ int Analytical_c (
    }
    cn_tot += real(cn*conj(cn));
 
-   complex<double>thexfactor (1.0/pow(sqrt((kBandTop-kBandEdge)/(Nk-1)),3), 0);
+   complex<double>thexfactor (1.0/pow(sqrt((kBandTop-kBandEdge)/(Nk-1)),2), 0);
    // complex<double>thexfactor (1, 0);
    fprintf(ms_est, " %.7g", real(thexfactor*cn*conj(cn)));
   }
@@ -1535,7 +1535,7 @@ int main (int argc, char * argv[]) {
    qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
 
  // Compute the analytical population on the c states
- Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, k_pops);
+ Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y);
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
