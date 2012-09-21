@@ -696,11 +696,11 @@ int Analytical_c (
 	  /((K+II*wnpm)*II*wnnp));
     }
    }
-   cn_tot += real(cn*conj(cn));
 
    complex<double>thexfactor (1.0/pow(sqrt((kBandTop-kBandEdge)/(Nk-1)),2), 0);
    // complex<double>thexfactor (1, 0);
    fprintf(ms_est, " %.7g", real(thexfactor*cn*conj(cn)));
+   cn_tot += real(thexfactor*cn*conj(cn));
   }
   fprintf(ms_est, "\n");
   fprintf(ms_est_tot, " %.7g\n", cn_tot);
