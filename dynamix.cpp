@@ -662,6 +662,10 @@ int Analytical_c (
  // coefficients
  complex <double> cm (0, 0);
  complex <double> cn (0, 0);
+ complex <double> cn_term1 (0, 0);
+ complex <double> cn_term2 (0, 0);
+ complex <double> cn_diag (0, 0);
+ complex <double> cn_offdiag (0, 0);
  double cn_tot;
  // complex numbers are dumb
  complex <double> II (0, 1);
@@ -669,22 +673,36 @@ int Analytical_c (
 
  FILE * ms_est;
  FILE * ms_est_tot;
+ FILE * c_diag;			// diagonal portion of coefficients
+ FILE * c_offdiag;		// diagonal portion of coefficients
 
  ms_est = fopen("ms_est.out", "w");
  ms_est_tot = fopen("ms_est_tot.out", "w");
+ c_diag = fopen("c_diag.out", "w");
+ c_offdiag = fopen("c_offdiag.out", "w");
 
  for (t = complex<double>(0,0); real(t) <= tout; t += complex<double>(tout/timesteps,0)) {
   cn_tot = 0.0;
   fprintf(ms_est, "%.7g", real(t));
-  fprintf(ms_est_tot, "%.7g", real(t));
+  fprintf(c_diag, "%.7g", real(t));
+  fprintf(c_offdiag, "%.7g", real(t));
   for (int n = 0; n < Nc; n++) {
    cn = complex<double>(0, 0);
+   cn_diag = complex<double>(0, 0);
+   cn_offdiag = complex<double>(0, 0);
+   cn_term1 = complex<double>(0, 0);
+   cn_term2 = complex<double>(0, 0);
    for (int m = 0; m < Nk; m++) {
     cm = complex<double>(NV_Ith_S(y,m), 0);
     wnm = complex<double>(energies[Ic + n] - energies[Ik + m], 0);
-    cn -= II*Vee*sqrt(dE)*cm
+    cn -= II*Vee*sqrt(dE)*cm // first term
        *(exp(II*wnm*t) - exp(I2*K*t))
        /(K + II*wnm);
+    // eh, this may not be the way to look at the (off-)diagonal terms
+    cn_term1 -= II*Vee*sqrt(dE)*cm*(exp(II*wnm*t))/(K + II*wnm); // 1st part of first term
+    cn_term2 += II*Vee*sqrt(dE)*cm*(exp(I2*K*t))/(K + II*wnm); // 2nd part of first term
+    cn_diag += cn_term1*conj(cn_term1) + cn_term2*conj(cn_term2);
+    cn_offdiag += cn_term1*conj(cn_term2) + cn_term2*conj(cn_term1);
     for (int np = 0; np < Nc; np++) {
      if (np == n) continue;
      wnnp = complex<double>(energies[Ic + n] - energies[Ic + np], 0);
@@ -700,14 +718,20 @@ int Analytical_c (
    complex<double>thexfactor (1.0/pow(sqrt((kBandTop-kBandEdge)/(Nk-1)),2), 0);
    // complex<double>thexfactor (1, 0);
    fprintf(ms_est, " %.7g", real(thexfactor*cn*conj(cn)));
+   fprintf(c_diag, " %.7g", real(thexfactor*cn_diag));
+   fprintf(c_offdiag, " %.7g", real(thexfactor*cn_offdiag));
    cn_tot += real(thexfactor*cn*conj(cn));
   }
   fprintf(ms_est, "\n");
-  fprintf(ms_est_tot, " %.7g\n", cn_tot);
+  fprintf(c_diag, "\n");
+  fprintf(c_offdiag, "\n");
+  fprintf(ms_est_tot, "%.7g %.7g\n", real(t), cn_tot);
  }
 
  fclose(ms_est);
  fclose(ms_est_tot);
+ fclose(c_diag);
+ fclose(c_offdiag);
 
  return 0;
 }
