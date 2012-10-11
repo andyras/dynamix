@@ -43,4 +43,6 @@ scale_brqd=0
 scale_buqd=0
 scale_laser=1
 bridge_on=0
+random_phase=1
+random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##

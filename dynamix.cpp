@@ -74,6 +74,8 @@ using namespace std;
  int scale_buqd = 0;
  int scale_laser = 0;
  int bridge_on = 0;
+ int random_phase = 0;
+ int random_seed = 0;
 // END GLOBAL VARIABLES
 #ifdef DEBUG_SAI
  double last_t = -1.0;				// keeps track of last time for which debuggery was printed
@@ -1188,6 +1190,8 @@ int main (int argc, char * argv[]) {
   else if (input_param == "scale_buqd" ) { scale_buqd = atoi(param_val.c_str()); }
   else if (input_param == "scale_laser" ) { scale_laser = atoi(param_val.c_str()); }
   else if (input_param == "bridge_on" ) { bridge_on = atoi(param_val.c_str()); }
+  else if (input_param == "random_phase" ) { random_phase = atoi(param_val.c_str()); }
+  else if (input_param == "random_seed" ) { random_seed = atoi(param_val.c_str()); }
   else {  }
   getline (bash_in,line);
  }
@@ -1228,6 +1232,8 @@ int main (int argc, char * argv[]) {
  cout << "scale_buqd is " << scale_buqd << endl;
  cout << "scale_laser is " << scale_laser << endl;
  cout << "bridge_on is " << bridge_on << endl;
+ cout << "random_phase is " << random_phase << endl;
+ cout << "random_seed is " << random_seed << endl;
 #endif
 
  // make a note about the laser intensity.
@@ -1283,6 +1289,14 @@ int main (int argc, char * argv[]) {
  }
  if ((bulk_FDD && bulk_constant) || (bulk_FDD && bulk_Gauss) || (bulk_constant && bulk_Gauss)) {
   cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
+  return -1;
+ }
+ if (random_phase != 0 && random_phase != 1) {
+  cerr << "\nERROR: random_phase switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (random_seed < -1) {
+  cerr << "\nERROR: random_phase must be -1 or greater.\n";
   return -1;
  }
 
@@ -1457,6 +1471,19 @@ int main (int argc, char * argv[]) {
   ydata[Ib_vib + i*N_vib] = b_pops[i];
  for (i = 0; i < Nl; i++)
   ydata[Il_vib + i*N_vib] = l_pops[i];
+
+ // If random_phase is on, give all coefficients a random phase
+ if (random_phase) {
+  float phi;
+  // set the seed
+  if (random_seed == -1) { srand(time(NULL)); }
+  else { srand(random_seed); }
+  for (i = 0; i < NEQ_vib; i++) {
+   phi = (float)rand()/(float)RAND_MAX;
+   ydata[i] = ydata[i]*cos(phi);
+   ydata[i + NEQ_vib] = ydata[i + NEQ_vib]*sin(phi);
+  }
+ }
 //these lines are a test
  //Initialize_array(ydata, 2*NEQ_vib, 0.0000001);
  // for (i = 0; i < NEQ_vib; i += 2) {
