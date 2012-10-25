@@ -1479,7 +1479,7 @@ int main (int argc, char * argv[]) {
   if (random_seed == -1) { srand(time(NULL)); }
   else { srand(random_seed); }
   for (i = 0; i < NEQ_vib; i++) {
-   phi = (float)rand()/(float)RAND_MAX;
+   phi = 2*3.1415926535*(float)rand()/(float)RAND_MAX;
    ydata[i] = ydata[i]*cos(phi);
    ydata[i + NEQ_vib] = ydata[i + NEQ_vib]*sin(phi);
   }
