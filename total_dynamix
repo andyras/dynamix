@@ -59,11 +59,6 @@ function run {
  mv *.out outs/
 }
 
-function run_fail {
- echo "### failed to run dynamix :("
- exit
-}
-
 function plot_maker {
  if [ "$populations_plot" == 'y' ] ; then
 ## GENERATE POPULATION PLOTSCRIPT ##
@@ -338,9 +333,7 @@ echo "###"
 echo "###"
 
 [ "$do_compile" == 'y' ] && compile
-if [ "$do_run" == 'y' ] ; then
- run || run_fail
-fi
+[ "$do_run" == 'y' ] && run
 [ "$make_plotter" == 'y' ] && plot_maker
 [ "$do_plot" == 'y' ] && plot
 [ "$do_time_space_plot" == 'y' ] && time_space_plot
