@@ -31,6 +31,10 @@ function compile {
  if [ $? == 0 ] ; then CPP=g++-4.7.0 ; fi
  which g++-4.7.1 &> /dev/null
  if [ $? == 0 ] ; then CPP=g++-4.7.1 ; fi
+ which g++-4.7.2 &> /dev/null
+ if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
+ which icpc &> /dev/null
+ if [ $? == 0 ] ; then CPP=icpc ; fi
  make CPP=$CPP && echo "### $(date) done compiling!"
 }
 

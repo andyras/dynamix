@@ -114,12 +114,12 @@ void Read_array_from_file (realtype * array, const char * nameOfFile, int number
  input = fopen(nameOfFile,"r");
 
  if (input != NULL) {
-  while (fscanf(input, "%lf", &array[i]) != EOF) {
+  while (fscanf(input, "%lf", &array[i]) != EOF && i < numberOfValues) {
    i++;
   }
  }
  else {
-  fprintf(stderr, "WARNING [Read_array_from_file]: file %s does not exist.\n", nameOfFile);
+  fprintf(stderr, "ERROR [Read_array_from_file]: file %s does not exist.\n", nameOfFile);
  }
 
  fclose(input);
