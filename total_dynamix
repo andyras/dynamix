@@ -36,12 +36,12 @@ function compile {
  which icpc &> /dev/null
  if [ $? == 0 ] ; then CPP=icpc ; fi
  make CPP=$CPP && echo "### $(date) done compiling!"
-}
-
-function compile_fail {
-## IF COMPILATION FAILS, QUIT ##
- echo "### $(date) failed to compile :("
- exit
+ if [ $? == 0 ] ; then
+  echo "### $(date) done compiling!"
+ else
+  echo "### $(date) failed to compile :("
+  exit
+ fi
 }
 
 function run {
@@ -337,10 +337,7 @@ echo "### $(date) dynamix run starting now..."
 echo "###"
 echo "###"
 
-# [ "$do_compile" == 'y' ] && compile
-if [ "$do_compile" == 'y' ] ; then
- compile || compile_fail
-fi
+[ "$do_compile" == 'y' ] && compile
 if [ "$do_run" == 'y' ] ; then
  run || run_fail
 fi
