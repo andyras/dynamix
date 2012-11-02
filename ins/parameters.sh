@@ -1,5 +1,19 @@
 #!/bin/bash
 
+## FLAGS FOR RUN ##
+       do_compile="y"
+	   do_run="y"
+     make_plotter="y"
+	  do_plot="y"
+timeandspace_plot="n"
+ populations_plot="n"
+      kprobs_plot="y"
+ make_movie_maker="n"
+	 do_movie="n"
+       do_cleanup="n"
+   do_fullcleanup="n"
+	do_backup="n"
+
 ## START INPUT PARAMETERS ##
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
