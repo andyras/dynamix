@@ -1045,7 +1045,8 @@ int main (int argc, char * argv[]) {
  realtype * c_energies;
  realtype * b_energies;
  realtype * l_energies;
- int Nk_init;					// number of k states initially populated
+ int Nk_first;					// first k state initially populated
+ int Nk_final;					// final k state initially populated
  realtype bulk_gap;				// bulk band gap
  double temperature;				// system temperature
  double bulkGaussSigma;				// width of initial Gaussian in bulk
@@ -1093,7 +1094,8 @@ int main (int argc, char * argv[]) {
  k_bandtop = 0.01;			// upper band edge of bulk conduction band
  bulk_gap = 0.001;			// bulk band gap
  Nk = 100;				// number of k states
- Nk_init = 1;				// number of k states initially populated
+ Nk_first = 1;				// first k state initially populated
+ Nk_final = 1;				// final k state initially populated
  bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
  bulkGaussMu = 0.01;			// position of initial Gaussian above band edge
  // physical parameters //
@@ -1164,7 +1166,8 @@ int main (int argc, char * argv[]) {
   else if (input_param == "k_bandtop" ) { k_bandtop = atof(param_val.c_str()); }
   else if (input_param == "bulk_gap" ) { bulk_gap = atof(param_val.c_str()); }
   else if (input_param == "Nk" ) { Nk = atoi(param_val.c_str()); }
-  else if (input_param == "Nk_init" ) { Nk_init = atoi(param_val.c_str()); }
+  else if (input_param == "Nk_first" ) { Nk_first = atoi(param_val.c_str()); }
+  else if (input_param == "Nk_final" ) { Nk_final = atoi(param_val.c_str()); }
   else if (input_param == "bulkGaussSigma" ) { bulkGaussSigma = atof(param_val.c_str()); }
   else if (input_param == "bulkGaussMu" ) { bulkGaussMu = atof(param_val.c_str()); }
   else if (input_param == "temperature" ) { temperature = atof(param_val.c_str()); }
@@ -1206,7 +1209,8 @@ int main (int argc, char * argv[]) {
  cout << "k_bandtop is " << k_bandtop << endl;
  cout << "bulk_gap is " << bulk_gap << endl;
  cout << "Nk is " << Nk << endl;
- cout << "Nk_init is " << Nk_init << endl;
+ cout << "Nk_first is " << Nk_first << endl;
+ cout << "Nk_final is " << Nk_final << endl;
  cout << "bulkGaussSigma is " << bulkGaussSigma << endl;
  cout << "bulkGaussMu is " << bulkGaussMu << endl;
  cout << "temperature is " << temperature << endl;
@@ -1243,8 +1247,16 @@ int main (int argc, char * argv[]) {
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
   cerr << "\nWARNING: population starting both in bulk and QD.\n";
  }
- if (Nk_init > Nk || Nk_init < 0) {
-  fprintf(stderr, "ERROR [Inputs]: Nk_init greater than Nk or less than 0.\n");
+ if (Nk_first > Nk || Nk_first < 1) {
+  fprintf(stderr, "ERROR [Inputs]: Nk_first greater than Nk or less than 1.\n");
+  return -1;
+ }
+ if (Nk_final > Nk || Nk_final < 1) {
+  fprintf(stderr, "ERROR [Inputs]: Nk_final greater than Nk or less than 1.\n");
+  return -1;
+ }
+ if (Nk_final < Nk_first) {
+  fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
   return -1;
  }
  if (bulk_FDD != 0 && bulk_FDD != 1) {
@@ -1381,7 +1393,7 @@ int main (int argc, char * argv[]) {
  }
  else if (bulk_constant) {
   Initialize_array(k_pops, Nk, 0.0);
-  Initialize_array(k_pops, Nk_init, 1.0);
+  Initialize_array(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
   //k_pops[(Nk/2)+(Nk%2)-1] = 1.0;		// populate just the middle state in the bulk
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start

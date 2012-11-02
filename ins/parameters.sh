@@ -13,7 +13,8 @@ k_bandtop=0.011024953143949138		# upper band edge of bulk conduction band
 bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=61					# number of k states to have
-Nk_init=61				# number of k states initially populated
+Nk_first=31				# first k state initially populated
+Nk_final=31				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
 bulkGaussMu=0.0110249			# position of initial Gaussian above band edge
 # physical parameters #
@@ -34,8 +35,8 @@ pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches
 bulk_FDD=0
-bulk_Gauss=1
-bulk_constant=0
+bulk_Gauss=0
+bulk_constant=1
 qd_pops=0
 laser_on=0
 scale_bubr=1
