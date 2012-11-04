@@ -1394,7 +1394,6 @@ int main (int argc, char * argv[]) {
  else if (bulk_constant) {
   Initialize_array(k_pops, Nk, 0.0);
   Initialize_array(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
-  //k_pops[(Nk/2)+(Nk%2)-1] = 1.0;		// populate just the middle state in the bulk
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
