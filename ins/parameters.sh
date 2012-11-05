@@ -3,11 +3,11 @@
 ## FLAGS FOR RUN ##
        do_compile="y"
 	   do_run="y"
-     make_plotter="y"
-	  do_plot="y"
+     make_plotter="n"
+	  do_plot="n"
 timeandspace_plot="n"
  populations_plot="n"
-      kprobs_plot="y"
+      kprobs_plot="n"
  make_movie_maker="n"
 	 do_movie="n"
        do_cleanup="n"
@@ -27,8 +27,8 @@ k_bandtop=0.011024953143949138		# upper band edge of bulk conduction band
 bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
 Nk=61					# number of k states to have
-Nk_first=31				# first k state initially populated
-Nk_final=31				# final k state initially populated
+Nk_first=1				# first k state initially populated
+Nk_final=1				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
 bulkGaussMu=0.0110249			# position of initial Gaussian above band edge
 # physical parameters #
