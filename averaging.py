@@ -103,7 +103,6 @@ Ef = -0.01				# Fermi level in Hartree
 BE = read_param('k_bandedge', infile)	# band edge in Hartree
 BT = read_param('k_bandtop', infile)	# band top in Hartree
 T = read_param('temp', infile)		# temperature in Kelvin
-timesteps = read_param('numOutputSteps', infile) + 1
 Nk = int(read_param('Nk', infile))	# number of states in bulk
 
 # array of weights for each run
