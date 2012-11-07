@@ -29,6 +29,16 @@ def fdd(Ef, BE, BT, T, Nk):
     return arr
 
 
+def boltz(BE, BT, T, Nk):
+    '''
+    returns a Boltzmann distribution
+    '''
+    arr = np.zeros(Nk)
+    for i in range(Nk):
+        E = (BT - BE)/(Nk-1)*i + BE
+        arr[i] = 
+
+
 def read_param(paramname, filename):
     '''
     reads a parameter (float value) from a file in the format
