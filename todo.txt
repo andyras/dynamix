@@ -2,3 +2,4 @@
  # when off, should default to setting g-factors to 0
  # error check for whether bridge is on
 # prevent segfault when file doesn't exist
+# error check for scale_buqd having no bridge

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import sys
 import os
 import re
@@ -27,16 +25,6 @@ def fdd(Ef, BE, BT, T, Nk):
         E = (BT - BE)/(Nk-1)*i + BE
         arr[i] = 1/(1 + np.exp((E - Ef)*3.185e5/T))
     return arr
-
-
-def boltz(BE, BT, T, Nk):
-    '''
-    returns a Boltzmann distribution
-    '''
-    arr = np.zeros(Nk)
-    for i in range(Nk):
-        E = (BT - BE)/(Nk-1)*i + BE
-        arr[i] = 
 
 
 def read_param(paramname, filename):
@@ -74,13 +62,13 @@ def change_param(paramname, filename, paramvalue):
         f.write(output)
 
 
-def do_runs(infile, w, redo=False):
+def do_runs(infile, w, timesteps, redo=False):
     # create output array variable
     output_avg = np.zeros((timesteps, 2))
     if redo or not os.path.isdir('avg'):
         # make directory for averaging
-        os.system('rm -rf avg/')
-        os.system('mkdir -p avg')
+        os.system('rm -rf avg')
+        os.mkdir('avg')
     # for each starting state
     for i in range(len(w)):
         run_file = 'avg/tcprob_'+str(i+1)+'.out'
@@ -88,16 +76,19 @@ def do_runs(infile, w, redo=False):
         if w[i] >= 0.001*w.max():
             # if redo flag is on and file doesn't exist
             if redo or not os.path.isfile(run_file):
+                print '\n\n\nwhooooo\n\n\n'
                 # change parameters in ins/parameters.sh
                 change_param('Nk_first', infile, str(i+1))
                 change_param('Nk_final', infile, str(i+1))
                 # run total_dynamix
-                os.system('./total_dynamix')
+                # os.system('./total_dynamix')
+                os.system('../../dynamix')
                 # cp output(s) to folder for averaging
-                os.system('cp outs/tcprob.out '+run_file)
+                os.system('cp tcprob.out '+run_file)
             # load values from output
             data = np.loadtxt('avg/tcprob_'+str(i+1)+'.out')
             # add weighted contribution to output
+            print('shape of tcprob data file '+str(i)+' is '+str(data.shape))
             for j in range(data.shape[0]):
                 output_avg[j,1] += data[j,1]*w[i]
         # add times to output
@@ -114,8 +105,9 @@ BE = read_param('k_bandedge', infile)	# band edge in Hartree
 BT = read_param('k_bandtop', infile)	# band top in Hartree
 T = read_param('temp', infile)		# temperature in Kelvin
 Nk = int(read_param('Nk', infile))	# number of states in bulk
+timesteps = int(read_param('numOutputSteps', infile)) + 1 # timesteps
 
 # array of weights for each run
 w = dist(fdd, Ef, BE, BT, T, Nk)
 
-do_runs(infile, w)
+do_runs(infile, w, timesteps, True)
