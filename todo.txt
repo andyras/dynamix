@@ -2,3 +2,5 @@
  # when off, should default to setting g-factors to 0
  # error check for whether bridge is on
 # prevent segfault when file doesn't exist
+# make Nl read in from file instead of hard-coded
+# add flag to do analytical bit

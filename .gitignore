@@ -6,6 +6,8 @@
 *plot*
 *.swp
 *plt
+*.pyc
+processing/*txt
 backup/
 whoo
 debuggery/

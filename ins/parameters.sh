@@ -22,11 +22,11 @@ tout=16536.284390654313			# final time reached by solver (atomic units)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
-k_bandedge=-0.011024953143949138	# lower band edge of bulk conduction band
-k_bandtop=0.011024953143949138		# upper band edge of bulk conduction band
+k_bandedge=0.011024953143949138	# lower band edge of bulk conduction band
+k_bandtop=0.081024953143949138		# upper band edge of bulk conduction band
 bulk_gap=0.01				# bulk band gap
 #k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=121					# number of k states to have
+Nk=251					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
@@ -57,7 +57,7 @@ scale_bubr=1
 scale_brqd=0
 scale_buqd=0
 scale_laser=1
-bridge_on=0
+bridge_on=1
 random_phase=1
 random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##
