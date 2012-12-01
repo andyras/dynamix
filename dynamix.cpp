@@ -1032,12 +1032,13 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
 }
 
 
-void outputYData(realtype * ydata, int ydatalen) {
- int n = ydatalen/2;
+void outputYData(realtype * ydata, int n) {
+ /* prints out initial wave function.  Inputs are the wave function array and
+  * the number of equations. */
  FILE * psi_start;
  psi_start = fopen("psi_start.out", "w");
- for (int i = 0; i < ydatalen; i++) {
-  fprintf(psi_start, "%-.9g\n", pow(ydata[i],2) + pow(ydata[i+n],2));
+ for (int i = 0; i < n; i++) {
+  fprintf(psi_start, "%-.9g %-.9g\n", ydata[i],2, ydata[i+n]);
  }
  fclose(psi_start);
 }
@@ -1494,7 +1495,7 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nl; i++)
   ydata[Il_vib + i*N_vib] = l_pops[i];
 
- outputYData(ydata, 2*NEQ_vib);
+ outputYData(ydata, NEQ_vib);
 
  // If random_phase is on, give all coefficients a random phase
  if (random_phase) {

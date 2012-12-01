@@ -2,6 +2,27 @@ import re
 import numpy as np
 import scipy.linalg as la
 
+class Psi(object):
+    def __init__(self, psifile='../outs/psi_start.out'):
+        '''build the wavefunction from file'''
+        try:
+            self.psi = np.loadtxt(psifile)
+        except IOError:
+            print "Error: file %s does not exist" % psifile
+
+    def projectToDiagBasis(self, ham):
+        '''projection to diagonal basis.  Requires a diagonalized Hamiltonian
+        and eigenvectors.'''
+        evecs = ham.getEvecs()
+        self.psiDiag = np.dot(np.transpose(evecs), self.psi)
+        self.psiDiagPop = self.psiDiag[:,0]**2 + self.psiDiag[:,1]**2
+
+    def getPsiDiag(self):
+        return self.psiDiag
+
+    def getPsiDiagPop(self):
+        return self.psiDiagPop
+
 
 class Hamiltonian(object):
     def __init__(self, couplingfile='../outs/couplings.out',
@@ -20,9 +41,12 @@ class Hamiltonian(object):
 
     def diagonalize(self):
         (self.evals, self.evecs) = la.eigh(self.H)
-        idx = self.evals.argsort()
-        self.evals = self.evals[idx]
-        self.evecs = self.evecs[:,idx]
+        self.idx = self.evals.argsort()
+        self.evals = self.evals[self.idx]
+        self.evecs = self.evecs[:,self.idx]
+
+    def getDiagIndex(self):
+        return self.idx
 
     def getEvals(self):
         try:

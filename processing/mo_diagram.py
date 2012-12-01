@@ -28,6 +28,12 @@ Il = Ib + Nb
 H = ld.Hamiltonian()
 (evals, evecs) = (H.getEvals(), H.getEvecs())
 
+# read and build wave function
+psi = ld.Psi()
+psi.projectToDiagBasis(H)
+psiDiag = psi.getPsiDiagPop()
+np.savetxt('psi_diag.out', np.transpose(np.vstack((evals, psiDiag))))
+
 # take projections of eigenvectors onto subsystems
 bu_evecs = evecs[Ik:(Ik+Nk),:]
 qd_evecs = evecs[Ic:(Ic+Nc),:]
