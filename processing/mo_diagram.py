@@ -1,8 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python2.7
 
 import libdynamix as ld
 import numpy as np
-import ham
+import plotscripts as ps
 
 paramfile = '../ins/parameters.sh'
 couplingfile = '../outs/couplings.out'
@@ -25,7 +25,7 @@ Ib = Ic + Nc
 Il = Ib + Nb
 
 # read and build Hamiltonian
-H = ham.Hamiltonian()
+H = ld.Hamiltonian()
 (evals, evecs) = (H.getEvals(), H.getEvecs())
 
 # take projections of eigenvectors onto subsystems
@@ -46,3 +46,5 @@ np.savetxt('vb_proj.out', np.real(np.transpose(np.vstack((evals, vb_proj)))))
 #np.savetxt('evals.txt', np.real(evals))
 #np.savetxt('cevecs.txt', evecs)
 #np.savetxt('evecs.txt', np.real(evecs))
+ps.pdos_plot()
+ps.pdos_plot_stack()
