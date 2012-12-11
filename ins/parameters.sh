@@ -3,11 +3,11 @@
 ## FLAGS FOR RUN ##
        do_compile="y"
 	   do_run="y"
-     make_plotter="n"
-	  do_plot="n"
-timeandspace_plot="n"
- populations_plot="n"
-      kprobs_plot="n"
+     make_plotter="y"
+	  do_plot="y"
+timeandspace_plot="y"
+ populations_plot="y"
+      kprobs_plot="y"
  make_movie_maker="n"
 	 do_movie="n"
        do_cleanup="n"
@@ -18,19 +18,18 @@ timeandspace_plot="n"
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=16536.284390654313			# final time reached by solver (atomic units)
+tout=16536.284390654313			# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
-k_bandedge=0.011024953143949138	# lower band edge of bulk conduction band
-k_bandtop=0.081024953143949138		# upper band edge of bulk conduction band
-bulk_gap=0.01				# bulk band gap
-#k_bandtop=0.036749843813		# upper band edge of bulk conduction band
-Nk=251					# number of k states to have
+k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
+k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
+bulk_gap=0.01				# bulk band gap (a.u.)
+Nk=51					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
-bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk
-bulkGaussMu=0.0110249			# position of initial Gaussian above band edge
+bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk (a.u.)
+bulkGaussMu=0.0110249			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
@@ -47,7 +46,7 @@ pumpPeak=6000				# time of peak of pump pulse (a.u.)
 pumpFreq=1e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
-# starting condition switches
+# starting condition switches #
 bulk_FDD=0
 bulk_Gauss=0
 bulk_constant=1

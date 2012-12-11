@@ -84,6 +84,7 @@ set xtics nomirror scale 0.5" > figures/populations.plt
     echo "set size 1, 0.3
 set origin 0.0,0.0
 set format y '%.2e'
+set yr [0:$bmax]
 set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
   fi
   echo "set xlabel 'Time (fs)'" >> figures/populations.plt
