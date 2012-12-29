@@ -22,6 +22,10 @@
 
 using namespace std;
 
+// external (LAPACK) functions
+extern "C" void dsyev_(char *JOBZ, char *UPLO, int *N, double *A, int *LDA,
+ double *W, double *WORK, int *LWORK, int *INFO);
+
 // GLOBAL VARIABLES GO HERE //
  void * cvode_mem;			// pointer to block of CVode memory
  realtype * user_data;
@@ -1043,6 +1047,53 @@ void outputYData(realtype * ydata, int n) {
  fclose(psi_start);
 }
 
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
+ int i, j;					// counters!
+ for (i = 0; i < N; i++) {
+  // diagonal
+  H[i*N + i] = energy[i];
+  for (j = 0; j < N; j++) {
+   // off-diagonal
+   H[i*N + j] = V[i][j];
+   H[j*N + i] = V[j][i];
+  }
+ }
+}
+
+void printEigenvalues(realtype * W, int N) {
+ int i;        // counter
+ FILE * evals; // output file
+
+ evals = fopen("evals.out", "w");
+
+ for (i = 0; i < N; i++) {
+  fprintf(evals, "%-.9g\n", W[i]);
+ }
+
+ fclose(evals);
+}
+
+void printEigenvectors(realtype * H, int N) {
+ int i, j;     // counters
+ FILE * evecs; // output file
+
+ evecs = fopen("evecs.out", "w");
+
+ for (i = 0; i < N; i++) {
+  for (j = 0; j < N; j++) {
+   if (j == 0) {
+    fprintf(evecs, "%-.9g", H[i*N + j]);
+   }
+   else {
+    fprintf(evecs, " %-.9g", H[i*N + j]);
+   }
+  }
+  fprintf(evecs, "\n");
+ }
+
+ fclose(evecs);
+}
+
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
@@ -1259,6 +1310,10 @@ int main (int argc, char * argv[]) {
  fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
 
  // Error checking
+ if (timedepH != 0 && timedepH != 1) {
+  cerr << "\nERROR: timedepH switch is not 0 or 1.\n";
+  return -1;
+ }
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
   cerr << "\nWARNING: population starting both in bulk and QD.\n";
  }
@@ -1649,22 +1704,62 @@ int main (int argc, char * argv[]) {
 #endif
 
  // advance the solution in time! //
- for (i = 1; i <= numsteps; ++i) {
-  t = (tout*((double) i)/((double) numsteps));
-  flag = CVode(cvode_mem, t, yout, &tret, 1);
+ // use CVODE for time-dependent H
+ if (timedepH) {
+  for (i = 1; i <= numsteps; ++i) {
+   t = (tout*((double) i)/((double) numsteps));
+   flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
-  cout << endl << "CVode flag at step " << i << ": " << flag << endl;
+   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
-  if (i % (numsteps/numOutputSteps) == 0) {
-   fprintf(stdout, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
-   Output_checkpoint(
+   if (i % (numsteps/numOutputSteps) == 0) {
+    fprintf(stdout, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+    Output_checkpoint(
 #ifdef DEBUG
-     realImaginary, 
+      realImaginary, 
 #endif
-     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
-     qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
-     k_bandedge, k_bandtop, k_pops);
+      allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
+      qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
+      k_bandedge, k_bandtop, k_pops);
+   }
   }
+ }
+ // use LAPACK for time-independent H
+ else {
+  // build Hamiltonian
+  realtype * H = new realtype [NEQ_vib*NEQ_vib];
+  buildHamiltonian(H, energy, V, NEQ_vib);
+  // declare LAPACK variables
+  char JOBZ;            // 'N' to just compute evals; 'V' to compute evals and evecs
+  char UPLO;            // 'U' to store upper diagonal of matrix
+  int N;                // order of matrix
+  int LDA;              // leading dimension of matrix
+  double * W;           // output array of evals
+  double * WORK;	// working memory to use during diagonalization
+  int LWORK;            // length of WORK; LWORK >= (MAX(1,LWORK))
+  int INFO;             // state flag: (0 success, -i ith argument bad, >0 fail)
+  // assign LAPACK variables
+  JOBZ = 'V';
+  UPLO = 'U';
+  N = NEQ_vib;
+  LDA = N;
+  W = new double [N];
+  LWORK = -1;
+  WORK = new double [1];
+  INFO = 0;
+  // dry run to compute LWORK
+  // using same arguments as actual calculation
+  dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
+  // assign LWORK from first element of WORK
+  LWORK = WORK[0];
+  // reallocate WORK
+  delete [] WORK;
+  WORK = new double [LWORK];
+  // diagonalize the guy!
+  dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
+  // print eigenvalues and eigenvectors
+  printEigenvalues(W, N);
+  printEigenvectors(H, N);
  }
 #ifdef DEBUG
  fclose(realImaginary);
