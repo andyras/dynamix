@@ -3,11 +3,11 @@
 ## FLAGS FOR RUN ##
        do_compile="y"
 	   do_run="y"
-     make_plotter="y"
-	  do_plot="y"
-timeandspace_plot="y"
- populations_plot="y"
-      kprobs_plot="y"
+     make_plotter="n"
+	  do_plot="n"
+timeandspace_plot="n"
+ populations_plot="n"
+      kprobs_plot="n"
  make_movie_maker="n"
 	 do_movie="n"
        do_cleanup="n"
@@ -15,6 +15,8 @@ timeandspace_plot="y"
 	do_backup="n"
 
 ## START INPUT PARAMETERS ##
+# method parameter #
+timedepH=0				# if H is TD, use CVODE, else diag H and propogate
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance

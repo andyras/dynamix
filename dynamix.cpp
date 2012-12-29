@@ -1096,6 +1096,7 @@ int main (int argc, char * argv[]) {
  // ASSIGN VARIABLE DEFAULTS //
  i = 0;
  double summ = 0;			// sum variable
+ int timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -1169,7 +1170,8 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   cout << "Parameter: " << input_param << endl << "New value: " << atof(param_val.c_str()) << endl;
 #endif
-  if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
+  if (input_param == "timedepH") { timedepH = atoi(param_val.c_str()); }
+  else if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
   else if (input_param == "tout" ) { tout = atof(param_val.c_str()); }
   else if (input_param == "numsteps" ) { numsteps = atoi(param_val.c_str()); }
@@ -1212,6 +1214,7 @@ int main (int argc, char * argv[]) {
  }
 #ifdef DEBUG
  cout << endl;
+ cout << "timedepH is " << timedepH << endl;
  cout << "abstol is " << abstol << endl;
  cout << "reltol is " << reltol << endl;
  cout << "tout is " << tout << endl;
