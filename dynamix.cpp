@@ -12,7 +12,7 @@
 #include <nvector/nvector_serial.h>
 
 /* DEBUG compiler flag: turn this on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
@@ -131,6 +131,9 @@ void Read_array_from_file (realtype * array, const char * nameOfFile, int number
 
 // Returns an array of length n with all values set to initializeValue. //
 void Initialize_array(realtype * array, int n, realtype initializeValue) {
+#ifdef DEBUG
+ cout << "initializeValue is " << initializeValue << endl;
+#endif
 
  int i;
 
@@ -252,14 +255,14 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
   // this is goofy, I should probably not have the sqrt(27.211) scaling factor
   for (i = 0; i < Nk; i++) {
    for (j = 0; j < Nc; j++) {
-    vArray[Ik+i][Ic+j] = Vnobridge[0];
-    vArray[Ic+j][Ik+i] = Vnobridge[0];
+    vArray[Ik+i][Ic+j] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+    vArray[Ic+j][Ik+i] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
    }
   }
   for (i = 0; i < Nk; i++) {
    for (j = 0; j < Nc; j++) {
-    vArray[Ik+i][Ic+j] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
-    vArray[Ic+j][Ik+i] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+    vArray[Ik+i][Ic+j] = Vnobridge[0];
+    vArray[Ic+j][Ik+i] = Vnobridge[0];
    }
   }
  }
@@ -1060,7 +1063,8 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
  }
 }
 
-void printEigenvalues(realtype * W, int N) {
+void printVector(realtype * W, int N) {
+ // prints a vector W of length N
  int i;        // counter
  FILE * evals; // output file
 
@@ -1073,19 +1077,20 @@ void printEigenvalues(realtype * W, int N) {
  fclose(evals);
 }
 
-void printEigenvectors(realtype * H, int N) {
+void printSquareMatrix(realtype * M, int N, char * fileName) {
+ // prints a square matrix M of dimension N
  int i, j;     // counters
  FILE * evecs; // output file
 
- evecs = fopen("evecs.out", "w");
+ evecs = fopen(fileName, "w");
 
  for (i = 0; i < N; i++) {
   for (j = 0; j < N; j++) {
    if (j == 0) {
-    fprintf(evecs, "%-.9g", H[i*N + j]);
+    fprintf(evecs, "%-.9g", M[i*N + j]);
    }
    else {
-    fprintf(evecs, " %-.9g", H[i*N + j]);
+    fprintf(evecs, " %-.9g", M[i*N + j]);
    }
   }
   fprintf(evecs, "\n");
@@ -1400,7 +1405,7 @@ int main (int argc, char * argv[]) {
  b_energies = new realtype [Nb];
  l_energies = new realtype [Nl];
  if (Number_of_values("ins/c_pops.in") != Nc)
-  fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.");
+  fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.\n");
  Read_array_from_file(c_energies, "ins/c_energies.in", Nc);
  if (bridge_on) {
   if (bridge_on && (Nb < 1)) {
@@ -1462,8 +1467,21 @@ int main (int argc, char * argv[]) {
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
  else if (bulk_constant) {
+#ifdef DEBUG
+  cout << "\ninitializing k_pops\n";
+#endif
   Initialize_array(k_pops, Nk, 0.0);
+#ifdef DEBUG
+  cout << "\ninitializing k_pops again\n";
+#endif
   Initialize_array(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
+#ifdef DEBUG
+  cout << "\nThis is k_pops:\n";
+  for (i = 0; i < Nk; i++) {
+   cout << k_pops[i] << endl;
+  }
+  cout << "\n";
+#endif
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
@@ -1553,6 +1571,13 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nl; i++)
   ydata[Il_vib + i*N_vib] = l_pops[i];
 
+#ifdef DEBUG
+ cout << "\n to start, y data is:\n";
+ for (i = 0; i < NEQ_vib; i++) {
+  cout << ydata[i] << "\n";
+ }
+#endif
+
  outputYData(ydata, NEQ_vib);
 
  // If random_phase is on, give all coefficients a random phase
@@ -1631,7 +1656,7 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nb; i++)
   for (j = 0; j < N_vib; j++)
   cout << "energy[b(" << i << "," << j << ")] = " << energy[Ib_vib + i*N_vib + j] << endl;
- for (i = 0; i < Nb; i++)
+ for (i = 0; i < Nl; i++)
   for (j = 0; j < N_vib; j++)
   cout << "energy[l(" << i << "," << j << ")] = " << energy[Il_vib + i*N_vib + j] << endl;
  cout << endl;
@@ -1729,6 +1754,7 @@ int main (int argc, char * argv[]) {
   // build Hamiltonian
   realtype * H = new realtype [NEQ_vib*NEQ_vib];
   buildHamiltonian(H, energy, V, NEQ_vib);
+  printSquareMatrix(H, NEQ_vib, "ham.out");
   // declare LAPACK variables
   char JOBZ;            // 'N' to just compute evals; 'V' to compute evals and evecs
   char UPLO;            // 'U' to store upper diagonal of matrix
@@ -1758,8 +1784,8 @@ int main (int argc, char * argv[]) {
   // diagonalize the guy!
   dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
   // print eigenvalues and eigenvectors
-  printEigenvalues(W, N);
-  printEigenvectors(H, N);
+  printVector(W, N);
+  printSquareMatrix(H, N, "evecs.out");
  }
 #ifdef DEBUG
  fclose(realImaginary);
