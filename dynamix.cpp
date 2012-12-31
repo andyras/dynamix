@@ -1627,7 +1627,7 @@ int main (int argc, char * argv[]) {
   cout << "starting ydata: Im[l(" << i << "," << j << ")] = " << ydata[Il_vib + i*N_vib + j + NEQ_vib] << endl;
  cout << endl;
  summ = 0;
- for (i = 0; i < NEQ_vib; i++) {
+ for (i = 0; i < 2*NEQ_vib; i++) {
   summ += pow(ydata[i],2);
  }
  cout << "\nTotal population is " << summ << "\n\n";
@@ -1670,8 +1670,8 @@ int main (int argc, char * argv[]) {
  // print t = 0 information //
  Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
  summ = 0;
- for (i = 0; i < NEQ_vib; i++) {
-  summ += pow(ydata[i],2);
+ for (i = 0; i < 2*NEQ_vib; i++) {
+  summ += pow(NV_Ith_S(y, i),2);
  }
 #ifdef DEBUG
   cout << "\nAfter normalization, total population is " << summ << "\n\n";
