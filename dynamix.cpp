@@ -10,6 +10,7 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+#include <mkl.h>
 
 /* DEBUG compiler flag: turn this on to generate basic debug outputs.         */
 #define DEBUG
@@ -22,9 +23,11 @@
 
 using namespace std;
 
-// external (LAPACK) functions
-extern "C" void dsyev_(char *JOBZ, char *UPLO, int *N, double *A, int *LDA,
- double *W, double *WORK, int *LWORK, int *INFO);
+// structure to hold complex numbers for linear algebra routines
+typedef struct {
+ double re;
+ double im;
+} complex16;
 
 // GLOBAL VARIABLES GO HERE //
  void * cvode_mem;			// pointer to block of CVode memory
@@ -1071,10 +1074,24 @@ void printVector(realtype * W, int N) {
  evals = fopen("evals.out", "w");
 
  for (i = 0; i < N; i++) {
-  fprintf(evals, "%-.9g\n", W[i]);
+  fprintf(evals, "%-.9e\n", W[i]);
  }
 
  fclose(evals);
+}
+
+void printCVector(complex16 * v, int N, char * fileName) {
+ // prints a complex vector v of length N
+ int i;		// counter!
+ FILE * out;	// output file
+
+ out = fopen(fileName, "w");
+
+ for (i = 0; i < N; i++) {
+  fprintf(out, "%-.9e %-.9e\n", v[i].re, v[i].im);
+ }
+
+ fclose(out);
 }
 
 void printSquareMatrix(realtype * M, int N, char * fileName) {
@@ -1087,16 +1104,44 @@ void printSquareMatrix(realtype * M, int N, char * fileName) {
  for (i = 0; i < N; i++) {
   for (j = 0; j < N; j++) {
    if (j == 0) {
-    fprintf(evecs, "%-.9g", M[i*N + j]);
+    fprintf(evecs, "%-.9e", M[i*N + j]);
    }
    else {
-    fprintf(evecs, " %-.9g", M[i*N + j]);
+    fprintf(evecs, " %-.9e", M[i*N + j]);
    }
   }
   fprintf(evecs, "\n");
  }
 
  fclose(evecs);
+}
+
+void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 * psi_E) {
+ // projects the wavefunction in the site basis (psi_S) onto the eigenstate
+ // basis (psi_E).  Requires the orthonormal eigenvectors (evecs), and assumes
+ // they are in a column matrix format.
+ int i;			// counter!
+ // BLAS variables
+ int M = dim;
+ int N = dim;
+ complex16 ALPHA;
+ ALPHA.re = 1.0;
+ ALPHA.im = 0.0;
+ // convert the real matrix of evecs to a complex matrix A
+ complex16 * A = new complex16 [dim*dim];
+ for (i = 0; i < dim*dim; i++) {
+  A[i].re = evecs[i];
+  A[i].im = 0.0;
+ }
+ int LDA = dim;
+ int INCX = 1;
+ complex16 BETA;
+ BETA.re = 0.0;
+ BETA.im = 0.0;
+ int INCY = 1;
+
+ cblas_zgemv(CblasRowMajor, CblasNoTrans, M, N, &ALPHA, A, LDA, psi_S, INCX,
+  &BETA, psi_E, INCY);
 }
 
 int main (int argc, char * argv[]) {
@@ -1786,6 +1831,19 @@ int main (int argc, char * argv[]) {
   // print eigenvalues and eigenvectors
   printVector(W, N);
   printSquareMatrix(H, N, "evecs.out");
+  // make a complex array to represent the starting psi (site basis)
+  complex16 * psi_S = new complex16 [NEQ_vib];
+  for (i = 0; i < NEQ_vib; i++) {
+   psi_S[i].re = NV_Ith_S(y, i);
+   psi_S[i].im = NV_Ith_S(y, i+NEQ_vib);
+  }
+  // make a complex array to represent the starting psi (eigenstate basis)
+  complex16 * psi_E = new complex16 [NEQ_vib];
+  // project the starting wavefunction onto the eigenstate basis
+  projectSiteToState(psi_S, NEQ_vib, H, psi_E);
+  // print the starting wavefunction in the two bases
+  printCVector(psi_S, NEQ_vib, "psi_start_s.out");
+  printCVector(psi_E, NEQ_vib, "psi_start_e.out");
  }
 #ifdef DEBUG
  fclose(realImaginary);
