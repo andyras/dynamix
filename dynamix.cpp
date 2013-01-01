@@ -1256,11 +1256,6 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
     fprintf(kprobs, "%-.9g", t[i]);
    }
    fprintf(kprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
-if (i < 100) {
- cout << "i is " << i << "\n";
- cout << "j is " << j << "\n";
- cout << "psi_t[i*dim+j].re is " << psi_t[i*dim+j].re << "\n";
-}
   }
   fprintf(kprobs, "\n");
  }
