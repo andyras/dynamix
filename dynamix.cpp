@@ -1066,18 +1066,18 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
  }
 }
 
-void printVector(realtype * W, int N) {
+void printVector(realtype * W, int N, char * fileName) {
  // prints a vector W of length N
  int i;        // counter
- FILE * evals; // output file
+ FILE * out;   // output file
 
- evals = fopen("evals.out", "w");
+ out = fopen(fileName, "w");
 
  for (i = 0; i < N; i++) {
-  fprintf(evals, "%-.9e\n", W[i]);
+  fprintf(out, "%-.9e\n", W[i]);
  }
 
- fclose(evals);
+ fclose(out);
 }
 
 void printCVector(complex16 * v, int N, char * fileName) {
@@ -1097,23 +1097,58 @@ void printCVector(complex16 * v, int N, char * fileName) {
 void printSquareMatrix(realtype * M, int N, char * fileName) {
  // prints a square matrix M of dimension N
  int i, j;     // counters
- FILE * evecs; // output file
+ FILE * out; // output file
 
- evecs = fopen(fileName, "w");
+ out = fopen(fileName, "w");
 
  for (i = 0; i < N; i++) {
   for (j = 0; j < N; j++) {
    if (j == 0) {
-    fprintf(evecs, "%-.9e", M[i*N + j]);
+    fprintf(out, "%-.9e", M[i*N + j]);
    }
    else {
-    fprintf(evecs, " %-.9e", M[i*N + j]);
+    fprintf(out, " %-.9e", M[i*N + j]);
    }
   }
-  fprintf(evecs, "\n");
+  fprintf(out, "\n");
  }
 
- fclose(evecs);
+ fclose(out);
+}
+
+void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex16 * psi_S_t, int timesteps) {
+ // projects the time-dependent wavefunction from the state basis to the site basis
+ int i;
+ int M = dim;
+ int N = timesteps;
+ ////DEBUG
+ //N = dim;
+ ////\DEBUG
+ int K = dim;
+ complex16 ALPHA;
+ ALPHA.re = 1.0;
+ ALPHA.im = 0.0;
+ // convert evecs to a complex matrix A
+ complex16 * A = new complex16 [dim*dim];
+ for (i = 0; i < dim*dim; i++) {
+  A[i].re = evecs[i];
+  A[i].im = 0.0;
+ }
+ int LDA = dim;
+ int LDB = dim;
+ complex16 BETA;
+ BETA.re = 0.0;
+ BETA.im = 0.0;
+ int LDC = dim;
+ int INCX = 1;
+ int INCY = 1;
+ cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, &ALPHA,
+  A, LDA, psi_E_t, LDB, &BETA, psi_S_t, LDC);
+ /*for (i = 0; i <=timesteps; i++) {
+  cblas_zgemv(CblasRowMajor, CblasTrans, M, N, &ALPHA, A, LDA, psi_E_t+(i*dim),
+    INCX, &BETA, psi_S_t+(i*dim), INCY);
+ }*/
+ delete [] A;
 }
 
 void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 * psi_E) {
@@ -1142,6 +1177,240 @@ void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 
 
  cblas_zgemv(CblasRowMajor, CblasNoTrans, M, N, &ALPHA, A, LDA, psi_S, INCX,
   &BETA, psi_E, INCY);
+ delete [] A;
+}
+
+void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,
+ double * evals, int timesteps, double tout) {
+ int i, j;	// counters!
+ double t;	// time for each step
+
+ // get t = 0 for free
+ for (i = 0; i < N; i++) {
+  psi_E_t[i].re = psi_E[i].re;
+  psi_E_t[i].im = psi_E[i].im;
+ }
+ // get the rest of the timesteps
+ for (j = 1; j <= timesteps; j++) {
+  t = tout*(((double)j)/((double)timesteps));
+  for (i = 0; i < N; i++) {
+   psi_E_t[j*N + i].re = psi_E[i].re*cos(evals[i]*t) - psi_E[i].im*sin(evals[i]*t);
+   psi_E_t[j*N + i].im = psi_E[i].im*cos(evals[i]*t) + psi_E[i].re*sin(evals[i]*t);
+  }
+ }
+}
+
+void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
+ // makes outputs for the result of a time-independent H time propagation
+ FILE * tkprob;
+ FILE * tcprob;
+ FILE * tbprob;
+ FILE * tlprob;
+ FILE * kprobs;
+ FILE * cprobs;
+ FILE * bprobs;
+ FILE * lprobs;
+ FILE * kmax;
+ FILE * cmax;
+ FILE * cmax_t;
+ FILE * cmax_first;
+ FILE * cmax_first_t;
+ FILE * totprob;
+ FILE * energy;
+ FILE * times;
+ int i, j;
+ double summ;
+ double maxx;
+ int maxx_t;
+
+ tkprob = fopen("tkprob.out", "w");
+ tcprob = fopen("tcprob.out", "w");
+ tbprob = fopen("tbprob.out", "w");
+ tlprob = fopen("tlprob.out", "w");
+ kprobs = fopen("kprobs.out", "w");
+ cprobs = fopen("cprobs.out", "w");
+ bprobs = fopen("bprobs.out", "w");
+ lprobs = fopen("lprobs.out", "w");
+ kmax = fopen("kmax.out", "w");
+ cmax = fopen("cmax.out", "w");
+ cmax_t = fopen("cmax_t.out", "w");
+ cmax_first = fopen("cmax_first.out", "w");
+ cmax_first_t = fopen("cmax_first_t.out", "w");
+ totprob = fopen("totprob.out", "w");
+ energy = fopen("energy.out", "w");
+ times = fopen("times.out", "w");
+
+ // total population k states
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Ik_vib; j < Ic_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  fprintf(tkprob, "%-.9g %-.9g\n", t[i], summ);
+ }
+
+ // population k states
+ for (i = 0; i <= timesteps; i++) {
+  for (j = Ik_vib; j < Ic_vib; j++) {
+   if (j == Ik_vib) {
+    fprintf(kprobs, "%-.9g", t[i]);
+   }
+   fprintf(kprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+if (i < 100) {
+ cout << "i is " << i << "\n";
+ cout << "j is " << j << "\n";
+ cout << "psi_t[i*dim+j].re is " << psi_t[i*dim+j].re << "\n";
+}
+  }
+  fprintf(kprobs, "\n");
+ }
+
+ // total population c states
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Ic_vib; j < Ib_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  fprintf(tcprob, "%-.9g %-.9g\n", t[i], summ);
+ }
+
+ // population c states
+ for (i = 0; i <= timesteps; i++) {
+  for (j = Ic_vib; j < Ib_vib; j++) {
+   if (j == Ic_vib) {
+    fprintf(cprobs, "%-.9g", t[i]);
+   }
+   fprintf(cprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+  }
+  fprintf(cprobs, "\n");
+ }
+
+ // total population b states
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Ib_vib; j < Il_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  fprintf(tbprob, "%-.9g %-.9g\n", t[i], summ);
+ }
+
+ // population b states
+ for (i = 0; i <= timesteps; i++) {
+  for (j = Ib_vib; j < Il_vib; j++) {
+   if (j == Ib_vib) {
+    fprintf(bprobs, "%-.9g", t[i]);
+   }
+   fprintf(bprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+  }
+  fprintf(bprobs, "\n");
+ }
+
+ // total population l states
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Il_vib; j < NEQ_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  fprintf(tlprob, "%-.9g %-.9g\n", t[i], summ);
+ }
+
+ // population l states
+ for (i = 0; i <= timesteps; i++) {
+  for (j = Il_vib; j < NEQ_vib; j++) {
+   if (j == Il_vib) {
+    fprintf(lprobs, "%-.9g", t[i]);
+   }
+   fprintf(lprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+  }
+  fprintf(lprobs, "\n");
+ }
+
+ // max population on k states
+ maxx = 0;
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Ik_vib; j < Ic_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  if (summ > maxx) {
+   maxx = summ;
+  }
+ }
+ fprintf(kmax, "%-.9g\n", maxx);
+
+ // max population on c states and time index
+ maxx = 0;
+ maxx_t = 0;
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Ic_vib; j < Ib_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  if (summ > maxx) {
+   maxx = summ;
+   maxx_t = i;
+  }
+ }
+ fprintf(cmax, "%-.9g\n", maxx);
+ fprintf(cmax_t, "%-.9g\n", t[maxx_t]);
+
+ // first max population on c states and time index
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = Ic_vib; j < Ib_vib; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  if (j == Ic_vib) {
+   maxx = summ;
+   maxx_t = i;
+  }
+  else {
+   if (summ < maxx) {
+    fprintf(cmax_first, "%-.9g\n", maxx);
+    fprintf(cmax_first_t, "%-.9g\n", t[maxx_t]);
+    break;
+   }
+   if (summ > maxx) {
+    maxx = summ;
+    maxx_t = i;
+   }
+   // if the last data point equals the first maximum
+   // (if the population on c is static, basically)
+   if ((summ == maxx) && (i == (timesteps - 1))) {
+    fprintf(cmax_first, "%-.9g\n", maxx);
+    fprintf(cmax_first_t, "%-.9g\n", t[maxx_t]);
+   }
+  }
+  if (summ < maxx) {
+   break;
+  }
+ }
+
+ // total population on all states
+ for (i = 0; i <= timesteps; i++) {
+  summ = 0;
+  for (j = 0; j < dim; j++) {
+   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+  }
+  fprintf(totprob, "%-.9g %-.9g\n", t[i], summ);
+ }
+
+ fclose(tkprob);
+ fclose(tcprob);
+ fclose(tbprob);
+ fclose(tlprob);
+ fclose(kprobs);
+ fclose(cprobs);
+ fclose(bprobs);
+ fclose(lprobs);
+ fclose(kmax);
+ fclose(cmax);
+ fclose(cmax_t);
+ fclose(cmax_first);
+ fclose(cmax_first_t);
+ fclose(totprob);
+ fclose(energy);
+ fclose(times);
 }
 
 int main (int argc, char * argv[]) {
@@ -1793,9 +2062,18 @@ int main (int argc, char * argv[]) {
       k_bandedge, k_bandtop, k_pops);
    }
   }
+
+ // compute final outputs //
+ Compute_final_outputs(allprob, times, tkprob,
+   tlprob, tcprob, tbprob, vibprob, energy,
+   energy_expectation, numOutputSteps, qd_est, qd_est_diag);
  }
  // use LAPACK for time-independent H
  else {
+  // calculate output times
+  for (i = 0; i <= numOutputSteps; i++) {
+   times[i] = tout*((double)i/((double)numOutputSteps));
+  }
   // build Hamiltonian
   realtype * H = new realtype [NEQ_vib*NEQ_vib];
   buildHamiltonian(H, energy, V, NEQ_vib);
@@ -1829,7 +2107,7 @@ int main (int argc, char * argv[]) {
   // diagonalize the guy!
   dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
   // print eigenvalues and eigenvectors
-  printVector(W, N);
+  printVector(W, N, "evals.out");
   printSquareMatrix(H, N, "evecs.out");
   // make a complex array to represent the starting psi (site basis)
   complex16 * psi_S = new complex16 [NEQ_vib];
@@ -1844,15 +2122,29 @@ int main (int argc, char * argv[]) {
   // print the starting wavefunction in the two bases
   printCVector(psi_S, NEQ_vib, "psi_start_s.out");
   printCVector(psi_E, NEQ_vib, "psi_start_e.out");
+  // make arrays to represent the wavefunction in time
+  complex16 * psi_S_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
+  complex16 * psi_E_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
+  // propagate the wavefunction in time
+  propagatePsi(psi_E, psi_E_t, NEQ_vib, W, numOutputSteps, tout);
+  // print out the propagated wavefunction (eigenstate basis)
+  printCVector(psi_E_t, NEQ_vib*(numOutputSteps+1), "psi_e_t.out");
+  // project back onto the site basis
+  projectStateToSite(psi_E_t, NEQ_vib, H, psi_S_t, numOutputSteps);
+  // print out the propagated wavefunction (site basis)
+  printCVector(psi_S_t, NEQ_vib*(numOutputSteps+1), "psi_s_t.out");
+  makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps);
+  delete [] H;
+  delete [] W;
+  delete [] WORK;
+  delete [] psi_S;
+  delete [] psi_E;
+  delete [] psi_S_t;
+  delete [] psi_E_t;
  }
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
-
- // compute final outputs //
- Compute_final_outputs(allprob, times, tkprob,
-   tlprob, tcprob, tbprob, vibprob, energy,
-   energy_expectation, numOutputSteps, qd_est, qd_est_diag);
  
  // finalize log file //
  time(&endRun);

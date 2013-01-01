@@ -22,12 +22,12 @@ abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
 tout=16536.284390654313			# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
-numOutputSteps=600			# number of output timesteps
+numOutputSteps=400			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.01				# upper band edge of bulk conduction band (a.u.)
 bulk_gap=0.01				# bulk band gap (a.u.)
-Nk=7					# number of k states to have
+Nk=1					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk (a.u.)
