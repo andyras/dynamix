@@ -3,11 +3,11 @@
 ## FLAGS FOR RUN ##
        do_compile="y"
 	   do_run="y"
-     make_plotter="n"
-	  do_plot="n"
-timeandspace_plot="n"
- populations_plot="n"
-      kprobs_plot="n"
+     make_plotter="y"
+	  do_plot="y"
+timeandspace_plot="y"
+ populations_plot="y"
+      kprobs_plot="y"
  make_movie_maker="n"
 	 do_movie="n"
        do_cleanup="n"
@@ -21,14 +21,14 @@ analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=165360.284390654313			# final time reached by solver (a.u.)
+tout=165362.84390654313			# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
-k_bandedge=-0.01			# lower band edge of bulk conduction band (a.u.)
-k_bandtop=0.01				# upper band edge of bulk conduction band (a.u.)
+k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
+k_bandtop=0.075				# upper band edge of bulk conduction band (a.u.)
 bulk_gap=0.01				# bulk band gap (a.u.)
-Nk=1000					# number of k states to have
+Nk=5000					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk (a.u.)
@@ -52,14 +52,14 @@ pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 bulk_FDD=0
 bulk_Gauss=0
-bulk_constant=0
-qd_pops=1
+bulk_constant=1
+qd_pops=0
 laser_on=0
 scale_bubr=0
 scale_brqd=0
 scale_buqd=0
 scale_laser=1
-bridge_on=0
+bridge_on=1
 random_phase=1				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##
