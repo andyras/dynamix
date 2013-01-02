@@ -71,17 +71,17 @@ typedef struct {
  realtype * Vbridge;			// pointer to array of bridge coupling constants.
  					// first element [0] is Vkb1, last [Nb] is VcbN
  realtype * Vnobridge;			// coupling constant when there is no bridge
- int bulk_FDD = 0;			// switches for starting conditions
- int bulk_Gauss = 0;
- int bulk_constant = 0;
- int qd_pops = 0;
- int laser_on = 0;
- int scale_bubr = 0;
- int scale_brqd = 0;
- int scale_buqd = 0;
- int scale_laser = 0;
- int bridge_on = 0;
- int random_phase = 0;
+ bool bulk_FDD = 0;			// switches for starting conditions
+ bool bulk_Gauss = 0;
+ bool bulk_constant = 0;
+ bool qd_pops = 0;
+ bool laser_on = 0;
+ bool scale_bubr = 0;
+ bool scale_brqd = 0;
+ bool scale_buqd = 0;
+ bool scale_laser = 0;
+ bool bridge_on = 0;
+ bool random_phase = 0;
  int random_seed = 0;
 // END GLOBAL VARIABLES
 #ifdef DEBUG_SAI
@@ -1058,7 +1058,10 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
  for (i = 0; i < N; i++) {
   // diagonal
   H[i*N + i] = energy[i];
-  for (j = 0; j < N; j++) {
+#ifdef DEBUG
+  cout << "diagonal element " << i << " of H is " << energy[i] << "\n";
+#endif
+  for (j = 0; j < i; j++) {
    // off-diagonal
    H[i*N + j] = V[i][j];
    H[j*N + i] = V[j][i];
@@ -1461,8 +1464,8 @@ int main (int argc, char * argv[]) {
  // ASSIGN VARIABLE DEFAULTS //
  i = 0;
  double summ = 0;			// sum variable
- int timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
- int analytical = 0;			// turn on analytical propagation
+ bool timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
+ bool analytical = 0;			// turn on analytical propagation
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -1627,14 +1630,6 @@ int main (int argc, char * argv[]) {
  fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
 
  // Error checking
- if (timedepH != 0 && timedepH != 1) {
-  cerr << "\nERROR: timedepH switch is not 0 or 1.\n";
-  return -1;
- }
- if (analytical != 0 && analytical != 1) {
-  cerr << "\nERROR: analytical switch is not 0 or 1.\n";
-  return -1;
- }
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
   cerr << "\nWARNING: population starting both in bulk and QD.\n";
  }
@@ -1650,52 +1645,8 @@ int main (int argc, char * argv[]) {
   fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
   return -1;
  }
- if (bulk_FDD != 0 && bulk_FDD != 1) {
-  cerr << "\nERROR: bulk_FDD switch is not 0 or 1.\n";
-  return -1;
- }
- if (bulk_Gauss != 0 && bulk_Gauss != 1) {
-  cerr << "\nERROR: bulk_Gauss switch is not 0 or 1.\n";
-  return -1;
- }
- if (bulk_constant != 0 && bulk_constant != 1) {
-  cerr << "\nERROR: bulk_constant switch is not 0 or 1.\n";
-  return -1;
- }
- if (qd_pops != 0 && qd_pops != 1) {
-  cerr << "\nERROR: qd_pops switch is not 0 or 1.\n";
-  return -1;
- }
- if (laser_on != 0 && laser_on != 1) {
-  cerr << "\nERROR: laser_on switch is not 0 or 1.\n";
-  return -1;
- }
- if (scale_bubr != 0 && scale_bubr != 1) {
-  cerr << "\nERROR: scale_bubr switch is not 0 or 1.\n";
-  return -1;
- }
- if (scale_brqd != 0 && scale_brqd != 1) {
-  cerr << "\nERROR: scale_brqd switch is not 0 or 1.\n";
-  return -1;
- }
- if (scale_buqd != 0 && scale_buqd != 1) {
-  cerr << "\nERROR: scale_buqd switch is not 0 or 1.\n";
-  return -1;
- }
- if (scale_laser != 0 && scale_laser != 1) {
-  cerr << "\nERROR: scale_laser switch is not 0 or 1.\n";
-  return -1;
- }
- if (bridge_on != 0 && bridge_on != 1) {
-  cerr << "\nERROR: bridge_on switch is not 0 or 1.\n";
-  return -1;
- }
  if ((bulk_FDD && bulk_constant) || (bulk_FDD && bulk_Gauss) || (bulk_constant && bulk_Gauss)) {
   cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
-  return -1;
- }
- if (random_phase != 0 && random_phase != 1) {
-  cerr << "\nERROR: random_phase switch is not 0 or 1.\n";
   return -1;
  }
  if (random_seed < -1) {
