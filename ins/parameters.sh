@@ -23,7 +23,7 @@ abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
 tout=165360.284390654313			# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
-numOutputSteps=400			# number of output timesteps
+numOutputSteps=600			# number of output timesteps
 # bulk parameters #
 k_bandedge=-0.01			# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.01				# upper band edge of bulk conduction band (a.u.)

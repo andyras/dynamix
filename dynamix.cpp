@@ -1123,7 +1123,7 @@ void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex1
  // projects the time-dependent wavefunction from the state basis to the site basis
  int i;
  int M = dim;
- int N = timesteps;
+ int N = timesteps+1;
  ////DEBUG
  //N = dim;
  ////\DEBUG
@@ -1197,6 +1197,12 @@ void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,
  for (j = 1; j <= timesteps; j++) {
   t = tout*(((double)j)/((double)timesteps));
   for (i = 0; i < N; i++) {
+#ifdef DEBUGf
+   if (i == 0) {
+    cout << "timestep number " << j << " is " << t << "\n";
+   }
+   cout << "assigning psi_E_t[" << j << "," << i << "]...\n";
+#endif
    psi_E_t[j*N + i].re = psi_E[i].re*cos(evals[i]*t) - psi_E[i].im*sin(evals[i]*t);
    psi_E_t[j*N + i].im = psi_E[i].im*cos(evals[i]*t) + psi_E[i].re*sin(evals[i]*t);
   }
