@@ -13,7 +13,7 @@
 #include <mkl.h>
 
 /* DEBUG compiler flag: turn this on to generate basic debug outputs.         */
-#define DEBUG
+//#define DEBUG
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
@@ -1462,6 +1462,7 @@ int main (int argc, char * argv[]) {
  i = 0;
  double summ = 0;			// sum variable
  int timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
+ int analytical = 0;			// turn on analytical propagation
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -1536,6 +1537,7 @@ int main (int argc, char * argv[]) {
   cout << "Parameter: " << input_param << endl << "New value: " << atof(param_val.c_str()) << endl;
 #endif
   if (input_param == "timedepH") { timedepH = atoi(param_val.c_str()); }
+  else if (input_param == "analytical") { analytical = atof(param_val.c_str()); }
   else if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
   else if (input_param == "tout" ) { tout = atof(param_val.c_str()); }
@@ -1580,6 +1582,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  cout << endl;
  cout << "timedepH is " << timedepH << endl;
+ cout << "analytical is " << analytical << endl;
  cout << "abstol is " << abstol << endl;
  cout << "reltol is " << reltol << endl;
  cout << "tout is " << tout << endl;
@@ -1626,6 +1629,10 @@ int main (int argc, char * argv[]) {
  // Error checking
  if (timedepH != 0 && timedepH != 1) {
   cerr << "\nERROR: timedepH switch is not 0 or 1.\n";
+  return -1;
+ }
+ if (analytical != 0 && analytical != 1) {
+  cerr << "\nERROR: analytical switch is not 0 or 1.\n";
   return -1;
  }
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
@@ -2002,8 +2009,10 @@ int main (int argc, char * argv[]) {
    allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
    qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
 
- // Compute the analytical population on the c states
- Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y);
+ if (analytical) {
+  // Compute the analytical population on the c states
+  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y);
+ }
 
  // create CVode object //
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?

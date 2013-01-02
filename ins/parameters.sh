@@ -15,8 +15,9 @@ timeandspace_plot="n"
 	do_backup="n"
 
 ## START INPUT PARAMETERS ##
-# method parameter #
+# method parameters #
 timedepH=0				# if H is TD, use CVODE, else diag H and propogate
+analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
@@ -24,10 +25,10 @@ tout=16536.284390654313			# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=400			# number of output timesteps
 # bulk parameters #
-k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
+k_bandedge=-0.01			# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.01				# upper band edge of bulk conduction band (a.u.)
 bulk_gap=0.01				# bulk band gap (a.u.)
-Nk=7					# number of k states to have
+Nk=2000					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk (a.u.)
@@ -51,8 +52,8 @@ pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 bulk_FDD=0
 bulk_Gauss=0
-bulk_constant=1
-qd_pops=0
+bulk_constant=0
+qd_pops=1
 laser_on=0
 scale_bubr=0
 scale_brqd=0
