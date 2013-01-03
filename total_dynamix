@@ -4,7 +4,7 @@
 #$ -V
 
 ## INPUT PARAMETERS ##
-source ./ins/parameters.sh
+. ./ins/parameters.in
 
 function compile {
 ## COMPILE ##
@@ -19,7 +19,9 @@ function compile {
  if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
  which icpc &> /dev/null
  if [ $? == 0 ] ; then CPP=icpc ; fi
+ cd src
  make CPP=$CPP && echo "### $(date) done compiling!"
+ cd ..
  if [ $? == 0 ] ; then
   echo "### $(date) done compiling!"
  else
@@ -31,7 +33,7 @@ function compile {
 function run {
 ## RUN THE PROGRAM! ##
  echo "### $(date) running dynamix..."
- ./dynamix
+ ./src/dynamix
  if [ $? == 0 ] ; then
   echo "### $(date) dynamix done!"
  else
@@ -217,7 +219,7 @@ function movie_maker {
  cat outs/energy.out temp4.out > temp.out
  cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
  
- max_pop=$(python findMaxZ.py outs/kprobs_gnuplot.out)
+ max_pop=$(python2 tools/findMaxZ.py outs/kprobs_gnuplot.out)
  max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
  
  echo "set term png truecolor size 800,800 font 'Arial-Bold,14'
@@ -301,7 +303,7 @@ function backup {
  echo "### $(date) backing things up..."
  durr=backup/dynamix_$(date +%F.%H.%M.%S)
  mkdir -p $durr
- cp -rf ins/ outs/ dynamix* total_dynamix $durr
+ cp -rf ins/ outs/ src/ figures/ doc/ total_dynamix $durr
  [ "$do_plot" == 'y' ] && cp *.eps $durr
  [ "$do_movie" == 'y' ] && cp bulk_states.avi $durr
  [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
