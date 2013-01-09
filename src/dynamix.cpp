@@ -30,67 +30,67 @@ typedef struct {
 } complex16;
 
 // GLOBAL VARIABLES GO HERE //
- void * cvode_mem;			// pointer to block of CVode memory
- realtype * user_data;
- N_Vector y, yout;			// arrays of populations
- int Nk;				// number of each type of state
- int Nc;
- int Nb;
- int Nl;
- int N_vib;				// number of vibronic states
- int Ik;				// index starters for each type of state
- int Ic;
- int Ib;
- int Il;
- int Ik_vib;				// index starters for each type of vibronic state
- int Ic_vib;
- int Ib_vib;
- int Il_vib;
- int NEQ;				// total number of states/equations
- int NEQ_vib;
- int numOutputSteps;			// number of timesteps
- realtype k_bandedge;			// lower edge of bulk conduction band
- realtype k_bandtop;			// upper edge of bulk conduction band
- double E_vib;				// vibrational energy
- double gkc;				// g factor between k and c states
- double gkb;				// g factor between k and b states
- double gbc;				// g factor between b and c states
- double gbb;				// g factor between b states
- double muLK;                           // transition dipole moment from l to k (energy a.u.)
- double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
- double pumpPeak;                       // time of peak of pump pulse (a.u.)
- double pumpFreq;                       // frequency of pump pulse (energy a.u.)
- double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
- double pumpPhase;                      // pump pulse phase (in units of radians)
- realtype ** V;				// pointer to k-c coupling constants
- realtype ** FCkc;			// Franck-Condon factors
- realtype ** FCkb;
- realtype ** FCbb;
- realtype ** FCbc;
- realtype * energy;
- realtype * Vbridge;			// pointer to array of bridge coupling constants.
- 					// first element [0] is Vkb1, last [Nb] is VcbN
- realtype * Vnobridge;			// coupling constant when there is no bridge
- bool bulk_FDD = 0;			// switches for starting conditions
- bool bulk_Gauss = 0;
- bool bulk_constant = 0;
- bool qd_pops = 0;
- bool laser_on = 0;
- bool scale_bubr = 0;
- bool scale_brqd = 0;
- bool scale_buqd = 0;
- bool scale_laser = 0;
- bool bridge_on = 0;
- bool random_phase = 0;
- int random_seed = 0;
+void * cvode_mem;			// pointer to block of CVode memory
+realtype * user_data;
+N_Vector y, yout;			// arrays of populations
+int Nk;				// number of each type of state
+int Nc;
+int Nb;
+int Nl;
+int N_vib;				// number of vibronic states
+int Ik;				// index starters for each type of state
+int Ic;
+int Ib;
+int Il;
+int Ik_vib;				// index starters for each type of vibronic state
+int Ic_vib;
+int Ib_vib;
+int Il_vib;
+int NEQ;				// total number of states/equations
+int NEQ_vib;
+int numOutputSteps;			// number of timesteps
+realtype k_bandedge;			// lower edge of bulk conduction band
+realtype k_bandtop;			// upper edge of bulk conduction band
+double E_vib;				// vibrational energy
+double gkc;				// g factor between k and c states
+double gkb;				// g factor between k and b states
+double gbc;				// g factor between b and c states
+double gbb;				// g factor between b states
+double muLK;                           // transition dipole moment from l to k (energy a.u.)
+double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
+double pumpPeak;                       // time of peak of pump pulse (a.u.)
+double pumpFreq;                       // frequency of pump pulse (energy a.u.)
+double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
+double pumpPhase;                      // pump pulse phase (in units of radians)
+realtype ** V;				// pointer to k-c coupling constants
+realtype ** FCkc;			// Franck-Condon factors
+realtype ** FCkb;
+realtype ** FCbb;
+realtype ** FCbc;
+realtype * energy;
+realtype * Vbridge;			// pointer to array of bridge coupling constants.
+					// first element [0] is Vkb1, last [Nb] is VcbN
+realtype * Vnobridge;			// coupling constant when there is no bridge
+bool bulk_FDD = 0;			// switches for starting conditions
+bool bulk_Gauss = 0;
+bool bulk_constant = 0;
+bool qd_pops = 0;
+bool laser_on = 0;
+bool scale_bubr = 0;
+bool scale_brqd = 0;
+bool scale_buqd = 0;
+bool scale_laser = 0;
+bool bridge_on = 0;
+bool random_phase = 0;
+int random_seed = 0;
 // END GLOBAL VARIABLES
 #ifdef DEBUG_SAI
- double last_t = -1.0;				// keeps track of last time for which debuggery was printed
+double last_t = -1.0;				// keeps track of last time for which debuggery was printed
 #endif
 
+int Number_of_values (const char * nameOfFile) {
 // returns the number of numbers in a file.  This way, it doesn't matter if
 // they are one per line or multiple per line.
-int Number_of_values (const char * nameOfFile) {
  FILE * input;
  double value;
  int numberOfValues = 0;
@@ -111,9 +111,9 @@ int Number_of_values (const char * nameOfFile) {
  return numberOfValues;
 }
 
+void Read_array_from_file (realtype * array, const char * nameOfFile, int numberOfValues) {
 // reads in the values from file; returns an array the length of the number of 
 // numbers in the file
-void Read_array_from_file (realtype * array, const char * nameOfFile, int numberOfValues) {
 
  FILE * input;
  int i = 0;
@@ -132,8 +132,8 @@ void Read_array_from_file (realtype * array, const char * nameOfFile, int number
  fclose(input);
 }
 
-// Returns an array of length n with all values set to initializeValue. //
 void Initialize_array(realtype * array, int n, realtype initializeValue) {
+// Returns an array of length n with all values set to initializeValue. //
 #ifdef DEBUG
  cout << "initializeValue is " << initializeValue << endl;
 #endif
@@ -147,6 +147,7 @@ void Initialize_array(realtype * array, int n, realtype initializeValue) {
 
 
 void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {
+// builds energies for a quasicontinuum (evenly spaced)
  
  int i;
 
@@ -160,11 +161,14 @@ void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge,
 
 
 void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp) {
+// populates a set of states according to a Fermi-Dirac distribution.
+// I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
+// below the lowest-energy state in the set of states being populated.
 
  int i;
 
  for (i = 0; i < Nk; i++) {
-  kPops[i] = sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));	// dunno where the actual Fermi level is
+  kPops[i] = sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
 #ifdef DEBUG
  cout << "\nk population at state " << i << " is: "
       << sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
@@ -177,6 +181,7 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
 
 
 void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu) {
+// populates a set of states according to a Gaussian distribution.
 
  int i;
 
@@ -194,6 +199,8 @@ void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBan
 
 
 void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int numN) {
+// creates a matrix of Franck-Condon factors between two displaced harmonic
+// oscillators.
 
  int m, n;
 
@@ -208,8 +215,8 @@ void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int num
 
 }
 
-// assign coupling constants to global array V //
 void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop) {
+// assign coupling constants to global array V
  
  int i, j;					// counters
 
@@ -293,13 +300,14 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
 
 
 realtype pump(realtype t) {
+// gives the value of a laser pulse (electric field) at time t
  double sigma = pumpFWHM/2.35482005;
  return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t + pumpPhase);
 }
 
 
-// gives f(y,t) //
 int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
+// gives f(y,t) for CVODE
  
  int i, j, n, m;
  int IkRe, IkIm, IcRe, IcIm, IlRe, IlIm;
@@ -505,8 +513,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 }
 
 
-// normalizes an N_Vector so that the populations of all states are normalized to value /total/ //
 int Normalize_NV(N_Vector nv, realtype total) {
+// normalizes an N_Vector so that the populations of all states are
+// normalized to value 'total'
 
  int i;
  realtype summ = 0;
@@ -524,6 +533,9 @@ int Normalize_NV(N_Vector nv, realtype total) {
 
 
 int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep) {
+// compute the six-point derivative of an array.
+// Assumes array elements are evenly spaced.
+// Output array is six elements shorter than input.
 
  int i;		// counter
 
@@ -553,6 +565,7 @@ int Output_checkpoint(
   realtype * totK, realtype * totL, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
   realtype * qd_est, realtype * qd_est_diag, realtype * energy_expectation, int index, realtype * energies,
   double kBandEdge, double kBandTop, double * k_pops) {
+// computes many time-dependent properties
 
  int i, j, k, l;				// counters
  int Re1, Im1, Re2, Im2;			// indices for real and imaginary components
@@ -658,6 +671,7 @@ int Output_checkpoint(
 int Analytical_c (
  double tout, int timesteps, realtype * energies,
  double kBandEdge, double kBandTop, N_Vector y) {
+// computes analytically the population on a single c state
 
  // energy spacing in bulk
  complex <double> dE ((kBandTop-kBandEdge)/(Nk-1), 0);
@@ -748,6 +762,8 @@ int Analytical_c (
  return 0;
 }
 realtype Integrate_arrays (realtype * values, realtype * time, int num) {
+// Riemann sum of an array (values) at time points (time).
+// Does not assume equal spacing in time.
 
  int i;
  realtype riemann = 0;
@@ -760,6 +776,7 @@ realtype Integrate_arrays (realtype * values, realtype * time, int num) {
 
 
 realtype Find_array_maximum (realtype * inputArray, int num) {
+// Returns maximum element in an array.
 
  int i;
  realtype currentMax = inputArray[0];
@@ -773,6 +790,8 @@ realtype Find_array_maximum (realtype * inputArray, int num) {
 
 
 realtype Find_first_array_maximum (realtype * inputArray, int num) {
+// Finds the first maximum in an array (the first point where the next
+// point is smaller in value).
 
  int i;
  realtype currentMax = inputArray[0];
@@ -789,10 +808,9 @@ realtype Find_first_array_maximum (realtype * inputArray, int num) {
 
 
 int Find_first_array_maximum_index (realtype * inputArray, int num) {
- // This function returns the index of the first maximum in an array.
- //
- // Warning: will return 0 as index of first maximum if the second array element
- // is less than the first.  This may not be what you want.
+// This function returns the index of the first maximum in an array.
+// Warning: will return 0 as index of first maximum if the second array element
+// is less than the first.  This may not be what you want.
 
  int i;
  realtype currentMax = inputArray[0];
@@ -812,6 +830,7 @@ int Find_first_array_maximum_index (realtype * inputArray, int num) {
 
 
 int Find_array_maximum_index (realtype * inputArray, int num) {
+// returns index of first maximum in an array.
 
  int i;
  realtype currentMax = inputArray[0];
@@ -831,6 +850,7 @@ int Find_array_maximum_index (realtype * inputArray, int num) {
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
   realtype * energy_expectation, int num, double * qd_est, double * qd_est_diag) {
+// makes output files for time-dependent properties
 
  FILE * tkprob;
  FILE * tlprob;
@@ -1043,8 +1063,8 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
 
 
 void outputYData(realtype * ydata, int n) {
- /* prints out initial wave function.  Inputs are the wave function array and
-  * the number of equations. */
+// prints out initial wave function.  Inputs are the wave function array and
+// the number of equations.
  FILE * psi_start;
  psi_start = fopen("psi_start.out", "w");
  for (int i = 0; i < n; i++) {
@@ -1054,6 +1074,7 @@ void outputYData(realtype * ydata, int n) {
 }
 
 void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
+// builds a Hamiltonian from site energies and couplings.
  int i, j;					// counters!
  for (i = 0; i < N; i++) {
   // diagonal
@@ -1070,7 +1091,7 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
 }
 
 void printVector(realtype * W, int N, char * fileName) {
- // prints a vector W of length N
+// prints a vector W of length N
  int i;        // counter
  FILE * out;   // output file
 
@@ -1084,7 +1105,7 @@ void printVector(realtype * W, int N, char * fileName) {
 }
 
 void printCVector(complex16 * v, int N, char * fileName) {
- // prints a complex vector v of length N
+// prints a complex vector v of length N
  int i;		// counter!
  FILE * out;	// output file
 
@@ -1098,7 +1119,7 @@ void printCVector(complex16 * v, int N, char * fileName) {
 }
 
 void printSquareMatrix(realtype * M, int N, char * fileName) {
- // prints a square matrix M of dimension N
+// prints a square matrix M of dimension N
  int i, j;     // counters
  FILE * out; // output file
 
@@ -1119,14 +1140,16 @@ void printSquareMatrix(realtype * M, int N, char * fileName) {
  fclose(out);
 }
 
+void projectSubsystems(complex16 * evecs, realtype * evecs) {
+// projects the initial wavefunction from the state basis onto the
+// subsystems (bulk, bridge, QD, etc.)
+}
+
 void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex16 * psi_S_t, int timesteps) {
- // projects the time-dependent wavefunction from the state basis to the site basis
+// projects the time-dependent wavefunction from the state basis to the site basis
  int i;
  int M = dim;
  int N = timesteps+1;
- ////DEBUG
- //N = dim;
- ////\DEBUG
  int K = dim;
  complex16 ALPHA;
  ALPHA.re = 1.0;
@@ -1147,17 +1170,18 @@ void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex1
  int INCY = 1;
  cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, &ALPHA,
   A, LDA, psi_E_t, LDB, &BETA, psi_S_t, LDC);
- /*for (i = 0; i <=timesteps; i++) {
-  cblas_zgemv(CblasRowMajor, CblasTrans, M, N, &ALPHA, A, LDA, psi_E_t+(i*dim),
-    INCX, &BETA, psi_S_t+(i*dim), INCY);
- }*/
+ // can also go row-by-row.
+ //for (i = 0; i <=timesteps; i++) {
+ // cblas_zgemv(CblasRowMajor, CblasTrans, M, N, &ALPHA, A, LDA, psi_E_t+(i*dim),
+ //             INCX, &BETA, psi_S_t+(i*dim), INCY);
+ //}
  delete [] A;
 }
 
 void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 * psi_E) {
- // projects the wavefunction in the site basis (psi_S) onto the eigenstate
- // basis (psi_E).  Requires the orthonormal eigenvectors (evecs), and assumes
- // they are in a column matrix format.
+// projects the wavefunction in the site basis (psi_S) onto the eigenstate
+// basis (psi_E).  Requires the orthonormal eigenvectors (evecs), and assumes
+// they are in a column matrix format.
  int i;			// counter!
  // BLAS variables
  int M = dim;
@@ -1185,6 +1209,8 @@ void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 
 
 void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,
  double * evals, int timesteps, double tout) {
+// propagates a wavefunction in time in the eigenbasis (really just applying
+// a phase factor).
  int i, j;	// counters!
  double t;	// time for each step
 
@@ -1210,7 +1236,7 @@ void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,
 }
 
 void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
- // makes outputs for the result of a time-independent H time propagation
+// makes outputs for the result of a time-independent H time propagation
  FILE * tkprob;
  FILE * tcprob;
  FILE * tbprob;

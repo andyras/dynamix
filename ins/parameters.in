@@ -1,18 +1,18 @@
 #!/bin/bash
 
 ## FLAGS FOR RUN ##
-       do_compile="y"
-	   do_run="y"
-     make_plotter="n"
-	  do_plot="n"
+do_compile="y"
+do_run="y"
+make_plotter="n"
+do_plot="n"
 timeandspace_plot="n"
- populations_plot="n"
-      kprobs_plot="n"
- make_movie_maker="n"
-	 do_movie="n"
-       do_cleanup="n"
-   do_fullcleanup="n"
-	do_backup="n"
+populations_plot="n"
+kprobs_plot="n"
+make_movie_maker="n"
+do_movie="n"
+do_cleanup="n"
+do_fullcleanup="n"
+do_backup="n"
 
 ## START INPUT PARAMETERS ##
 # method parameters #
@@ -21,7 +21,7 @@ analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=165362.84390654313			# final time reached by solver (a.u.)
+tout=42700				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=600			# number of output timesteps
 # bulk parameters #
