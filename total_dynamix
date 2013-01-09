@@ -43,6 +43,8 @@ function run {
  mkdir -p outs
  rm -f outs/*
  mv *.out outs/
+ mkdir -p figures
+ mv *.plt figures/
 }
 
 function plot_maker {

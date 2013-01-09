@@ -4,7 +4,7 @@ import libdynamix as ld
 import numpy as np
 import plotscripts as ps
 
-paramfile = '../ins/parameters.sh'
+paramfile = '../ins/parameters.in'
 couplingfile = '../outs/couplings.out'
 energyfile = '../outs/energy.out'
 qd_energyfile = '../ins/c_energies.in'

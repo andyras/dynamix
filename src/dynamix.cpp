@@ -1104,6 +1104,20 @@ void printVector(realtype * W, int N, char * fileName) {
  fclose(out);
 }
 
+void printPsiSquare(complex16 * v, realtype * evals,  int N, char * fileName) {
+// prints the elementwise square of a complex vector
+ int i;		// counter!
+ FILE * out;	// output file
+
+ out = fopen(fileName, "w");
+
+ for (i = 0; i < N; i++) {
+  fprintf(out, "%-.9e %-.9e\n", evals[i], (pow(v[i].re,2) + pow(v[i].im,2)));
+ }
+ 
+ fclose(out); 
+}
+
 void printCVector(complex16 * v, int N, char * fileName) {
 // prints a complex vector v of length N
  int i;		// counter!
@@ -1152,15 +1166,15 @@ void projectSubsystems(realtype * evecs, realtype * evals, int dim) {
  for (i = 0; i < dim; i++) {
   bu_proj[i] = 0.0;
   for (j = Ik; j < Ik + Nk; j++) {
-   bu_proj[i] += pow(evecs[j*dim + i],2);
+   bu_proj[i] += pow(evecs[i*dim + j],2);
   }
   br_proj[i] = 0.0;
   for (j = Ib; j < Ib + Nb; j++) {
-   br_proj[i] += pow(evecs[j*dim + i],2);
+   br_proj[i] += pow(evecs[i*dim + j],2);
   }
   qd_proj[i] = 0.0;
   for (j = Ic; j < Ic + Nc; j++) {
-   qd_proj[i] += pow(evecs[j*dim + i],2);
+   qd_proj[i] += pow(evecs[i*dim + j],2);
   }
  }
 
@@ -1172,6 +1186,26 @@ void projectSubsystems(realtype * evecs, realtype * evals, int dim) {
           evals[i], bu_proj[i], br_proj[i], qd_proj[i]);
  }
  fclose(projections);
+
+ // make a plotting file
+ FILE * proj_plot;
+ proj_plot = fopen("projections.plt", "w");
+ fprintf(proj_plot, "#!/usr/bin/env gnuplot\n");
+ fprintf(proj_plot, "set terminal postscript enhanced color size 20cm,14cm font 'Courier-Bold,12'\n");
+ fprintf(proj_plot, "set output 'pdos_stack.eps'\n");
+ fprintf(proj_plot, "set key outside right\n");
+ fprintf(proj_plot, "set tics scale 0\n");
+ fprintf(proj_plot, "set yr [0:1]\n");
+ fprintf(proj_plot, "set ytics ('0' 0, '1' 1)\n");
+ fprintf(proj_plot, "set rmargin 18\n");
+ fprintf(proj_plot, "set multiplot layout 4,1\n");
+ fprintf(proj_plot, "plot '../outs/projections.out' u 1:2 w im lw 2 lc rgb 'red' t 'Bulk'\n");
+ fprintf(proj_plot, "plot '../outs/projections.out' u 1:3 w im lw 2 lc rgb 'blue' t 'Bridge'\n");
+ fprintf(proj_plot, "plot '../outs/projections.out' u 1:4 w im lw 2 lc rgb 'green' t 'QD'\n");
+ fprintf(proj_plot, "set xlabel 'Energy (E_h)'\n");
+ fprintf(proj_plot, "plot '../outs/psi2_start_e.out' w im lw 2 lc rgb 'black' t 'Psi'\n");
+ fprintf(proj_plot, "unset multiplot\n");
+ fclose(proj_plot);
 
  // clean up
  delete [] bu_proj;
@@ -2144,6 +2178,7 @@ int main (int argc, char * argv[]) {
   // print the starting wavefunction in the two bases
   printCVector(psi_S, NEQ_vib, "psi_start_s.out");
   printCVector(psi_E, NEQ_vib, "psi_start_e.out");
+  printPsiSquare(psi_E, W, NEQ_vib, "psi2_start_e.out");
   // make arrays to represent the wavefunction in time
   complex16 * psi_S_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
   complex16 * psi_E_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
@@ -2166,6 +2201,13 @@ int main (int argc, char * argv[]) {
   delete [] psi_S_t;
   delete [] psi_E_t;
  }
+
+ // compute time-independent outputs
+ FILE * energyFile = fopen("energy.out", "w");
+ for (i = 0; i < NEQ_vib; i++) {
+  fprintf(energyFile, "%-.9e\n", energy[i]);
+ }
+ fclose(energyFile);
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
