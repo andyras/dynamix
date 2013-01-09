@@ -1140,9 +1140,43 @@ void printSquareMatrix(realtype * M, int N, char * fileName) {
  fclose(out);
 }
 
-void projectSubsystems(complex16 * evecs, realtype * evecs) {
+void projectSubsystems(realtype * evecs, realtype * evals, int dim) {
 // projects the initial wavefunction from the state basis onto the
 // subsystems (bulk, bridge, QD, etc.)
+ int i, j;	// counters!
+ // create arrays for bulk, bridge, QD
+ double * bu_proj = new double [dim];
+ double * br_proj = new double [dim];
+ double * qd_proj = new double [dim];
+ // sum up subsystem projections for each eigenvector
+ for (i = 0; i < dim; i++) {
+  bu_proj[i] = 0.0;
+  for (j = Ik; j < Ik + Nk; j++) {
+   bu_proj[i] += pow(evecs[j*dim + i],2);
+  }
+  br_proj[i] = 0.0;
+  for (j = Ib; j < Ib + Nb; j++) {
+   br_proj[i] += pow(evecs[j*dim + i],2);
+  }
+  qd_proj[i] = 0.0;
+  for (j = Ic; j < Ic + Nc; j++) {
+   qd_proj[i] += pow(evecs[j*dim + i],2);
+  }
+ }
+
+ // write projections to file
+ FILE * projections;
+ projections = fopen("projections.out", "w");
+ for (i = 0; i < dim; i++) {
+  fprintf(projections, "%-.9g %-.9g %-.9g %-.9g\n",
+          evals[i], bu_proj[i], br_proj[i], qd_proj[i]);
+ }
+ fclose(projections);
+
+ // clean up
+ delete [] bu_proj;
+ delete [] br_proj;
+ delete [] qd_proj;
 }
 
 void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex16 * psi_S_t, int timesteps) {
@@ -1168,6 +1202,7 @@ void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex1
  int LDC = dim;
  int INCX = 1;
  int INCY = 1;
+ // designating evecs col-major, essentially calling it the transpose
  cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, &ALPHA,
   A, LDA, psi_E_t, LDB, &BETA, psi_S_t, LDC);
  // can also go row-by-row.
@@ -1181,7 +1216,7 @@ void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex1
 void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 * psi_E) {
 // projects the wavefunction in the site basis (psi_S) onto the eigenstate
 // basis (psi_E).  Requires the orthonormal eigenvectors (evecs), and assumes
-// they are in a column matrix format.
+// they are in a column matrix format (row-major)
  int i;			// counter!
  // BLAS variables
  int M = dim;
@@ -2121,6 +2156,8 @@ int main (int argc, char * argv[]) {
   // print out the propagated wavefunction (site basis)
   printCVector(psi_S_t, NEQ_vib*(numOutputSteps+1), "psi_s_t.out");
   makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps);
+  // write out projections of subsystems
+  projectSubsystems(H, W, NEQ_vib);
   delete [] H;
   delete [] W;
   delete [] WORK;
