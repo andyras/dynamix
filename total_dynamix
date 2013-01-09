@@ -44,6 +44,7 @@ function run {
  rm -f outs/*
  mv *.out outs/
  mkdir -p figures
+ chmod 755 *.plt
  mv *.plt figures/
 }
 
