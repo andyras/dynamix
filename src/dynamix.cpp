@@ -12,8 +12,10 @@
 #include <nvector/nvector_serial.h>
 #include <mkl.h>
 
-/* DEBUG compiler flag: turn this on to generate basic debug outputs.         */
-//#define DEBUG
+/* DEBUG compiler flag: turn on to generate basic debug outputs.         */
+#define DEBUG
+// DEBUG2 flag: turn on for more numerical output
+//#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
@@ -579,12 +581,8 @@ int Output_checkpoint(
  double temp;
 
 #ifdef DEBUG
- fprintf(realImaginary, "%-.7lf ", time);
  for (i = 0; i < NEQ_vib; i++) {
-  fprintf(realImaginary, "%-7lf %-7lf", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ_vib));
-  if (i == (NEQ_vib - 2)) {
-   fprintf(realImaginary, " ");
-  }
+  fprintf(realImaginary, "%-.9e %-.9e\n", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ_vib));
  }
  fprintf(realImaginary, "\n");
 #endif
@@ -1073,19 +1071,99 @@ void outputYData(realtype * ydata, int n) {
  fclose(psi_start);
 }
 
-void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N) {
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N, int N_vib,
+                      realtype ** FCkb, realtype ** FCbb, realtype ** FCbc) {
 // builds a Hamiltonian from site energies and couplings.
- int i, j;					// counters!
- for (i = 0; i < N; i++) {
-  // diagonal
-  H[i*N + i] = energy[i];
+ int i, j;	// counters!
+ int n, m;	// more counters!
+ int idx1, idx2;
+ 
+ if (bridge_on) {
+  // assign diagonal elements
 #ifdef DEBUG
-  cout << "diagonal element " << i << " of H is " << energy[i] << "\n";
+  fprintf(stderr, "Assigning diagonal elements in Hamiltonian (with bridge).\n");
 #endif
-  for (j = 0; j < i; j++) {
-   // off-diagonal
-   H[i*N + j] = V[i][j];
-   H[j*N + i] = V[j][i];
+  for (i = 0; i < NEQ_vib; i++) {
+   H[i*N + i] = energy[i];
+  }
+  // assign bulk-bridge coupling
+  // General way to find index in vibrational matrix:
+  // H_{a_i,v_n;b_j,u_m} (ith state of type a, vib n; jth state of type b, vib m)
+  // (idx1 + n)*N + idx2 + m
+  // ((Ia_vib + i)*N_vib + n)*N + (Ib_vib + j)*N_vib + m
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
+#endif
+  idx2 = Ib_vib;
+  for (i = 0; i < Nk; i++) {
+   idx1 = (Ik + i)*N_vib;
+   for (n = 0; n < N_vib; n++) {
+    for (m = 0; m < N_vib; m++) {
+     //H[((Ik_vib + i)*N_vib + n)*N + (Ib_vib + m)] = V[(Ik_vib + i)*N_vib + n][Ib_vib + m]*FCkb[n][m];
+#ifdef DEBUG2
+     fprintf(stderr, "H[(%d + %d)*%d + %d + %d] = ", idx1, n, N, idx2, m);
+     fprintf(stderr, "V[%d][%d]*FCkb[%d][%d] = ", idx1, idx2, n, m);
+     fprintf(stderr, "%e\n", V[Ik+i][Ib]*FCkb[n][m]);
+#endif
+     H[(idx1 + n)*N + idx2 + m] = V[Ik+i][Ib]*FCkb[n][m];
+     H[(idx2 + m)*N + idx1 + n] = V[Ib][Ik+i]*FCkb[m][n];
+    }
+   }
+  }
+  // assign bridge-bridge couplings
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
+#endif
+  for (i = 1; i < Nb; i++) {
+   idx1 = (Ib + i)*N_vib;
+   idx2 = (Ib+ i + 1)*N_vib;
+   for (n = 0; n < N_vib; n++) {
+    for (m = 0; m < N_vib; m++) {
+#ifdef DEBUG2
+     fprintf(stderr, "H[(%d + %d)*%d + %d + %d] = ", idx1, n, N, idx2, m);
+     fprintf(stderr, "V[%d][%d]*FCkb[%d][%d] = ", idx1, idx2, n, m);
+     fprintf(stderr, "%e\n", V[Ib+i][Ib+i+1]*FCbb[n][m]);
+#endif
+     H[(idx1 + n)*N + idx2 + m] = V[Ib+i][Ib+i+1]*FCbb[n][m];
+     H[(idx2 + m)*N + idx1 + n] = V[Ib+i+1][Ib+i]*FCbb[m][n];
+    }
+   }
+  }
+  // assign bridge-QD coupling
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
+#endif
+  idx2 = (Ib + Nb - 1)*N_vib;
+  for (i = 0; i < Nc; i++) {
+   idx1 = (Ic + i)*N_vib;
+   for (n = 0; n < N_vib; n++) {
+    for (m = 0; m < N_vib; m++) {
+#ifdef DEBUG2
+     fprintf(stderr, "H[(%d + %d)*%d + %d + %d] = ", idx1, n, N, idx2, m);
+     fprintf(stderr, "V[%d][%d]*FCbc[%d][%d] = ", Ic+i, Ib+Nb-1, n, m);
+     fprintf(stderr, "%e\n", V[Ic+i][Ib+Nb-1]*FCbc[n][m]);
+#endif
+     H[(idx1 + n)*N + idx2 + m] = V[Ic+i][Ib+Nb-1]*FCbc[n][m];
+     H[(idx2 + m)*N + idx1 + n] = V[Ib+Nb-1][Ic+i]*FCbc[m][n];
+    }
+   }
+  }
+ }
+ else {
+#ifdef DEBUG
+  fprintf(stderr, "Assigning elements in Hamiltonian (no bridge).\n");
+#endif
+  for (i = 0; i < N; i++) {
+   // diagonal
+   H[i*N + i] = energy[i];
+#ifdef DEBUG
+   cout << "diagonal element " << i << " of H is " << energy[i] << "\n";
+#endif
+   for (j = 0; j < i; j++) {
+    // off-diagonal
+    H[i*N + j] = V[i][j];
+    H[j*N + i] = V[j][i];
+   }
   }
  }
 }
@@ -1127,6 +1205,23 @@ void printCVector(complex16 * v, int N, char * fileName) {
 
  for (i = 0; i < N; i++) {
   fprintf(out, "%-.9e %-.9e\n", v[i].re, v[i].im);
+ }
+
+ fclose(out);
+}
+
+void printCVectorTime(complex16 * v, int N, int M, char * fileName) {
+// prints a complex vector v of length N with M time steps
+ int i, j;	// counters!
+ FILE * out;	// output file
+
+ out = fopen(fileName, "w");
+
+ for (j = 0; j < M; j++) {
+  for (i = 0; i < N; i++) {
+   fprintf(out, "%-.9e %-.9e\n", v[j*N+i].re, v[j*N+i].im);
+  }
+  fprintf(out, "\n");
  }
 
  fclose(out);
@@ -2126,13 +2221,19 @@ int main (int argc, char * argv[]) {
  }
  // use LAPACK for time-independent H
  else {
+#ifdef DEBUG
+  fprintf(stderr, "calculating output times.\n");
+#endif
   // calculate output times
   for (i = 0; i <= numOutputSteps; i++) {
    times[i] = tout*((double)i/((double)numOutputSteps));
   }
   // build Hamiltonian
+#ifdef DEBUG
+  fprintf(stderr, "Building Hamiltonian.\n");
+#endif
   realtype * H = new realtype [NEQ_vib*NEQ_vib];
-  buildHamiltonian(H, energy, V, NEQ_vib);
+  buildHamiltonian(H, energy, V, NEQ_vib, N_vib, FCkb, FCbb, FCbc);
   printSquareMatrix(H, NEQ_vib, "ham.out");
   // declare LAPACK variables
   char JOBZ;            // 'N' to just compute evals; 'V' to compute evals and evecs
@@ -2154,6 +2255,9 @@ int main (int argc, char * argv[]) {
   INFO = 0;
   // dry run to compute LWORK
   // using same arguments as actual calculation
+#ifdef DEBUG
+  fprintf(stderr, "Diagonalizing Hamiltonian.\n");
+#endif
   dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
   // assign LWORK from first element of WORK
   LWORK = WORK[0];
@@ -2185,11 +2289,11 @@ int main (int argc, char * argv[]) {
   // propagate the wavefunction in time
   propagatePsi(psi_E, psi_E_t, NEQ_vib, W, numOutputSteps, tout);
   // print out the propagated wavefunction (eigenstate basis)
-  printCVector(psi_E_t, NEQ_vib*(numOutputSteps+1), "psi_e_t.out");
+  printCVectorTime(psi_E_t, NEQ_vib, (numOutputSteps+1), "psi_e_t.out");
   // project back onto the site basis
   projectStateToSite(psi_E_t, NEQ_vib, H, psi_S_t, numOutputSteps);
   // print out the propagated wavefunction (site basis)
-  printCVector(psi_S_t, NEQ_vib*(numOutputSteps+1), "psi_s_t.out");
+  printCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
   makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps);
   // write out projections of subsystems
   projectSubsystems(H, W, NEQ_vib);
