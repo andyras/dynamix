@@ -2108,7 +2108,7 @@ int main (int argc, char * argv[]) {
    cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
    if (i % (numsteps/numOutputSteps) == 0) {
-    fprintf(stdout, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
     Output_checkpoint(
 #ifdef DEBUG
       realImaginary, 
