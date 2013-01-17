@@ -1,0 +1,97 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+Analytical_c	dynamix.cpp	/^int Analytical_c ($/;"	f
+Build_Franck_Condon_factors	dynamix.cpp	/^void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int numN) {$/;"	f
+Build_continuum	dynamix.cpp	/^void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {$/;"	f
+Build_k_pops	dynamix.cpp	/^void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp) {$/;"	f
+Build_k_pops_Gaussian	dynamix.cpp	/^void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu) {$/;"	f
+Build_v	dynamix.cpp	/^void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop) {$/;"	f
+Compute_final_outputs	dynamix.cpp	/^void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,$/;"	f
+DEBUG	dynamix.cpp	16;"	d	file:
+Derivative	dynamix.cpp	/^int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep) {$/;"	f
+E_vib	dynamix.cpp	/^double E_vib;				\/\/ vibrational energy$/;"	v
+FCbb	dynamix.cpp	/^realtype ** FCbb;$/;"	v
+FCbc	dynamix.cpp	/^realtype ** FCbc;$/;"	v
+FCkb	dynamix.cpp	/^realtype ** FCkb;$/;"	v
+FCkc	dynamix.cpp	/^realtype ** FCkc;			\/\/ Franck-Condon factors$/;"	v
+Find_array_maximum	dynamix.cpp	/^realtype Find_array_maximum (realtype * inputArray, int num) {$/;"	f
+Find_array_maximum_index	dynamix.cpp	/^int Find_array_maximum_index (realtype * inputArray, int num) {$/;"	f
+Find_first_array_maximum	dynamix.cpp	/^realtype Find_first_array_maximum (realtype * inputArray, int num) {$/;"	f
+Find_first_array_maximum_index	dynamix.cpp	/^int Find_first_array_maximum_index (realtype * inputArray, int num) {$/;"	f
+Ib	dynamix.cpp	/^int Ib;$/;"	v
+Ib_vib	dynamix.cpp	/^int Ib_vib;$/;"	v
+Ic	dynamix.cpp	/^int Ic;$/;"	v
+Ic_vib	dynamix.cpp	/^int Ic_vib;$/;"	v
+Ik	dynamix.cpp	/^int Ik;				\/\/ index starters for each type of state$/;"	v
+Ik_vib	dynamix.cpp	/^int Ik_vib;				\/\/ index starters for each type of vibronic state$/;"	v
+Il	dynamix.cpp	/^int Il;$/;"	v
+Il_vib	dynamix.cpp	/^int Il_vib;$/;"	v
+Initialize_array	dynamix.cpp	/^void Initialize_array(realtype * array, int n, realtype initializeValue) {$/;"	f
+Integrate_arrays	dynamix.cpp	/^realtype Integrate_arrays (realtype * values, realtype * time, int num) {$/;"	f
+NEQ	dynamix.cpp	/^int NEQ;				\/\/ total number of states\/equations$/;"	v
+NEQ_vib	dynamix.cpp	/^int NEQ_vib;$/;"	v
+N_vib	dynamix.cpp	/^int N_vib;				\/\/ number of vibronic states$/;"	v
+Nb	dynamix.cpp	/^int Nb;$/;"	v
+Nc	dynamix.cpp	/^int Nc;$/;"	v
+Nk	dynamix.cpp	/^int Nk;				\/\/ number of each type of state$/;"	v
+Nl	dynamix.cpp	/^int Nl;$/;"	v
+Normalize_NV	dynamix.cpp	/^int Normalize_NV(N_Vector nv, realtype total) {$/;"	f
+Number_of_values	dynamix.cpp	/^int Number_of_values (const char * nameOfFile) {$/;"	f
+Output_checkpoint	dynamix.cpp	/^int Output_checkpoint($/;"	f
+Read_array_from_file	dynamix.cpp	/^void Read_array_from_file (realtype * array, const char * nameOfFile, int numberOfValues) {$/;"	f
+V	dynamix.cpp	/^realtype ** V;				\/\/ pointer to k-c coupling constants$/;"	v
+Vbridge	dynamix.cpp	/^realtype * Vbridge;			\/\/ pointer to array of bridge coupling constants.$/;"	v
+Vnobridge	dynamix.cpp	/^realtype * Vnobridge;			\/\/ coupling constant when there is no bridge$/;"	v
+bridge_on	dynamix.cpp	/^bool bridge_on = 0;$/;"	v
+buildHamiltonian	dynamix.cpp	/^void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N, int N_vib,$/;"	f
+bulk_FDD	dynamix.cpp	/^bool bulk_FDD = 0;			\/\/ switches for starting conditions$/;"	v
+bulk_Gauss	dynamix.cpp	/^bool bulk_Gauss = 0;$/;"	v
+bulk_constant	dynamix.cpp	/^bool bulk_constant = 0;$/;"	v
+complex16	dynamix.cpp	/^} complex16;$/;"	t	typeref:struct:__anon1	file:
+cvode_mem	dynamix.cpp	/^void * cvode_mem;			\/\/ pointer to block of CVode memory$/;"	v
+energy	dynamix.cpp	/^realtype * energy;$/;"	v
+f	dynamix.cpp	/^int f(realtype t, N_Vector y, N_Vector ydot, void * data) {$/;"	f
+gbb	dynamix.cpp	/^double gbb;				\/\/ g factor between b states$/;"	v
+gbc	dynamix.cpp	/^double gbc;				\/\/ g factor between b and c states$/;"	v
+gkb	dynamix.cpp	/^double gkb;				\/\/ g factor between k and b states$/;"	v
+gkc	dynamix.cpp	/^double gkc;				\/\/ g factor between k and c states$/;"	v
+im	dynamix.cpp	/^ double im;$/;"	m	struct:__anon1	file:
+k_bandedge	dynamix.cpp	/^realtype k_bandedge;			\/\/ lower edge of bulk conduction band$/;"	v
+k_bandtop	dynamix.cpp	/^realtype k_bandtop;			\/\/ upper edge of bulk conduction band$/;"	v
+laser_on	dynamix.cpp	/^bool laser_on = 0;$/;"	v
+last_t	dynamix.cpp	/^double last_t = -1.0;				\/\/ keeps track of last time for which debuggery was printed$/;"	v
+main	dynamix.cpp	/^int main (int argc, char * argv[]) {$/;"	f
+makeOutputsTI	dynamix.cpp	/^void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {$/;"	f
+muLK	dynamix.cpp	/^double muLK;                           \/\/ transition dipole moment from l to k (energy a.u.)$/;"	v
+numOutputSteps	dynamix.cpp	/^int numOutputSteps;			\/\/ number of timesteps$/;"	v
+outputYData	dynamix.cpp	/^void outputYData(realtype * ydata, int n) {$/;"	f
+printCVector	dynamix.cpp	/^void printCVector(complex16 * v, int N, char * fileName) {$/;"	f
+printCVectorTime	dynamix.cpp	/^void printCVectorTime(complex16 * v, int N, int M, char * fileName) {$/;"	f
+printPsiSquare	dynamix.cpp	/^void printPsiSquare(complex16 * v, realtype * evals,  int N, char * fileName) {$/;"	f
+printSquareMatrix	dynamix.cpp	/^void printSquareMatrix(realtype * M, int N, char * fileName) {$/;"	f
+printVector	dynamix.cpp	/^void printVector(realtype * W, int N, char * fileName) {$/;"	f
+projectSiteToState	dynamix.cpp	/^void projectSiteToState(complex16 * psi_S, int dim, realtype * evecs, complex16 * psi_E) {$/;"	f
+projectStateToSite	dynamix.cpp	/^void projectStateToSite(complex16 * psi_E_t, int dim, realtype * evecs, complex16 * psi_S_t, int timesteps) {$/;"	f
+projectSubsystems	dynamix.cpp	/^void projectSubsystems(realtype * evecs, realtype * evals, int dim) {$/;"	f
+propagatePsi	dynamix.cpp	/^void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,$/;"	f
+pump	dynamix.cpp	/^realtype pump(realtype t) {$/;"	f
+pumpAmpl	dynamix.cpp	/^double pumpAmpl;                       \/\/ intensity of pump pulse (electric field a.u.)$/;"	v
+pumpFWHM	dynamix.cpp	/^double pumpFWHM;                       \/\/ FWHM of pump pulse (time a.u.)$/;"	v
+pumpFreq	dynamix.cpp	/^double pumpFreq;                       \/\/ frequency of pump pulse (energy a.u.)$/;"	v
+pumpPeak	dynamix.cpp	/^double pumpPeak;                       \/\/ time of peak of pump pulse (a.u.)$/;"	v
+pumpPhase	dynamix.cpp	/^double pumpPhase;                      \/\/ pump pulse phase (in units of radians)$/;"	v
+qd_pops	dynamix.cpp	/^bool qd_pops = 0;$/;"	v
+random_phase	dynamix.cpp	/^bool random_phase = 0;$/;"	v
+random_seed	dynamix.cpp	/^int random_seed = 0;$/;"	v
+re	dynamix.cpp	/^ double re;$/;"	m	struct:__anon1	file:
+scale_brqd	dynamix.cpp	/^bool scale_brqd = 0;$/;"	v
+scale_bubr	dynamix.cpp	/^bool scale_bubr = 0;$/;"	v
+scale_buqd	dynamix.cpp	/^bool scale_buqd = 0;$/;"	v
+scale_laser	dynamix.cpp	/^bool scale_laser = 0;$/;"	v
+user_data	dynamix.cpp	/^realtype * user_data;$/;"	v
+y	dynamix.cpp	/^N_Vector y, yout;			\/\/ arrays of populations$/;"	v
+yout	dynamix.cpp	/^N_Vector y, yout;			\/\/ arrays of populations$/;"	v
