@@ -16,7 +16,7 @@ do_backup="n"
 
 ## START INPUT PARAMETERS ##
 # method parameters #
-timedepH=0				# if H is TD, use CVODE, else diag H and propogate
+timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
@@ -28,7 +28,7 @@ numOutputSteps=600			# number of output timesteps
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.075				# upper band edge of bulk conduction band (a.u.)
 bulk_gap=0.01				# bulk band gap (a.u.)
-Nk=50					# number of k states to have
+Nk=100					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk (a.u.)
@@ -36,7 +36,7 @@ bulkGaussMu=0.0110249			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
-N_vib=1					# number of vibronic states
+N_vib=2					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
 gkb=1.0					# g factor between k and b states

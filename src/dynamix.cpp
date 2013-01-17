@@ -1105,8 +1105,8 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N, int
      fprintf(stderr, "V[%d][%d]*FCkb[%d][%d] = ", idx1, idx2, n, m);
      fprintf(stderr, "%e\n", V[Ik+i][Ib]*FCkb[n][m]);
 #endif
-     H[(idx1 + n)*N + idx2 + m] = V[Ik+i][Ib]*FCkb[n][m];
-     H[(idx2 + m)*N + idx1 + n] = V[Ib][Ik+i]*FCkb[m][n];
+     H[(idx1 + n)*N + idx2 + m] = V[Ik+i][Ib]*FCkb[m][n];
+     H[(idx2 + m)*N + idx1 + n] = V[Ib][Ik+i]*FCkb[n][m];
     }
    }
   }
