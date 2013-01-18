@@ -21,9 +21,9 @@ function compile {
  if [ $? == 0 ] ; then CPP=icpc ; fi
  cd src
  make CPP=$CPP && echo "### $(date) done compiling!"
- cd ..
  if [ $? == 0 ] ; then
   echo "### $(date) done compiling!"
+  cd ..
  else
   echo "### $(date) failed to compile :("
   exit

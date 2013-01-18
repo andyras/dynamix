@@ -13,7 +13,7 @@
 #include <mkl.h>
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-// #define DEBUG
+ #define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -78,6 +78,7 @@ bool bulk_Gauss = 0;
 bool bulk_constant = 0;
 bool qd_pops = 0;
 bool laser_on = 0;
+bool parabolicCoupling = 0;
 bool scale_bubr = 0;
 bool scale_brqd = 0;
 bool scale_buqd = 0;
@@ -217,64 +218,111 @@ void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int num
 
 }
 
-void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop) {
+double parabolicV(double Vee, double E, double bandEdge, double bandTop) {
+// returns the coupling as a function of energy E given that the middle of the
+// band is at position mid.
+// Eq. 31 in Ramakrishna et al., JCP 2001, 115, 2743-2756
+
+// set band edge as zero energy
+E = E - bandEdge;
+double mid = (bandTop - bandEdge)/2.0;
+
+#ifdef DEBUG
+ fprintf(stdout, "coupling at (E - band edge) = %.9e: %.9e\n", E, Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid));
+#endif
+ // test whether at the very top or bottom of band
+ if (abs(abs(E - mid) - mid) < 1e-10) {
+#ifdef DEBUG
+  fprintf(stdout, "(at bottom or top of band edge, returning 0.0)\n");
+#endif
+  return 0.0;
+ }
+ return Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid);
+}
+
+void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop, realtype * energy) {
 // assign coupling constants to global array V
  
- int i, j;					// counters
+ int i, j;	// counters
+ double Vkc;	// coupling between bulk and QD
+ double Vkb1;	// coupling between bulk and first bridge
+ double VbNc;	// coupling between last bridge and QD
 
- if ((scale_buqd) && (Nk > 1))
-  Vnobridge[0] = sqrt(Vnobridge[0]*(kBandTop-kBandEdge)/(Nk-1));
-
- for (i = 0; i < dim; i++)			// initialize
-  for (j = 0; j < dim; j++)
+ // initialize the coupling array
+ for (i = 0; i < dim; i++) {
+  for (j = 0; j < dim; j++) {
    vArray[i][j] = 0.0;
+  }
+ }
 
-
- if (bridge_on) {				// bridge
+ // bridge
+ if (bridge_on) {
   // coupling between k and b1
   if ((scale_bubr) && (Nk > 1)) {
+   Vkb1 = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+  }
+  else {
+   Vkb1 = Vbridge[0];
+  }
+  if (parabolicCoupling) {
    for (i = 0; i < Nk; i++) {
-    vArray[Ik+i][Ib] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
-    vArray[Ib][Ik+i] = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+    vArray[Ik+i][Ib] = parabolicV(Vkb1, energy[Ik+i], kBandEdge, kBandTop);
+    vArray[Ib][Ik+i] = parabolicV(Vkb1, energy[Ik+i], kBandEdge, kBandTop);
    }
   }
   else {
    for (i = 0; i < Nk; i++) {
-    vArray[Ik+i][Ib] = Vbridge[0];
-    vArray[Ib][Ik+i] = Vbridge[0];
+    vArray[Ik+i][Ib] = Vkb1;
+    vArray[Ib][Ik+i] = Vkb1;
    }
   }
+   
   // coupling between bN and c
   if ((scale_brqd) && (Nc > 1)) {
-   for (i = 0; i < Nc; i++) {
-    vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb]/sqrt(Nc-1);
-    vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb]/sqrt(Nc-1);
-   }
+   VbNc = Vbridge[Nb]/sqrt(Nc-1);
   }
   else {
-   for (i = 0; i < Nc; i++) {
-    vArray[Ic+i][Ib+Nb-1] = Vbridge[Nb];
-    vArray[Ib+Nb-1][Ic+i] = Vbridge[Nb];
-   }
+   VbNc = Vbridge[Nb];
   }
+  for (i = 0; i < Nc; i++) {
+   vArray[Ic+i][Ib+Nb-1] = VbNc;
+   vArray[Ib+Nb-1][Ic+i] = VbNc;
+  }
+  
   // coupling between bridge states
   for (i = 0; i < Nb - 1; i++) {
    vArray[Ib+i][Ib+i+1] = Vbridge[i+1];
    vArray[Ib+i+1][Ib+i] = Vbridge[i+1];
   }
  }
- else {					// no bridge
-  // this is goofy, I should probably not have the sqrt(27.211) scaling factor
-  for (i = 0; i < Nk; i++) {
-   for (j = 0; j < Nc; j++) {
-    vArray[Ik+i][Ic+j] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
-    vArray[Ic+j][Ik+i] = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+ // no bridge
+ else {				
+  // scaling
+  if ((scale_buqd) && (Nk > 1)) {
+   Vkc = sqrt(Vnobridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+  }
+  else {
+   Vkc = Vnobridge[0];
+  }
+#ifdef DEBUG_SAI
+  Vkc = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
+#endif
+
+  // parabolic coupling of bulk band to QD
+  if (parabolicCoupling) {
+   for (i = 0; i < Nk; i++) {
+    for (j = 0; j < Nc; j++) {
+     vArray[Ik+i][Ic+j] = parabolicV(Vkc, energy[Ik+i], kBandEdge, kBandTop);
+     vArray[Ic+j][Ik+i] = parabolicV(Vkc, energy[Ik+i], kBandEdge, kBandTop);
+    }
    }
   }
-  for (i = 0; i < Nk; i++) {
-   for (j = 0; j < Nc; j++) {
-    vArray[Ik+i][Ic+j] = Vnobridge[0];
-    vArray[Ic+j][Ik+i] = Vnobridge[0];
+  else {
+   for (i = 0; i < Nk; i++) {
+    for (j = 0; j < Nc; j++) {
+     vArray[Ik+i][Ic+j] = Vkc;
+     vArray[Ic+j][Ik+i] = Vkc;
+    }
    }
   }
  }
@@ -299,7 +347,6 @@ void Build_v (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop
  fclose(couplings);
  
 }
-
 
 realtype pump(realtype t) {
 // gives the value of a laser pulse (electric field) at time t
@@ -1768,6 +1815,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bulk_constant" ) { bulk_constant = atoi(param_val.c_str()); }
   else if (input_param == "qd_pops" ) { qd_pops = atoi(param_val.c_str()); }
   else if (input_param == "laser_on" ) { laser_on = atoi(param_val.c_str()); }
+  else if (input_param == "parabolicCoupling" ) { parabolicCoupling = atoi(param_val.c_str()); }
   else if (input_param == "scale_bubr" ) { scale_bubr = atoi(param_val.c_str()); }
   else if (input_param == "scale_brqd" ) { scale_brqd = atoi(param_val.c_str()); }
   else if (input_param == "scale_buqd" ) { scale_buqd = atoi(param_val.c_str()); }
@@ -1813,6 +1861,7 @@ int main (int argc, char * argv[]) {
  cout << "bulk_constant is " << bulk_constant << endl;
  cout << "qd_pops is " << qd_pops << endl;
  cout << "laser_on is " << laser_on << endl;
+ cout << "parabolicCoupling is " << parabolicCoupling << endl;
  cout << "scale_bubr is " << scale_bubr << endl;
  cout << "scale_brqd is " << scale_brqd << endl;
  cout << "scale_buqd is " << scale_buqd << endl;
@@ -1964,10 +2013,6 @@ int main (int argc, char * argv[]) {
   Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
- V = new realtype * [NEQ];
- for (i = 0; i < NEQ; i++)
-  V[i] = new realtype [NEQ];
- Build_v(V, NEQ, k_bandedge, k_bandtop);	// assign coupling constants
  if (Nb == 0) {					// assign Franck-Condon factors
   FCkc = new realtype * [N_vib];
   for (i = 0; i < N_vib; i++)
@@ -2124,6 +2169,13 @@ int main (int argc, char * argv[]) {
   cout << "energy[l(" << i << "," << j << ")] = " << energy[Il_vib + i*N_vib + j] << endl;
  cout << endl;
 #endif
+
+ // assign coupling constants
+ V = new realtype * [NEQ];
+ for (i = 0; i < NEQ; i++)
+  V[i] = new realtype [NEQ];
+ buildCoupling(V, NEQ, k_bandedge, k_bandtop, energy);
+
  // DONE PREPROCESSING //
 
  // Creates N_Vector y with initial populations which will be used by CVode//

@@ -16,7 +16,7 @@ do_backup="n"
 
 ## START INPUT PARAMETERS ##
 # method parameters #
-timedepH=1				# if H is TD, use CVODE, else diag H and propogate
+timedepH=0				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
@@ -36,7 +36,7 @@ bulkGaussMu=0.0110249			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
-N_vib=2					# number of vibronic states
+N_vib=1					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
 gkb=1.0					# g factor between k and b states
@@ -52,9 +52,10 @@ pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 bulk_FDD=0
 bulk_Gauss=0
-bulk_constant=1
-qd_pops=0
+bulk_constant=0
+qd_pops=1
 laser_on=0
+parabolicCoupling=0
 scale_bubr=0
 scale_brqd=0
 scale_buqd=0
