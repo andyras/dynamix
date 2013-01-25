@@ -1,5 +1,13 @@
 #!/usr/bin/env python2.7
 
+'''
+This script prints out the value of the Poincare recurrence time as
+calculated from the spacing of the quasicontinuum states in the bulk.
+
+It is mostly meant to help decide what to make the output time parameter
+when setting up the inputs for a run.
+'''
+
 import re
 from math import pi
 
