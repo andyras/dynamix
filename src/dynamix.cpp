@@ -1938,6 +1938,21 @@ int main (int argc, char * argv[]) {
  cout << "\nDone reading things from inputs.\n";
 #endif
 
+ // make a note in the log about system timescales
+ double tau = 0;		// fundamental system timescale
+ if (Nk == 1) {
+  fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
+ }
+ else {
+  if (bridge_on) {
+   tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*3.1415926535);
+  }
+  else {
+   tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*3.1415926535);
+  }
+  fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
+ }
+
  // PREPROCESS DATA FROM INPUTS //
  Nl = 1;
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
