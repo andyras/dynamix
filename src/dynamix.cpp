@@ -1938,21 +1938,6 @@ int main (int argc, char * argv[]) {
  cout << "\nDone reading things from inputs.\n";
 #endif
 
- // make a note in the log about system timescales
- double tau = 0;		// fundamental system timescale
- if (Nk == 1) {
-  fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
- }
- else {
-  if (bridge_on) {
-   tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*3.1415926535);
-  }
-  else {
-   tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*3.1415926535);
-  }
-  fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
- }
-
  // PREPROCESS DATA FROM INPUTS //
  Nl = 1;
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
@@ -2190,6 +2175,31 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
  buildCoupling(V, NEQ, k_bandedge, k_bandtop, energy);
+
+ // make a note in the log about system timescales
+ double tau = 0;		// fundamental system timescale
+ if (Nk == 1) {
+  fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
+ }
+ else {
+  if (bridge_on) {
+   if (scale_bubr) {
+    tau = 1.0/(2*Vbridge[0]*M_PI);
+   }
+   else {
+    tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*M_PI);
+   }
+  }
+  else {
+   if (scale_buqd) {
+    tau = 1.0/(2*Vnobridge[0]*M_PI);
+   }
+   else {
+    tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*M_PI);
+   }
+  }
+  fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
+ }
 
  // DONE PREPROCESSING //
 
