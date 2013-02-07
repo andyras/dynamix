@@ -99,7 +99,7 @@ def do_runs(infile, w, timesteps, redo=False):
 
 
 ## parameters of FDD distribution
-infile = 'ins/parameters.sh'
+infile = 'ins/parameters.in'
 Ef = -0.01				# Fermi level in Hartree
 BE = read_param('k_bandedge', infile)	# band edge in Hartree
 BT = read_param('k_bandtop', infile)	# band top in Hartree
