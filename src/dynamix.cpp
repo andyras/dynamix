@@ -1926,8 +1926,10 @@ int main (int argc, char * argv[]) {
  c_energies = new realtype [Nc];
  b_energies = new realtype [Nb];
  l_energies = new realtype [Nl];
- if (Number_of_values("ins/c_pops.in") != Nc)
+ if (Number_of_values("ins/c_pops.in") != Nc) {
   fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.\n");
+  return -1;
+ }
  Read_array_from_file(c_energies, "ins/c_energies.in", Nc);
  if (bridge_on) {
   if (bridge_on && (Nb < 1)) {
