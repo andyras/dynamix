@@ -34,6 +34,7 @@ def pdos_plot_stack():
         f.write("plot 'qd_proj.out' w im lw 2 lc rgb 'green' t 'QD'\n")
         f.write("plot 'br_proj.out' w im lw 2 lc rgb 'blue' t 'Bridge'\n")
         f.write("set xlabel 'Energy (E_h)'\n")
+        f.write("unset yrange\n")
         f.write("plot 'psi_diag.out' w im lw 2 lc rgb 'black' t 'Psi'\n")
         f.write("unset multiplot\n")
     os.system('chmod 755 '+plotfile)

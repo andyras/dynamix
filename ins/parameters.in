@@ -33,8 +33,8 @@ Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=10					# number of bulk valence band states
-bulkGaussSigma=0.0008217514892873433	# width of initial Gaussian in bulk (a.u.)
-bulkGaussMu=0.0110249			# position of initial Gaussian above band edge (a.u.)
+bulkGaussSigma=0.008217514892873433	# width of initial Gaussian in bulk (a.u.)
+bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
@@ -53,10 +53,10 @@ pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 bulk_FDD=0
-bulk_Gauss=0
+bulk_Gauss=1
 bulk_constant=0
 qd_pops=0
-laser_on=1
+laser_on=0
 parabolicCoupling=0
 scale_bubr=0
 scale_brqd=0

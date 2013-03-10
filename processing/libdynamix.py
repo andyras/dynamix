@@ -16,6 +16,8 @@ class Psi(object):
         evecs = ham.getEvecs()
         self.psiDiag = np.dot(np.transpose(evecs), self.psi)
         self.psiDiagPop = self.psiDiag[:,0]**2 + self.psiDiag[:,1]**2
+        # I think I have to normalize here, but not sure why
+        self.psiDiagPop /= sum(self.psiDiagPop)
 
     def getPsiDiag(self):
         return self.psiDiag
