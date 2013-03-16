@@ -2,7 +2,7 @@
 #define __LIBDYNAMIX_OUTPUTS_H__
 
 /* Writes a scalar to a file */
-void outputDScalar(const char *, double * scalar);
+void outputDScalar(const char * fileName, double scalar);
 
 /* Writes a vector of length N to a file, one time point and scalar per row */
 void outputTimeDVector(const char * fileName, double * time, double * vec, int n);

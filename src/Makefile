@@ -29,3 +29,9 @@ cleanall:
 build:
 	make cleanall
 	make
+
+tests: dynamix libdynamix_outputs_test.o
+	$(CPP) -o tests libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
+
+libdynamix_outputs_test.o: libdynamix_outputs_test.cpp libdynamix_outputs.cpp libdynamix_outputs.h
+	$(CPP) $(CPPFLAGS) -c libdynamix_outputs_test.cpp

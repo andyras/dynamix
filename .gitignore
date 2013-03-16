@@ -1,4 +1,5 @@
 *.out
+*.o
 *~
 *.avi
 *.eps
@@ -10,5 +11,6 @@ debuggery/
 outs/
 figures/
 dynamix
+tests
 fit.log
 weights.dat

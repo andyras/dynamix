@@ -12,6 +12,8 @@
 #include <nvector/nvector_serial.h>
 #include <mkl.h>
 
+#include "libdynamix_outputs.h"
+
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
 // #define DEBUG
 // DEBUG2 flag: turn on for more numerical output

@@ -3,10 +3,10 @@
 #include "libdynamix_outputs.h"
 
 /* Writes a scalar to a file */
-void outputDScalar(const char * fileName, double * scalar) {
+void outputDScalar(const char * fileName, double scalar) {
  FILE * output;
  output = fopen(fileName, "w");
- fprintf(output, "%-.7g", scalar[0]);
+ fprintf(output, "%-.7g\n", scalar);
  fclose(output);
 }
 
@@ -50,10 +50,10 @@ void outputDMatrix(const char * fileName, double * mat, int n, int m) {
  output = fopen(fileName, "w");
  for (int i = 0; i < n; i++) {
   // write first value of row
-  fprintf(output, "%-.7g", mat[i*n]);
-  for (int j = 0; j < m; j++) {
+  fprintf(output, "%-.7g", mat[i*m]);
+  for (int j = 1; j < m; j++) {
    // write other row values
-   fprintf(output, " %-.7g", mat[i*n + m]);
+   fprintf(output, " %-.7g", mat[i*m + j]);
   }
   fprintf(output, "\n");
  }
@@ -66,10 +66,10 @@ void outputDMatrixT(const char * fileName, double * mat, int n, int m) {
  output = fopen(fileName, "w");
  for (int j = 0; j < m; j++) {
   // write first value of row
-  fprintf(output, "%-.7g", mat[m]);
-  for (int i = 0; i < n; i++) {
+  fprintf(output, "%-.7g", mat[j]);
+  for (int i = 1; i < n; i++) {
    // write other row values
-   fprintf(output, " %-.7g", mat[i*n + m]);
+   fprintf(output, " %-.7g", mat[i*m + j]);
   }
   fprintf(output, "\n");
  }
