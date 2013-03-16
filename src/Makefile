@@ -10,7 +10,7 @@ LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 #CPP = g++
 #CPPFLAGS = -O3 -Wall -lsundials_cvode -lsundials_nvecserial -llapack
 
-dynamix: dynamix.o libdynamix_outputs.o
+dynamix: dynamix.o libdynamix_outputs.o libdynamix_input_parser.o
 	$(CPP) -o dynamix dynamix.o libdynamix_outputs.o $(LDFLAGS)
 
 dynamix.o: dynamix.cpp libdynamix_outputs.cpp libdynamix_outputs.h
@@ -26,14 +26,22 @@ clean:
 	rm -f *.o
 	rm -f dynamix
 	rm -f *.out
-	rm -f tests
+	rm -f *test
 
 build:
 	make clean
 	make
 
-tests: dynamix libdynamix_outputs_test.o
-	$(CPP) -o tests libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
+tests: dynamix libdynamix_outputs_test.o libdynamix_input_parser_test.o
+	$(CPP) -o libdynamix_outputs_test \
+	 libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
+	$(CPP) -o libdynamix_input_parser_test \
+	 libdynamix_input_parser_test.o libdynamix_input_parser.o $(LDFLAGS)
 
-libdynamix_outputs_test.o: libdynamix_outputs_test.cpp libdynamix_outputs.cpp libdynamix_outputs.h
+libdynamix_outputs_test.o: libdynamix_outputs_test.cpp \
+        libdynamix_outputs.cpp libdynamix_outputs.h
 	$(CPP) $(CPPFLAGS) -c libdynamix_outputs_test.cpp
+
+libdynamix_input_parser_test.o: libdynamix_input_parser_test.cpp \
+        libdynamix_input_parser.cpp libdynamix_input_parser.h
+	$(CPP) $(CPPFLAGS) -c libdynamix_input_parser_test.cpp
