@@ -19,15 +19,17 @@ dynamix.o: dynamix.cpp libdynamix_outputs.cpp libdynamix_outputs.h
 libdynamix_outputs.o: libdynamix_outputs.cpp libdynamix_outputs.h
 	$(CPP) $(CPPFLAGS) -c libdynamix_outputs.cpp
 
+libdynamix_input_parser.o: libdynamix_input_parser.cpp libdynamix_input_parser.h
+	$(CPP) $(CPPFLAGS) -c libdynamix_input_parser.cpp
+
 clean:
 	rm -f *.o
-
-cleanall:
-	make clean
 	rm -f dynamix
+	rm -f *.out
+	rm -f tests
 
 build:
-	make cleanall
+	make clean
 	make
 
 tests: dynamix libdynamix_outputs_test.o
