@@ -26,7 +26,7 @@ void outputFile::create() {
 
 //void parseInput(const char * inputFile)
 
-void assignOutputs(const char * inputFile, std::map<std::string, bool> outputs) {
+void assignOutputs(const char * inputFile, std::map<std::string, bool> &outputs) {
  std::string line;
  std::ifstream input;
  

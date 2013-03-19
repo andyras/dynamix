@@ -21,6 +21,6 @@ class outputFile {
 std::map<std::string, bool> initOutputMap();
 
 // turns on output files in 'outputs' map
-void assignOutputs(const char * inputFile, std::map<std::string, bool> outputs);
+void assignOutputs(const char * inputFile, std::map<std::string, bool> &outputs);
 
 #endif

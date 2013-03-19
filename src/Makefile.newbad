@@ -1,0 +1,72 @@
+# original line
+# #CPPFLAGS = -O3 -Wall -I/home/andyras/bin/include -L/home/andyras/bin/lib \
+	 -lsundials_cvode -lsundials_nvecserial -xHOST -ipo -no-prec-div \
+	 -mkl
+
+CPP = icpc
+CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
+CPPFLAGS = -Wall -debug all
+LDFLAGS = -L/usr/lib -lsundials_cvode -lsundials_nvecserial -mkl
+
+#CPP = g++
+#CPPFLAGS = -O3 -Wall -lsundials_cvode -lsundials_nvecserial -llapack
+
+# source directory
+SRCDIR = src
+SRCDIR = .
+# object directory
+OBJDIR = obj
+OBJDIR = .
+# name of the output executable
+BIN = dynamix
+# objects needed to compile $(BIN)
+OBJ = $(OBJDIR)/dynamix.o $(OBJDIR)/libdynamix_outputs.o \
+      $(OBJDIR)/libdynamix_input_parser.o
+# directories with headers
+INC = -I./include -I../include -L/usr/lib/
+INC =
+INCDIR = ./include
+INCDIR = .
+
+#$(BIN): $(OBJ)
+	#$(CPP) $(INCDIR) $(LDFLAGS) -o $@ $^
+$(BIN): $(OBJ)
+	$(CPP) $(INC) $(LDFLAGS) -o $@ $(OBJDIR)/dynamix.o \
+	$(OBJDIR)/libdynamix_outputs.o
+
+$(OBJDIR)/dynamix.o: $(SRCDIR)/dynamix.cpp $(SRCDIR)/libdynamix_outputs.cpp \
+	$(INCDIR)/libdynamix_outputs.h
+	$(CPP) $(CPPFLAGS) $(INC) -o $@ -c $<
+
+$(OBJDIR)/libdynamix_outputs.o: $(SRCDIR)/libdynamix_outputs.cpp \
+	$(INCDIR)/libdynamix_outputs.h
+	$(CPP) $(CPPFLAGS) $(INC) -o $@ -c $<
+
+$(OBJDIR)/libdynamix_input_parser.o: $(SRCDIR)/libdynamix_input_parser.cpp \
+	$(INCDIR)/libdynamix_input_parser.h
+	$(CPP) $(CPPFLAGS) $(INC) -o $@ -c $<
+
+.PHONY: clean
+clean:
+	rm -f $(OBJDIR)/*.o
+	rm -f dynamix
+	rm -f *.out
+	rm -f *test
+
+build:
+	make clean
+	make
+
+#tests: $(BIN) libdynamix_outputs_test.o libdynamix_input_parser_test.o
+	#$(CPP) -o libdynamix_outputs_test \
+	 #libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
+	#$(CPP) -o libdynamix_input_parser_test \
+	 #libdynamix_input_parser_test.o libdynamix_input_parser.o $(LDFLAGS)
+
+#$(OBJDIR)/libdynamix_outputs_test.o: libdynamix_outputs_test.cpp \
+        #libdynamix_outputs.cpp libdynamix_outputs.h
+	#$(CPP) $(CPPFLAGS) -c libdynamix_outputs_test.cpp
+
+#$(OBJDIR)/libdynamix_input_parser_test.o: libdynamix_input_parser_test.cpp \
+        #libdynamix_input_parser.cpp libdynamix_input_parser.h
+	#$(CPP) $(CPPFLAGS) -c libdynamix_input_parser_test.cpp

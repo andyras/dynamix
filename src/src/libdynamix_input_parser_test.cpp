@@ -12,5 +12,10 @@ int main () {
 
  assignOutputs("ins/outputs.in", outputs);
 
+ // print out outputs to be made
+ for (std::map<std::string, bool>::iterator it = outputs.begin(); it != outputs.end(); it++) {
+  std::cout << "Output file: " << it->first << "\n";
+ }
+
  return 0;
 }
