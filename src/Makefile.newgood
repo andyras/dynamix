@@ -1,41 +1,43 @@
-# flags for compiler and linker
-CXX = icpc
-CPP = $(CXX)
+# original line
+# #CPPFLAGS = -O3 -Wall -I/home/andyras/bin/include -L/home/andyras/bin/lib \
+	 -lsundials_cvode -lsundials_nvecserial -xHOST -ipo -no-prec-div \
+	 -mkl
+
+CPP = icpc
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
-INCLUDES = -I./include
+CPPFLAGS = -Wall -I./include
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
-# directories for headers, objects and source files
 INCDIR = ./include
 OBJDIR = ./obj
 SRCDIR = ./src
 
-# make will look for .cpp files in $(SRCDIR)
-vpath %.cpp $(SRCDIR)
+#CPP = g++
+#CPPFLAGS = -O3 -Wall -lsundials_cvode -lsundials_nvecserial -llapack
 
-# name of main executable
 BIN = dynamix
+OBJ = $(OBJDIR)/dynamix.o $(OBJDIR)/libdynamix_outputs.o \
+      $(OBJDIR)/libdynamix_input_parser.o
 
-# list of source files
-SOURCES = dynamix.cpp libdynamix_outputs.cpp \
-	  libdynamix_input_parser.cpp
-# object files have same name as .cpp files, but with .o extension
-OBJECTS = $(patsubst %.cpp,obj/%.o,$(SOURCES))
-
-# build the main executable; this should be listed first
-$(BIN): $(OBJECTS)
+# build main executable; this should be on top to be run by default
+$(BIN): $(OBJ)
 	$(CPP) -o $@ $^ $(LDFLAGS)
 
-# automatic rule for building objects
-$(OBJDIR)/%.o: %.cpp
-	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
-
 # all objects depend on object directory
-$(OBJECTS): | $(OBJDIR)
+$(OBJ): | $(OBJDIR)
 
 # make object directory if it does not exist
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
+
+$(OBJDIR)/dynamix.o: $(SRCDIR)/dynamix.cpp $(SRCDIR)/libdynamix_outputs.cpp $(INCDIR)/libdynamix_outputs.h
+	$(CPP) $(CPPFLAGS) -c $< -o $@
+
+$(OBJDIR)/libdynamix_outputs.o: $(SRCDIR)/libdynamix_outputs.cpp $(INCDIR)/libdynamix_outputs.h
+	$(CPP) $(CPPFLAGS) -c $< -o $@
+
+$(OBJDIR)/libdynamix_input_parser.o: $(SRCDIR)/libdynamix_input_parser.cpp $(INCDIR)/libdynamix_input_parser.h
+	$(CPP) $(CPPFLAGS) -c $< -o $@
 
 .PHONY: clean cleantest build
 clean:
