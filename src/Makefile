@@ -1,3 +1,8 @@
+# name of main executable
+### This line should be just about all you have to change ###
+BIN = dynamix
+#############################################################
+
 # flags for compiler and linker
 CXX = icpc
 CPP = $(CXX)
@@ -13,14 +18,11 @@ SRCDIR = ./src
 # make will look for .cpp files in $(SRCDIR)
 vpath %.cpp $(SRCDIR)
 
-# name of main executable
-BIN = dynamix
-
 # list of source files
-SOURCES = dynamix.cpp libdynamix_outputs.cpp \
-	  libdynamix_input_parser.cpp
+SOURCES = $(wildcard $(SRCDIR)/*.cpp)
+
 # object files have same name as .cpp files, but with .o extension
-OBJECTS = $(patsubst %.cpp,obj/%.o,$(SOURCES))
+OBJECTS = $(patsubst $(SRCDIR)/%.cpp,obj/%.o,$(SOURCES))
 
 # build the main executable; this should be listed first
 $(BIN): $(OBJECTS)
