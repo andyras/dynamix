@@ -33,7 +33,7 @@ function compile {
 function run {
 ## RUN THE PROGRAM! ##
  echo "### $(date) running dynamix..."
- ./src/dynamix
+ ./bin/dynamix
  if [ $? == 0 ] ; then
   echo "### $(date) dynamix done!"
  else
