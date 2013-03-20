@@ -11,11 +11,13 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 #include <mkl.h>
+#include <map>
 
+#include "libdynamix_input_parser.h"
 #include "libdynamix_outputs.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-// #define DEBUG
+//#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -242,7 +244,9 @@ double mid = (bandTop - bandEdge)/2.0;
  return Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid);
 }
 
-void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge, realtype kBandTop, realtype * energy) {
+void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
+                    realtype kBandTop, realtype * energy,
+		    std::map<std::string, bool> &outs) {
 // assign coupling constants to global array V
  
  int i, j;	// counters
@@ -338,15 +342,17 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge, realtype kB
  }
 #endif
 
- FILE * couplings;
- couplings = fopen("couplings.out","w");
- for (i = 0; i < dim; i++) {
-  for (j = 0; j < dim; j++) {
-   fprintf(couplings,"%.7g ",vArray[i][j]);
+ if (outs["couplings.out"]) {
+  FILE * couplings;
+  couplings = fopen("couplings.out","w");
+  for (i = 0; i < dim; i++) {
+   for (j = 0; j < dim; j++) {
+    fprintf(couplings,"%.7g ",vArray[i][j]);
+   }
+   fprintf(couplings,"\n");
   }
-  fprintf(couplings,"\n");
+  fclose(couplings);
  }
- fclose(couplings);
  
 }
 
@@ -717,7 +723,8 @@ int Output_checkpoint(
 
 int Analytical_c (
  double tout, int timesteps, realtype * energies,
- double kBandEdge, double kBandTop, N_Vector y) {
+ double kBandEdge, double kBandTop, N_Vector y,
+ std::map<std::string, bool> &outs) {
 // computes analytically the population on a single c state
 
  // energy spacing in bulk
@@ -745,20 +752,33 @@ int Analytical_c (
  complex <double> I2 (-1, 0);
 
  FILE * ms_est;
+ if (outs["ms_est.out"]) {
+  ms_est = fopen("ms_est.out", "w");
+ }
  FILE * ms_est_tot;
+ if (outs["ms_est_tot.out"]) {
+  ms_est_tot = fopen("ms_est_tot.out", "w");
+ }
  FILE * c_diag;			// diagonal portion of coefficients
+ if (outs["c_diag.out"]) {
+  c_diag = fopen("c_diag.out", "w");
+ }
  FILE * c_offdiag;		// diagonal portion of coefficients
-
- ms_est = fopen("ms_est.out", "w");
- ms_est_tot = fopen("ms_est_tot.out", "w");
- c_diag = fopen("c_diag.out", "w");
- c_offdiag = fopen("c_offdiag.out", "w");
+ if (outs["c_offdiag.out"]) {
+  c_offdiag = fopen("c_offdiag.out", "w");
+ }
 
  for (t = complex<double>(0,0); real(t) <= tout; t += complex<double>(tout/timesteps,0)) {
   cn_tot = 0.0;
-  fprintf(ms_est, "%.7g", real(t));
-  fprintf(c_diag, "%.7g", real(t));
-  fprintf(c_offdiag, "%.7g", real(t));
+  if (outs["ms_est.out"]) {
+   fprintf(ms_est, "%.7g", real(t));
+  }
+  if (outs["c_diag.out"]) {
+   fprintf(c_diag, "%.7g", real(t));
+  }
+  if (outs["c_offdiag.out"]) {
+   fprintf(c_offdiag, "%.7g", real(t));
+  }
   for (int n = 0; n < Nc; n++) {
    cn = complex<double>(0, 0);
    cn_diag = complex<double>(0, 0);
@@ -790,21 +810,43 @@ int Analytical_c (
 
    complex<double>thexfactor (1.0/pow(sqrt((kBandTop-kBandEdge)/(Nk-1)),2), 0);
    // complex<double>thexfactor (1, 0);
-   fprintf(ms_est, " %.7g", real(thexfactor*cn*conj(cn)));
-   fprintf(c_diag, " %.7g", real(thexfactor*cn_diag));
-   fprintf(c_offdiag, " %.7g", real(thexfactor*cn_offdiag));
+   if (outs["ms_est.out"]) {
+    fprintf(ms_est, " %.7g", real(thexfactor*cn*conj(cn)));
+   }
+   if (outs["c_diag.out"]) {
+    fprintf(c_diag, " %.7g", real(thexfactor*cn_diag));
+   }
+   if (outs["c_offdiag.out"]) {
+    fprintf(c_offdiag, " %.7g", real(thexfactor*cn_offdiag));
+   }
    cn_tot += real(thexfactor*cn*conj(cn));
   }
-  fprintf(ms_est, "\n");
-  fprintf(c_diag, "\n");
-  fprintf(c_offdiag, "\n");
-  fprintf(ms_est_tot, "%.7g %.7g\n", real(t), cn_tot);
+  if (outs["ms_est.out"]) {
+   fprintf(ms_est, "\n");
+  }
+  if (outs["c_diag.out"]) {
+   fprintf(c_diag, "\n");
+  }
+  if (outs["c_offdiag.out"]) {
+   fprintf(c_offdiag, "\n");
+  }
+  if (outs["ms_est_tot.out"]) {
+   fprintf(ms_est_tot, "%.7g %.7g\n", real(t), cn_tot);
+  }
  }
 
- fclose(ms_est);
- fclose(ms_est_tot);
- fclose(c_diag);
- fclose(c_offdiag);
+ if (outs["ms_est.out"]) {
+  fclose(ms_est);
+ }
+ if (outs["ms_est_tot.out"]) {
+  fclose(ms_est_tot);
+ }
+ if (outs["c_diag.out"]) {
+  fclose(c_diag);
+ }
+ if (outs["c_offdiag.out"]) {
+  fclose(c_offdiag);
+ }
 
  return 0;
 }
@@ -896,7 +938,8 @@ int Find_array_maximum_index (realtype * inputArray, int num) {
 
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
-  realtype * energy_expectation, int num, double * qd_est, double * qd_est_diag) {
+  realtype * energy_expectation, int num, double * qd_est, double * qd_est_diag,
+  std::map<std::string, bool> &outs) {
 // makes output files for time-dependent properties
 
  FILE * tkprob;
@@ -925,199 +968,356 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  int i, j;
  realtype summ;
 
- tkprob = fopen("tkprob.out", "w");
- tlprob = fopen("tlprob.out", "w");
- tcprob = fopen("tcprob.out", "w");
- vibprob = fopen("vibprob.out", "w");
- kprobs = fopen("kprobs.out", "w");
- kprobs_gnuplot = fopen("kprobs_gnuplot.out", "w");
- cprobs_gnuplot = fopen("cprobs_gnuplot.out", "w");
- cprobs = fopen("cprobs.out", "w");
- bprobs = fopen("bprobs.out", "w");
- totprob = fopen("totprob.out", "w");
- Ikprob = fopen("Ikprob.out", "w");
- Icprob = fopen("Icprob.out", "w");
- kmax = fopen("kmax.out", "w");
- cmax = fopen("cmax.out", "w");
- cmax_t = fopen("cmax_t.out", "w");
- cmax_first = fopen("cmax_first.out", "w");
- cmax_first_t = fopen("cmax_first_t.out", "w");
- energy = fopen("energy.out", "w");
- times = fopen("times.out", "w");
- pump_intensity = fopen("pump_intensity.out", "w");
- energy_exp = fopen("energy_exp.out", "w");
- qd_estimate = fopen("qd_est.out", "w");
- qd_estimate_diag = fopen("qd_est_diag.out", "w");
-
- for (i = 0 ; i < num ; i++) {				// print k probabilities over time
-  fprintf(kprobs, "%-.7g", time[i]);
-  for (j = 0; j < Nk ; j++)
-   fprintf(kprobs, " %-.7g", allprobs[i][Ik+j]);
-  fprintf(kprobs, "\n");
+ if (outs["tkprob.out"]) {
+  tkprob = fopen("tkprob.out", "w");
  }
- for (i = 0 ; i < num ; i++) {
-  for (j = 0 ; j < Nk ; j++ )
-   fprintf(kprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ik_vib + j*N_vib], allprobs[i][Ik+j]);
-  if (i < (num - 1))
-   fprintf(kprobs_gnuplot, "\n");			// makes a blank line for gnuplot
+ if (outs["tlprob.out"]) {
+  tlprob = fopen("tlprob.out", "w");
+ }
+ if (outs["tcprob.out"]) {
+  tcprob = fopen("tcprob.out", "w");
+ }
+ if (outs["vibprob.out"]) {
+  vibprob = fopen("vibprob.out", "w");
+ }
+ if (outs["kprobs.out"]) {
+  kprobs = fopen("kprobs.out", "w");
+ }
+ if (outs["kprobs_gnuplot.out"]) {
+  kprobs_gnuplot = fopen("kprobs_gnuplot.out", "w");
+ }
+ if (outs["cprobs_gnuplot.out"]) {
+  cprobs_gnuplot = fopen("cprobs_gnuplot.out", "w");
+ }
+ if (outs["cprobs.out"]) {
+  cprobs = fopen("cprobs.out", "w");
+ }
+ if (outs["bprobs.out"]) {
+  bprobs = fopen("bprobs.out", "w");
+ }
+ if (outs["totprob.out"]) {
+  totprob = fopen("totprob.out", "w");
+ }
+ if (outs["Ikprob.out"]) {
+  Ikprob = fopen("Ikprob.out", "w");
+ }
+ if (outs["Icprob.out"]) {
+  Icprob = fopen("Icprob.out", "w");
+ }
+ if (outs["kmax.out"]) {
+  kmax = fopen("kmax.out", "w");
+ }
+ if (outs["cmax.out"]) {
+  cmax = fopen("cmax.out", "w");
+ }
+ if (outs["cmax_t.out"]) {
+  cmax_t = fopen("cmax_t.out", "w");
+ }
+ if (outs["cmax_first.out"]) {
+  cmax_first = fopen("cmax_first.out", "w");
+ }
+ if (outs["cmax_first_t.out"]) {
+  cmax_first_t = fopen("cmax_first_t.out", "w");
+ }
+ if (outs["energy.out"]) {
+  energy = fopen("energy.out", "w");
+ }
+ if (outs["times.out"]) {
+  times = fopen("times.out", "w");
+ }
+ if (outs["pump_intensity.out"]) {
+  pump_intensity = fopen("pump_intensity.out", "w");
+ }
+ if (outs["energy_exp.out"]) {
+  energy_exp = fopen("energy_exp.out", "w");
+ }
+ if (outs["qd_est.out"]) {
+  qd_estimate = fopen("qd_est.out", "w");
+ }
+ if (outs["qd_est_diag.out"]) {
+  qd_estimate_diag = fopen("qd_est_diag.out", "w");
  }
 
-
- for (i = 0 ; i < num ; i++) {				// print c probabilities over time
-  fprintf(cprobs, "%-.7g", time[i]);
-  for (j = 0; j < Nc ; j++)
-   fprintf(cprobs, " %-.7g", allprobs[i][Ic+j]);
-  fprintf(cprobs, "\n");
- }
- for (i = 0 ; i < num ; i++) {
-  for (j = 0 ; j < Nc ; j++ )
-   fprintf(cprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ic_vib + j*N_vib], allprobs[i][Ic+j]);
-  if (i < (num - 1))
-   fprintf(cprobs_gnuplot, "\n");			// makes a blank line for gnuplot
+ if (outs["kprobs.out"]) {
+  for (i = 0 ; i < num ; i++) {				// print k probabilities over time
+   fprintf(kprobs, "%-.7g", time[i]);
+   for (j = 0; j < Nk ; j++)
+    fprintf(kprobs, " %-.7g", allprobs[i][Ik+j]);
+   fprintf(kprobs, "\n");
+  }
  }
 
- for (i = 0 ; i < num ; i++) {				// print b probabilities over time
-  fprintf(bprobs, "%-.7g", time[i]);
-  for (j = 0; j < Nb ; j++)
-   fprintf(bprobs, " %-.7g", allprobs[i][Ib+j]);
-  fprintf(bprobs, "\n");
+ if (outs["kprobs_gnuplot.out"]) {
+  for (i = 0 ; i < num ; i++) {
+   for (j = 0 ; j < Nk ; j++ )
+    fprintf(kprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ik_vib + j*N_vib], allprobs[i][Ik+j]);
+   if (i < (num - 1))
+    fprintf(kprobs_gnuplot, "\n");			// makes a blank line for gnuplot
+  }
+ }
+
+ if (outs["cprobs.out"]) {
+  for (i = 0 ; i < num ; i++) {				// print c probabilities over time
+   fprintf(cprobs, "%-.7g", time[i]);
+   for (j = 0; j < Nc ; j++)
+    fprintf(cprobs, " %-.7g", allprobs[i][Ic+j]);
+   fprintf(cprobs, "\n");
+  }
+ }
+
+ if (outs["cprobs_gnuplot.out"]) {
+  for (i = 0 ; i < num ; i++) {
+   for (j = 0 ; j < Nc ; j++ )
+    fprintf(cprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ic_vib + j*N_vib], allprobs[i][Ic+j]);
+   if (i < (num - 1))
+    fprintf(cprobs_gnuplot, "\n");			// makes a blank line for gnuplot
+  }
+ }
+
+ if (outs["bprobs.out"]) {
+  for (i = 0 ; i < num ; i++) {				// print b probabilities over time
+   fprintf(bprobs, "%-.7g", time[i]);
+   for (j = 0; j < Nb ; j++)
+    fprintf(bprobs, " %-.7g", allprobs[i][Ib+j]);
+   fprintf(bprobs, "\n");
+  }
  }
 
  if (Nb > 0) {
   FILE * tbprob;
   FILE * Ibprob;
   FILE * bmax;
+  // TODO find out why this is set to 0 and then written
   double max_b_prob = 0;
 
-  tbprob = fopen("tbprob.out", "w");
-  Ibprob = fopen("Ibprob.out", "w");
-  bmax = fopen("bmax.out", "w");
+  if (outs["tbprob.out"]) {
+   tbprob = fopen("tbprob.out", "w");
+   for (i = 0; i <= num; i++)				// print total b population
+    fprintf(tbprob, "%-.7g %-.7g\n", time[i], tb[i]);
+   fclose(tbprob);
+  }
 
-  for (i = 0; i <= num; i++)				// print total b population
-   fprintf(tbprob, "%-.7g %-.7g\n", time[i], tb[i]);
-  
-  fprintf(Ibprob, "%-.7g", Integrate_arrays(tb, time, num+1));
-  
-  for (i = 0 ; i < num + 1 ; i++) {
-   for (j = 0 ; j < Nb ; j++) {
-    if (allprobs[i][Ib+j] > max_b_prob) {
-     max_b_prob = allprobs[i][Ib+j];
+  if (outs["Ibprob.out"]) {
+   Ibprob = fopen("Ibprob.out", "w");
+   fprintf(Ibprob, "%-.7g", Integrate_arrays(tb, time, num+1));
+   fclose(Ibprob);
+  }
+
+  if (outs["bmax.out"]) {
+   bmax = fopen("bmax.out", "w");
+   for (i = 0 ; i < num + 1 ; i++) {
+    for (j = 0 ; j < Nb ; j++) {
+     if (allprobs[i][Ib+j] > max_b_prob) {
+      max_b_prob = allprobs[i][Ib+j];
+     }
     }
    }
+   // TODO THE MYSTERY!!!
+   //fprintf(bmax, "%-.7g", Find_array_maximum(tb, num+1));
+   fprintf(bmax, "%-.7g", max_b_prob);
+   fclose(bmax);
   }
-  //fprintf(bmax, "%-.7g", Find_array_maximum(tb, num+1));
-  fprintf(bmax, "%-.7g", max_b_prob);
-  
-  fclose(tbprob);
-  fclose(Ibprob);
-  fclose(bmax);
  }
 
  for (i = 0; i <= num; i++) {				// print total k, c population
-  fprintf(tkprob, "%-.7g %-.7g\n", time[i], tk[i]);
-  fprintf(tlprob, "%-.7g %-.7g\n", time[i], tl[i]);
-  fprintf(tcprob, "%-.7g %-.7g\n", time[i], tc[i]);
+  if (outs["tkprob.out"]) {
+   fprintf(tkprob, "%-.7g %-.7g\n", time[i], tk[i]);
+  }
+  if (outs["tlprob.out"]) {
+   fprintf(tlprob, "%-.7g %-.7g\n", time[i], tl[i]);
+  }
+  if (outs["tcprob.out"]) {
+   fprintf(tcprob, "%-.7g %-.7g\n", time[i], tc[i]);
+  }
   summ = tk[i] + tc[i] + tl[i];
   if (Nb > 0)
    summ += tb[i];
-  fprintf(totprob, "%-.7g %-.15g\n", time[i], summ);
+  if (outs["totprob.out"]) {
+   fprintf(totprob, "%-.7g %-.15g\n", time[i], summ);
+  }
  }
 
- for (i = 0; i <= num; i++) {				// print vibrational populations
-  fprintf(vibprob, "%-.7g %-.7g", time[i], vibProb[i][0]);
-  for (j = 1; j < N_vib; j++)
-   fprintf(vibprob, " %-.7g", vibProb[i][j]);
-  fprintf(vibprob, "\n");
+ if (outs["vibprob.out"]) {
+  for (i = 0; i <= num; i++) {				// print vibrational populations
+   fprintf(vibprob, "%-.7g %-.7g", time[i], vibProb[i][0]);
+   for (j = 1; j < N_vib; j++)
+    fprintf(vibprob, " %-.7g", vibProb[i][j]);
+   fprintf(vibprob, "\n");
+  }
  }
 
- fprintf(Ikprob, "%-.7g", Integrate_arrays(tk, time, num+1));
- fprintf(Icprob, "%-.7g", Integrate_arrays(tc, time, num+1));
+ if (outs["Ikprob.out"]) {
+  fprintf(Ikprob, "%-.7g", Integrate_arrays(tk, time, num+1));
+ }
+ if (outs["Icprob.out"]) {
+  fprintf(Icprob, "%-.7g", Integrate_arrays(tc, time, num+1));
+ }
  
- fprintf(kmax, "%-.7g", Find_array_maximum(tk, num+1));
- fprintf(cmax, "%-.7g", Find_array_maximum(tc, num+1));
- fprintf(cmax_first, "%-.7g", Find_first_array_maximum(tc, num+1));
- fprintf(cmax_t, "%-.7g", time[Find_array_maximum_index(tc, num+1)]);
- fprintf(cmax_first_t, "%-.7g", time[Find_first_array_maximum_index(tc, num+1)]);
+ if (outs["kmax.out"]) {
+  fprintf(kmax, "%-.7g", Find_array_maximum(tk, num+1));
+ }
+ if (outs["cmax.out"]) {
+  fprintf(cmax, "%-.7g", Find_array_maximum(tc, num+1));
+ }
+ if (outs["cmax_first.out"]) {
+  fprintf(cmax_first, "%-.7g", Find_first_array_maximum(tc, num+1));
+ }
+ if (outs["cmax_t.out"]) {
+  fprintf(cmax_t, "%-.7g", time[Find_array_maximum_index(tc, num+1)]);
+ }
+ if (outs["cmax_first_t.out"]) {
+  fprintf(cmax_first_t, "%-.7g", time[Find_first_array_maximum_index(tc, num+1)]);
+ }
 
- // energy.out should be all the energies on one row, since it's used for
- // the movie maker.
- fprintf(energy, "%-.7g", energies[0]);
- for (i = 1; i < NEQ; i++)
-  fprintf(energy, " %-.7g", energies[i*N_vib]);
+ if (outs["energy.out"]) {
+  // energy.out should be all the energies on one row, since it's used for
+  // the movie maker.
+  fprintf(energy, "%-.7g", energies[0]);
+  for (i = 1; i < NEQ; i++)
+   fprintf(energy, " %-.7g", energies[i*N_vib]);
+ }
 
  for (i = 0; i <= num; i++) {
-  fprintf(times, "%-.7g\n", time[i]);
-  fprintf(pump_intensity, "%-.7g %-.7g\n", time[i], pump(time[i]));
-  fprintf(energy_exp, "%-.7g %-.7g\n", time[i], energy_expectation[i]);
-  fprintf(qd_estimate, "%-.7g %-.7g\n", time[i], qd_est[i]);
-  fprintf(qd_estimate_diag, "%-.7g %-.7g\n", time[i], qd_est_diag[i]);
+  if (outs["times.out"]) {
+   fprintf(times, "%-.7g\n", time[i]);
+  }
+  if (outs["pump_intensity.out"]) {
+   fprintf(pump_intensity, "%-.7g %-.7g\n", time[i], pump(time[i]));
+  }
+  if (outs["energy_exp.out"]) {
+   fprintf(energy_exp, "%-.7g %-.7g\n", time[i], energy_expectation[i]);
+  }
+  if (outs["qd_estimate.out"]) {
+   fprintf(qd_estimate, "%-.7g %-.7g\n", time[i], qd_est[i]);
+  }
+  if (outs["qd_estimate_diag.out"]) {
+   fprintf(qd_estimate_diag, "%-.7g %-.7g\n", time[i], qd_est_diag[i]);
+  }
  }
 
- fclose(tkprob);
- fclose(tlprob);
- fclose(tcprob);
- fclose(vibprob);
- fclose(kprobs);
- fclose(kprobs_gnuplot);
- fclose(cprobs);
- fclose(cprobs_gnuplot);
- fclose(bprobs);
- fclose(totprob);
- fclose(Ikprob);
- fclose(Icprob);
- fclose(kmax);
- fclose(cmax);
- fclose(cmax_first);
- fclose(cmax_t);
- fclose(cmax_first_t);
- fclose(energy);
- fclose(times);
- fclose(qd_estimate);
- fclose(qd_estimate_diag);
+ if (outs["tkprob.out"]) {
+  fclose(tkprob);
+ }
+ if (outs["tlprob.out"]) {
+  fclose(tlprob);
+ }
+ if (outs["tcprob.out"]) {
+  fclose(tcprob);
+ }
+ if (outs["vibprob.out"]) {
+  fclose(vibprob);
+ }
+ if (outs["kprobs.out"]) {
+  fclose(kprobs);
+ }
+ if (outs["kprobs_gnuplot.out"]) {
+  fclose(kprobs_gnuplot);
+ }
+ if (outs["cprobs.out"]) {
+  fclose(cprobs);
+ }
+ if (outs["cprobs_gnuplot.out"]) {
+  fclose(cprobs_gnuplot);
+ }
+ if (outs["bprobs.out"]) {
+  fclose(bprobs);
+ }
+ if (outs["totprob.out"]) {
+  fclose(totprob);
+ }
+ if (outs["Ikprob.out"]) {
+  fclose(Ikprob);
+ }
+ if (outs["Icprob.out"]) {
+  fclose(Icprob);
+ }
+ if (outs["kmax.out"]) {
+  fclose(kmax);
+ }
+ if (outs["cmax.out"]) {
+  fclose(cmax);
+ }
+ if (outs["cmax_first.out"]) {
+  fclose(cmax_first);
+ }
+ if (outs["cmax_t.out"]) {
+  fclose(cmax_t);
+ }
+ if (outs["cmax_first_t.out"]) {
+  fclose(cmax_first_t);
+ }
+ if (outs["energy.out"]) {
+  fclose(energy);
+ }
+ if (outs["times.out"]) {
+  fclose(times);
+ }
+ if (outs["qd_estimate.out"]) {
+  fclose(qd_estimate);
+ }
+ if (outs["qd_estimate_diag.out"]) {
+  fclose(qd_estimate_diag);
+ }
 
  // compute derivatives
  FILE * tkDeriv;
- FILE * tcDeriv;
  double * tkderivs = new double [numOutputSteps-5];
- double * tcderivs = new double [numOutputSteps-5];
- tkDeriv = fopen("tkderiv.out","w");
- tcDeriv = fopen("tcderiv.out","w");
  Derivative(tk, numOutputSteps, tkderivs, time[1]-time[0]);
- Derivative(tc, numOutputSteps, tcderivs, time[1]-time[0]);
- for (i = 0; i < numOutputSteps-5; i++) {
-  fprintf(tkDeriv, "%-.7g %-.9g\n", time[i+2], tkderivs[i]);
-  fprintf(tcDeriv, "%-.7g %-.9g\n", time[i+2], tcderivs[i]);
+ if (outs["tkderiv.out"]) {
+  tkDeriv = fopen("tkderiv.out","w");
+  for (i = 0; i < numOutputSteps-5; i++) {
+   fprintf(tkDeriv, "%-.7g %-.9g\n", time[i+2], tkderivs[i]);
+  }
+  fclose(tkDeriv);
  }
- fclose(tkDeriv);
- fclose(tcDeriv);
  delete [] tkderivs;
+
+ FILE * tcDeriv;
+ double * tcderivs = new double [numOutputSteps-5];
+ Derivative(tc, numOutputSteps, tcderivs, time[1]-time[0]);
+ if (outs["tcderiv.out"]) {
+  tcDeriv = fopen("tcderiv.out","w");
+  for (i = 0; i < numOutputSteps-5; i++) {
+   fprintf(tcDeriv, "%-.7g %-.9g\n", time[i+2], tcderivs[i]);
+  }
+  fclose(tcDeriv);
+ }
  delete [] tcderivs;
 
  // compute rates.  Rate is calculated as (dP(t)/dt)/P(t), where P(t) is
  // the population at time t.
  FILE * tkRate;
- FILE * tcRate;
- tkRate = fopen("tkrate.out","w");
- tcRate = fopen("tcrate.out","w");
- for (i = 0; i < numOutputSteps-5; i++) {
-  fprintf(tkRate, "%-.7g %-.9g\n", time[i+2], tkderivs[i]/tk[i+2]);
-  fprintf(tcRate, "%-.7g %-.9g\n", time[i+2], tcderivs[i]/tc[i+2]);
+ if (outs["tkrate.out"]) {
+  tkRate = fopen("tkrate.out","w");
+std::cout << "\n\nHere I am\n";
+  for (i = 0; i < numOutputSteps-5; i++) {
+   fprintf(tkRate, "%-.7g %-.9g\n", time[i+2], tkderivs[i]/tk[i+2]);
+  }
+  fclose(tkRate);
  }
- fclose(tkRate);
- fclose(tcRate);
+
+ FILE * tcRate;
+ if (outs["tcrate.out"]) {
+  tcRate = fopen("tcrate.out","w");
+  for (i = 0; i < numOutputSteps-5; i++) {
+   fprintf(tcRate, "%-.7g %-.9g\n", time[i+2], tcderivs[i]/tc[i+2]);
+  }
+  fclose(tcRate);
+ }
 
 }
 
-
-void outputYData(realtype * ydata, int n) {
+void outputYData(realtype * ydata, int n, std::map<std::string, bool> &outs) {
 // prints out initial wave function.  Inputs are the wave function array and
 // the number of equations.
  FILE * psi_start;
- psi_start = fopen("psi_start.out", "w");
- for (int i = 0; i < n; i++) {
-  fprintf(psi_start, "%-.9g %-.9g\n", ydata[i],2, ydata[i+n]);
+ if (outs["psi_start.out"]) {
+  psi_start = fopen("psi_start.out", "w");
+  for (int i = 0; i < n; i++) {
+   fprintf(psi_start, "%-.9g %-.9g\n", ydata[i],2, ydata[i+n]);
+  }
+  fclose(psi_start);
  }
- fclose(psi_start);
 }
 
 void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N, int N_vib,
@@ -1298,7 +1498,8 @@ void printSquareMatrix(realtype * M, int N, char * fileName) {
  fclose(out);
 }
 
-void projectSubsystems(realtype * evecs, realtype * evals, int dim) {
+void projectSubsystems(realtype * evecs, realtype * evals, int dim,
+                       std::map<std::string, bool> &outs) {
 // projects the initial wavefunction from the state basis onto the
 // subsystems (bulk, bridge, QD, etc.)
  int i, j;	// counters!
@@ -1324,32 +1525,36 @@ void projectSubsystems(realtype * evecs, realtype * evals, int dim) {
 
  // write projections to file
  FILE * projections;
- projections = fopen("projections.out", "w");
- for (i = 0; i < dim; i++) {
-  fprintf(projections, "%-.9g %-.9g %-.9g %-.9g\n",
-          evals[i], bu_proj[i], br_proj[i], qd_proj[i]);
+ if (outs["projections.out"]) {
+  projections = fopen("projections.out", "w");
+  for (i = 0; i < dim; i++) {
+   fprintf(projections, "%-.9g %-.9g %-.9g %-.9g\n",
+	   evals[i], bu_proj[i], br_proj[i], qd_proj[i]);
+  }
+  fclose(projections);
  }
- fclose(projections);
 
  // make a plotting file
  FILE * proj_plot;
- proj_plot = fopen("projections.plt", "w");
- fprintf(proj_plot, "#!/usr/bin/env gnuplot\n");
- fprintf(proj_plot, "set terminal postscript enhanced color size 20cm,14cm font 'Courier-Bold,12'\n");
- fprintf(proj_plot, "set output 'pdos_stack.eps'\n");
- fprintf(proj_plot, "set key outside right\n");
- fprintf(proj_plot, "set tics scale 0\n");
- fprintf(proj_plot, "set yr [0:1]\n");
- fprintf(proj_plot, "set ytics ('0' 0, '1' 1)\n");
- fprintf(proj_plot, "set rmargin 18\n");
- fprintf(proj_plot, "set multiplot layout 4,1\n");
- fprintf(proj_plot, "plot '../outs/projections.out' u 1:2 w im lw 2 lc rgb 'red' t 'Bulk'\n");
- fprintf(proj_plot, "plot '../outs/projections.out' u 1:3 w im lw 2 lc rgb 'blue' t 'Bridge'\n");
- fprintf(proj_plot, "plot '../outs/projections.out' u 1:4 w im lw 2 lc rgb 'green' t 'QD'\n");
- fprintf(proj_plot, "set xlabel 'Energy (E_h)'\n");
- fprintf(proj_plot, "plot '../outs/psi2_start_e.out' w im lw 2 lc rgb 'black' t 'Psi'\n");
- fprintf(proj_plot, "unset multiplot\n");
- fclose(proj_plot);
+ if (outs["projections.plt"]) {
+  proj_plot = fopen("projections.plt", "w");
+  fprintf(proj_plot, "#!/usr/bin/env gnuplot\n");
+  fprintf(proj_plot, "set terminal postscript enhanced color size 20cm,14cm font 'Courier-Bold,12'\n");
+  fprintf(proj_plot, "set output 'pdos_stack.eps'\n");
+  fprintf(proj_plot, "set key outside right\n");
+  fprintf(proj_plot, "set tics scale 0\n");
+  fprintf(proj_plot, "set yr [0:1]\n");
+  fprintf(proj_plot, "set ytics ('0' 0, '1' 1)\n");
+  fprintf(proj_plot, "set rmargin 18\n");
+  fprintf(proj_plot, "set multiplot layout 4,1\n");
+  fprintf(proj_plot, "plot '../outs/projections.out' u 1:2 w im lw 2 lc rgb 'red' t 'Bulk'\n");
+  fprintf(proj_plot, "plot '../outs/projections.out' u 1:3 w im lw 2 lc rgb 'blue' t 'Bridge'\n");
+  fprintf(proj_plot, "plot '../outs/projections.out' u 1:4 w im lw 2 lc rgb 'green' t 'QD'\n");
+  fprintf(proj_plot, "set xlabel 'Energy (E_h)'\n");
+  fprintf(proj_plot, "plot '../outs/psi2_start_e.out' w im lw 2 lc rgb 'black' t 'Psi'\n");
+  fprintf(proj_plot, "unset multiplot\n");
+  fclose(proj_plot);
+ }
 
  // clean up
  delete [] bu_proj;
@@ -1697,13 +1902,32 @@ int main (int argc, char * argv[]) {
  realtype * qd_est;
  realtype * qd_est_diag;
  realtype * energy_expectation;			// expectation value of energy at each timestep
+ const char * inputFile;			// name of input file
+ inputFile = "ins/parameters.in";
+ std::map<std::string, bool> outs;		// map of output file names to bool
  // END VARIABLES //
+ 
+ // Decide which output files to make
+#ifdef DEBUG
+ std::cout << "Assigning outputs as specified in " << inputFile << "\n";
+#endif
+ assignOutputs(inputFile, outs);
+#ifdef DEBUG
+ // print out which outputs will be made
+ for (std::map<std::string, bool>::iterator it = outs.begin(); it != outs.end(); it++) {
+  std::cout << "Output file: " << it->first << " will be created.\n";
+ }
+#endif
 
  // OPEN LOG FILE; PUT IN START TIME //
- log = fopen("log.out", "w");			// note that this file is closed at the end of the program
+ if (outs["log.out"]) {
+  log = fopen("log.out", "w");			// note that this file is closed at the end of the program
+ }
  time(&startRun);
  currentTime = localtime(&startRun);
- fprintf(log, "Run started at %s\n", asctime(currentTime));
+ if (outs["log.out"]) {
+  fprintf(log, "Run started at %s\n", asctime(currentTime));
+ }
  
  // read in parameters from parameter bash script
 
@@ -1879,8 +2103,10 @@ int main (int argc, char * argv[]) {
  cout << "random_seed is " << random_seed << endl;
 #endif
 
- // make a note about the laser intensity.
- fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
+ if (outs["log.out"]) {
+  // make a note about the laser intensity.
+  fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
+ }
 
  // Error checking
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
@@ -2100,7 +2326,7 @@ int main (int argc, char * argv[]) {
  }
 #endif
 
- outputYData(ydata, NEQ_vib);
+ outputYData(ydata, NEQ_vib, outs);
 
  // If random_phase is on, give all coefficients a random phase
  if (random_phase) {
@@ -2188,31 +2414,33 @@ int main (int argc, char * argv[]) {
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
- buildCoupling(V, NEQ, k_bandedge, k_bandtop, energy);
+ buildCoupling(V, NEQ, k_bandedge, k_bandtop, energy, outs);
 
- // make a note in the log about system timescales
- double tau = 0;		// fundamental system timescale
- if (Nk == 1) {
-  fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
- }
- else {
-  if (bridge_on) {
-   if (scale_bubr) {
-    tau = 1.0/(2*Vbridge[0]*M_PI);
-   }
-   else {
-    tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*M_PI);
-   }
+ if (outs["log.out"]) {
+  // make a note in the log about system timescales
+  double tau = 0;		// fundamental system timescale
+  if (Nk == 1) {
+   fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
   }
   else {
-   if (scale_buqd) {
-    tau = 1.0/(2*Vnobridge[0]*M_PI);
+   if (bridge_on) {
+    if (scale_bubr) {
+     tau = 1.0/(2*Vbridge[0]*M_PI);
+    }
+    else {
+     tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*M_PI);
+    }
    }
    else {
-    tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*M_PI);
+    if (scale_buqd) {
+     tau = 1.0/(2*Vnobridge[0]*M_PI);
+    }
+    else {
+     tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*M_PI);
+    }
    }
+   fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
   }
-  fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
  }
 
  // DONE PREPROCESSING //
@@ -2249,7 +2477,7 @@ int main (int argc, char * argv[]) {
 
  if (analytical) {
   // Compute the analytical population on the c states
-  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y);
+  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y, outs);
  }
 
  // create CVode object //
@@ -2308,7 +2536,7 @@ int main (int argc, char * argv[]) {
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,
    tlprob, tcprob, tbprob, vibprob, energy,
-   energy_expectation, numOutputSteps, qd_est, qd_est_diag);
+   energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
  }
  // use LAPACK for time-independent H
  else {
@@ -2387,7 +2615,7 @@ int main (int argc, char * argv[]) {
   printCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
   makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps);
   // write out projections of subsystems
-  projectSubsystems(H, W, NEQ_vib);
+  projectSubsystems(H, W, NEQ_vib, outs);
   delete [] H;
   delete [] W;
   delete [] WORK;
@@ -2410,10 +2638,12 @@ int main (int argc, char * argv[]) {
  // finalize log file //
  time(&endRun);
  currentTime = localtime(&endRun);
- fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
- fprintf(log, "Run ended at %s\n", asctime(currentTime));
- fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
- fclose(log);					// note that the log file is opened after variable declaration
+ if (outs["log.out"]) {
+  fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
+  fprintf(log, "Run ended at %s\n", asctime(currentTime));
+  fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
+  fclose(log);					// note that the log file is opened after variable declaration
+ }
  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
  // deallocate memory for N_Vectors //

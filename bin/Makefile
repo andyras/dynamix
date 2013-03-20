@@ -7,6 +7,7 @@ BIN = dynamix
 CXX = icpc
 CPP = $(CXX)
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
+CPPFLAGS = -Wall
 INCLUDES = -I./include
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
@@ -46,6 +47,7 @@ clean:
 
 cleantest:
 	rm -f *.out
+	rm -f *.plt
 	rm -f *test
 
 build:

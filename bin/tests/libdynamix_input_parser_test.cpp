@@ -5,6 +5,7 @@
 #include "libdynamix_input_parser.h"
 
 int main () {
+ // make map of strings to bools
  std::map<std::string, bool> outputs;
 
  std::cout << "\n";

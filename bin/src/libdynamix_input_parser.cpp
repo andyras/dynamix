@@ -59,22 +59,35 @@ void assignOutputs(const char * inputFile, std::map<std::string, bool> &outputs)
  // read inputs until [[End]] header or EOF
  while (getline(input, line)) {
   if (line != "[[End]]") {
+
    // skip comments
    if (line.substr(0,1) == "#") {
 #ifdef DEBUG_INPUT_PARSER
     std::cout << "Skipping comment line: " << line << "\n";
 #endif
-    getline(input, line);
     continue;
    }
+
+   // skip whitespace (space/tab) and blank lines
+   else if ((line.find_first_not_of(' ') == std::string::npos)
+            || (line.find_first_not_of('\t') == std::string::npos)) {
 #ifdef DEBUG_INPUT_PARSER
-   else {
-    std::cout << "This line is not a comment.\n";
-    std::cout << "Output toggled: " << line << "\n";
-   }
+    std::cout << "Skipping blank/whitespace line\n";
 #endif
+    continue;
+   }
+
    // turn on outputs which are in this section of the input
-   outputs[line] = true;
+   else {
+#ifdef DEBUG_INPUT_PARSER
+    std::cout << "Creating output file:  " << line << "\n";
+#endif
+    outputs[line] = true;
+    if ((line.substr(line.length()-4, line.length()) != ".out")
+        && (line.substr(line.length()-4, line.length()) != ".plt")) {
+     std::cerr << "WARNING [" << __FUNCTION__ << "]: output file extension is not '.out' or '.plt'\n";
+    }
+   }
   }
  }
 }
