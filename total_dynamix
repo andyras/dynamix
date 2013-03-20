@@ -19,7 +19,7 @@ function compile {
  if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
  which icpc &> /dev/null
  if [ $? == 0 ] ; then CPP=icpc ; fi
- cd src
+ cd bin
  make CPP=$CPP && echo "### $(date) done compiling!"
  if [ $? == 0 ] ; then
   echo "### $(date) done compiling!"
@@ -306,7 +306,7 @@ function backup {
  echo "### $(date) backing things up..."
  durr=backup/dynamix_$(date +%F.%H.%M.%S)
  mkdir -p $durr
- cp -rf ins/ outs/ src/ figures/ doc/ total_dynamix $durr
+ cp -rf ins/ outs/ bin/ figures/ doc/ total_dynamix $durr
  [ "$do_plot" == 'y' ] && cp *.eps $durr
  [ "$do_movie" == 'y' ] && cp bulk_states.avi $durr
  [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
