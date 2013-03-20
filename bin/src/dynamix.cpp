@@ -1653,7 +1653,8 @@ void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,
  }
 }
 
-void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
+void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
+                   std::map<std::string, bool> &outs) {
 // makes outputs for the result of a time-independent H time propagation
  FILE * tkprob;
  FILE * tcprob;
@@ -1676,115 +1677,165 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
  double maxx;
  int maxx_t;
 
- tkprob = fopen("tkprob.out", "w");
- tcprob = fopen("tcprob.out", "w");
- tbprob = fopen("tbprob.out", "w");
- tlprob = fopen("tlprob.out", "w");
- kprobs = fopen("kprobs.out", "w");
- cprobs = fopen("cprobs.out", "w");
- bprobs = fopen("bprobs.out", "w");
- lprobs = fopen("lprobs.out", "w");
- kmax = fopen("kmax.out", "w");
- cmax = fopen("cmax.out", "w");
- cmax_t = fopen("cmax_t.out", "w");
- cmax_first = fopen("cmax_first.out", "w");
- cmax_first_t = fopen("cmax_first_t.out", "w");
- totprob = fopen("totprob.out", "w");
- energy = fopen("energy.out", "w");
- times = fopen("times.out", "w");
+ if (outs["tkprob.out"]) {
+  tkprob = fopen("tkprob.out", "w");
+ }
+ if (outs["tcprob.out"]) {
+  tcprob = fopen("tcprob.out", "w");
+ }
+ if (outs["tbprob.out"]) {
+  tbprob = fopen("tbprob.out", "w");
+ }
+ if (outs["tlprob.out"]) {
+  tlprob = fopen("tlprob.out", "w");
+ }
+ if (outs["kprobs.out"]) {
+  kprobs = fopen("kprobs.out", "w");
+ }
+ if (outs["cprobs.out"]) {
+  cprobs = fopen("cprobs.out", "w");
+ }
+ if (outs["bprobs.out"]) {
+  bprobs = fopen("bprobs.out", "w");
+ }
+ if (outs["lprobs.out"]) {
+  lprobs = fopen("lprobs.out", "w");
+ }
+ if (outs["kmax.out"]) {
+  kmax = fopen("kmax.out", "w");
+ }
+ if (outs["cmax.out"]) {
+  cmax = fopen("cmax.out", "w");
+ }
+ if (outs["cmax_t.out"]) {
+  cmax_t = fopen("cmax_t.out", "w");
+ }
+ if (outs["cmax_first.out"]) {
+  cmax_first = fopen("cmax_first.out", "w");
+ }
+ if (outs["cmax_first_t.out"]) {
+  cmax_first_t = fopen("cmax_first_t.out", "w");
+ }
+ if (outs["totprob.out"]) {
+  totprob = fopen("totprob.out", "w");
+ }
+ if (outs["energy.out"]) {
+  energy = fopen("energy.out", "w");
+ }
+ if (outs["times.out"]) {
+  times = fopen("times.out", "w");
+ }
 
  // total population k states
- for (i = 0; i <= timesteps; i++) {
-  summ = 0;
-  for (j = Ik_vib; j < Ic_vib; j++) {
-   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+ if (outs["tkprob.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   summ = 0;
+   for (j = Ik_vib; j < Ic_vib; j++) {
+    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+    fprintf(tkprob, "%-.9g %-.9g\n", t[i], summ);
   }
-  fprintf(tkprob, "%-.9g %-.9g\n", t[i], summ);
  }
 
  // population k states
- for (i = 0; i <= timesteps; i++) {
-  for (j = Ik_vib; j < Ic_vib; j++) {
-   if (j == Ik_vib) {
-    fprintf(kprobs, "%-.9g", t[i]);
+ if (outs["kprobs.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   for (j = Ik_vib; j < Ic_vib; j++) {
+    if (j == Ik_vib) {
+     fprintf(kprobs, "%-.9g", t[i]);
+    }
+    fprintf(kprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
    }
-   fprintf(kprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+   fprintf(kprobs, "\n");
   }
-  fprintf(kprobs, "\n");
  }
 
  // total population c states
- for (i = 0; i <= timesteps; i++) {
-  summ = 0;
-  for (j = Ic_vib; j < Ib_vib; j++) {
-   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+ if (outs["tcprob.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   summ = 0;
+   for (j = Ic_vib; j < Ib_vib; j++) {
+    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   fprintf(tcprob, "%-.9g %-.9g\n", t[i], summ);
   }
-  fprintf(tcprob, "%-.9g %-.9g\n", t[i], summ);
  }
 
  // population c states
- for (i = 0; i <= timesteps; i++) {
-  for (j = Ic_vib; j < Ib_vib; j++) {
-   if (j == Ic_vib) {
-    fprintf(cprobs, "%-.9g", t[i]);
+ if (outs["cprobs.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   for (j = Ic_vib; j < Ib_vib; j++) {
+    if (j == Ic_vib) {
+     fprintf(cprobs, "%-.9g", t[i]);
+    }
+    fprintf(cprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
    }
-   fprintf(cprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+   fprintf(cprobs, "\n");
   }
-  fprintf(cprobs, "\n");
  }
 
  // total population b states
- for (i = 0; i <= timesteps; i++) {
-  summ = 0;
-  for (j = Ib_vib; j < Il_vib; j++) {
-   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+ if (outs["tbprob.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   summ = 0;
+   for (j = Ib_vib; j < Il_vib; j++) {
+    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   fprintf(tbprob, "%-.9g %-.9g\n", t[i], summ);
   }
-  fprintf(tbprob, "%-.9g %-.9g\n", t[i], summ);
  }
 
  // population b states
- for (i = 0; i <= timesteps; i++) {
-  for (j = Ib_vib; j < Il_vib; j++) {
-   if (j == Ib_vib) {
-    fprintf(bprobs, "%-.9g", t[i]);
+ if (outs["bprobs.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   for (j = Ib_vib; j < Il_vib; j++) {
+    if (j == Ib_vib) {
+     fprintf(bprobs, "%-.9g", t[i]);
+    }
+    fprintf(bprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
    }
-   fprintf(bprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+   fprintf(bprobs, "\n");
   }
-  fprintf(bprobs, "\n");
  }
 
  // total population l states
- for (i = 0; i <= timesteps; i++) {
-  summ = 0;
-  for (j = Il_vib; j < NEQ_vib; j++) {
-   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+ if (outs["tlprob.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   summ = 0;
+   for (j = Il_vib; j < NEQ_vib; j++) {
+    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   fprintf(tlprob, "%-.9g %-.9g\n", t[i], summ);
   }
-  fprintf(tlprob, "%-.9g %-.9g\n", t[i], summ);
  }
 
  // population l states
- for (i = 0; i <= timesteps; i++) {
-  for (j = Il_vib; j < NEQ_vib; j++) {
-   if (j == Il_vib) {
-    fprintf(lprobs, "%-.9g", t[i]);
+ if (outs["lprobs.out"]) {
+  for (i = 0; i <= timesteps; i++) {
+   for (j = Il_vib; j < NEQ_vib; j++) {
+    if (j == Il_vib) {
+     fprintf(lprobs, "%-.9g", t[i]);
+    }
+    fprintf(lprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
    }
-   fprintf(lprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+   fprintf(lprobs, "\n");
   }
-  fprintf(lprobs, "\n");
  }
 
  // max population on k states
- maxx = 0;
- for (i = 0; i <= timesteps; i++) {
-  summ = 0;
-  for (j = Ik_vib; j < Ic_vib; j++) {
-   summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+ if (outs["kmax.out"]) {
+  maxx = 0;
+  for (i = 0; i <= timesteps; i++) {
+   summ = 0;
+   for (j = Ik_vib; j < Ic_vib; j++) {
+    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   if (summ > maxx) {
+    maxx = summ;
+   }
   }
-  if (summ > maxx) {
-   maxx = summ;
-  }
+  fprintf(kmax, "%-.9g\n", maxx);
  }
- fprintf(kmax, "%-.9g\n", maxx);
 
  // max population on c states and time index
  maxx = 0;
@@ -1799,8 +1850,12 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
    maxx_t = i;
   }
  }
- fprintf(cmax, "%-.9g\n", maxx);
- fprintf(cmax_t, "%-.9g\n", t[maxx_t]);
+ if (outs["cmax.out"]) {
+  fprintf(cmax, "%-.9g\n", maxx);
+ }
+ if (outs["cmax_t.out"]) {
+  fprintf(cmax_t, "%-.9g\n", t[maxx_t]);
+ }
 
  // first max population on c states and time index
  for (i = 0; i <= timesteps; i++) {
@@ -1814,8 +1869,12 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
   }
   else {
    if (summ < maxx) {
-    fprintf(cmax_first, "%-.9g\n", maxx);
-    fprintf(cmax_first_t, "%-.9g\n", t[maxx_t]);
+    if (outs["cmax_first.out"]) {
+     fprintf(cmax_first, "%-.9g\n", maxx);
+    }
+    if (outs["cmax_first_t.out"]) {
+     fprintf(cmax_first_t, "%-.9g\n", t[maxx_t]);
+    }
     break;
    }
    if (summ > maxx) {
@@ -1825,8 +1884,12 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
    // if the last data point equals the first maximum
    // (if the population on c is static, basically)
    if ((summ == maxx) && (i == (timesteps - 1))) {
-    fprintf(cmax_first, "%-.9g\n", maxx);
-    fprintf(cmax_first_t, "%-.9g\n", t[maxx_t]);
+    if (outs["cmax_first.out"]) {
+     fprintf(cmax_first, "%-.9g\n", maxx);
+    }
+    if (outs["cmax_first_t.out"]) {
+     fprintf(cmax_first_t, "%-.9g\n", t[maxx_t]);
+    }
    }
   }
   if (summ < maxx) {
@@ -1840,25 +1903,59 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps) {
   for (j = 0; j < dim; j++) {
    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
   }
-  fprintf(totprob, "%-.9g %-.9g\n", t[i], summ);
+  if (outs["totprob.out"]) {
+   fprintf(totprob, "%-.9g %-.9g\n", t[i], summ);
+  }
  }
 
- fclose(tkprob);
- fclose(tcprob);
- fclose(tbprob);
- fclose(tlprob);
- fclose(kprobs);
- fclose(cprobs);
- fclose(bprobs);
- fclose(lprobs);
- fclose(kmax);
- fclose(cmax);
- fclose(cmax_t);
- fclose(cmax_first);
- fclose(cmax_first_t);
- fclose(totprob);
- fclose(energy);
- fclose(times);
+ if (outs["tkprob.out"]) {
+  fclose(tkprob);
+ }
+ if (outs["tcprob.out"]) {
+  fclose(tcprob);
+ }
+ if (outs["tbprob.out"]) {
+  fclose(tbprob);
+ }
+ if (outs["tlprob.out"]) {
+  fclose(tlprob);
+ }
+ if (outs["kprobs.out"]) {
+  fclose(kprobs);
+ }
+ if (outs["cprobs.out"]) {
+  fclose(cprobs);
+ }
+ if (outs["bprobs.out"]) {
+  fclose(bprobs);
+ }
+ if (outs["lprobs.out"]) {
+  fclose(lprobs);
+ }
+ if (outs["kmax.out"]) {
+  fclose(kmax);
+ }
+ if (outs["cmax.out"]) {
+  fclose(cmax);
+ }
+ if (outs["cmax_t.out"]) {
+  fclose(cmax_t);
+ }
+ if (outs["cmax_first.out"]) {
+  fclose(cmax_first);
+ }
+ if (outs["cmax_first_t.out"]) {
+  fclose(cmax_first_t);
+ }
+ if (outs["totprob.out"]) {
+  fclose(totprob);
+ }
+ if (outs["energy.out"]) {
+  fclose(energy);
+ }
+ if (outs["times.out"]) {
+  fclose(times);
+ }
 }
 
 int main (int argc, char * argv[]) {
@@ -2553,7 +2650,9 @@ int main (int argc, char * argv[]) {
 #endif
   realtype * H = new realtype [NEQ_vib*NEQ_vib];
   buildHamiltonian(H, energy, V, NEQ_vib, N_vib, FCkb, FCbb, FCbc);
-  printSquareMatrix(H, NEQ_vib, "ham.out");
+  if (outs["ham.out"]) {
+   printSquareMatrix(H, NEQ_vib, "ham.out");
+  }
   // declare LAPACK variables
   char JOBZ;            // 'N' to just compute evals; 'V' to compute evals and evecs
   char UPLO;            // 'U' to store upper diagonal of matrix
@@ -2586,8 +2685,12 @@ int main (int argc, char * argv[]) {
   // diagonalize the guy!
   dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
   // print eigenvalues and eigenvectors
-  printVector(W, N, "evals.out");
-  printSquareMatrix(H, N, "evecs.out");
+  if (outs["evals.out"]) {
+   printVector(W, N, "evals.out");
+  }
+  if (outs["evecs.out"]) {
+   printSquareMatrix(H, N, "evecs.out");
+  }
   // make a complex array to represent the starting psi (site basis)
   complex16 * psi_S = new complex16 [NEQ_vib];
   for (i = 0; i < NEQ_vib; i++) {
@@ -2599,21 +2702,31 @@ int main (int argc, char * argv[]) {
   // project the starting wavefunction onto the eigenstate basis
   projectSiteToState(psi_S, NEQ_vib, H, psi_E);
   // print the starting wavefunction in the two bases
-  printCVector(psi_S, NEQ_vib, "psi_start_s.out");
-  printCVector(psi_E, NEQ_vib, "psi_start_e.out");
-  printPsiSquare(psi_E, W, NEQ_vib, "psi2_start_e.out");
+  if (outs["psi_start_s.out"]) {
+   printCVector(psi_S, NEQ_vib, "psi_start_s.out");
+  }
+  if (outs["psi_start_e.out"]) {
+   printCVector(psi_E, NEQ_vib, "psi_start_e.out");
+  }
+  if (outs["psi2_start_e.out"]) {
+   printPsiSquare(psi_E, W, NEQ_vib, "psi2_start_e.out");
+  }
   // make arrays to represent the wavefunction in time
   complex16 * psi_S_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
   complex16 * psi_E_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
   // propagate the wavefunction in time
   propagatePsi(psi_E, psi_E_t, NEQ_vib, W, numOutputSteps, tout);
   // print out the propagated wavefunction (eigenstate basis)
-  printCVectorTime(psi_E_t, NEQ_vib, (numOutputSteps+1), "psi_e_t.out");
+  if (outs["psi_e_t.out"]) {
+   printCVectorTime(psi_E_t, NEQ_vib, (numOutputSteps+1), "psi_e_t.out");
+  }
   // project back onto the site basis
   projectStateToSite(psi_E_t, NEQ_vib, H, psi_S_t, numOutputSteps);
   // print out the propagated wavefunction (site basis)
-  printCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
-  makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps);
+  if (outs["psi_s_t.out"]) {
+   printCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
+  }
+  makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps, outs);
   // write out projections of subsystems
   projectSubsystems(H, W, NEQ_vib, outs);
   delete [] H;
@@ -2626,11 +2739,13 @@ int main (int argc, char * argv[]) {
  }
 
  // compute time-independent outputs
- FILE * energyFile = fopen("energy.out", "w");
- for (i = 0; i < NEQ_vib; i++) {
-  fprintf(energyFile, "%-.9e\n", energy[i]);
+ if (outs["energy.out"]) {
+  FILE * energyFile = fopen("energy.out", "w");
+  for (i = 0; i < NEQ_vib; i++) {
+   fprintf(energyFile, "%-.9e\n", energy[i]);
+  }
+  fclose(energyFile);
  }
- fclose(energyFile);
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
