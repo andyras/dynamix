@@ -12,9 +12,11 @@
 #include <nvector/nvector_serial.h>
 #include <mkl.h>
 #include <map>
+#include <fftw3.h>
 
 #include "libdynamix_input_parser.h"
 #include "libdynamix_outputs.h"
+#include "output.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
 //#define DEBUG
@@ -1752,13 +1754,18 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
 
  // total population c states
  if (outs["tcprob.out"]) {
+  double * tcprob_t = new double [timesteps];
   for (i = 0; i <= timesteps; i++) {
-   summ = 0;
+   tcprob_t[i] = 0;
    for (j = Ic_vib; j < Ib_vib; j++) {
-    summ += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+    tcprob_t[i] += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
    }
-   fprintf(tcprob, "%-.9g %-.9g\n", t[i], summ);
+   fprintf(tcprob, "%-.9g %-.9g\n", t[i], tcprob_t[i]);
   }
+  if (outs["FTtcprob.out"]) {
+   writeFT("FTtcprob.out", tcprob_t, t, timesteps);
+  }
+  delete [] tcprob_t;
  }
 
  // population c states

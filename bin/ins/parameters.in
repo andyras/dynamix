@@ -82,6 +82,7 @@ random_seed=-1				# -1 for random seed, otherwise specify seed
 #energy_exp.out
 #evals.out
 #evecs.out
+FTtcprob.out
 #ham.out
 #Icprob.out
 #Ikprob.out
@@ -104,7 +105,7 @@ random_seed=-1				# -1 for random seed, otherwise specify seed
 #qd_est_diag.out
 #tbprob.out
 #tcderiv.out
-#tcprob.out
+tcprob.out
 #tcrate.out
 #times.out
 #tkderiv.out
