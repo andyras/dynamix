@@ -3,11 +3,11 @@
 ## FLAGS FOR RUN ##
 do_compile="y"
 do_run="y"
-make_plotter="y"
-do_plot="y"
+make_plotter="n"
+do_plot="n"
 timeandspace_plot="n"
 populations_plot="n"
-kprobs_plot="y"
+kprobs_plot="n"
 make_movie_maker="n"
 do_movie="n"
 do_cleanup="n"
@@ -66,3 +66,57 @@ bridge_on=0
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##
+
+# return here so that when this file is sourced by bash the output files are
+# not confusing.
+return
+
+[[Output Files]]
+#bprobs.out
+#cmax_first.out
+#cmax_first_t.out
+#cprobs_gnuplot.out
+#cmax.out
+#cmax_t.out
+#c_diag.out
+#c_offdiag.out
+#couplings.out
+#cprobs.out
+#energy.out
+#energy_exp.out
+#evals.out
+#evecs.out
+FTtcprob.out
+#ham.out
+#Icprob.out
+#Ikprob.out
+#kmax.out
+#kprobs.out
+#kprobs_gnuplot.out
+#lprobs.out
+#log.out
+#ms_est.out
+#ms_est_tot.out
+#projections.out
+#psi2_start_e.out
+#psi_e_t.out
+#psi_start_e.out
+#psi_start.out
+#psi_start_s.out
+#psi_s_t.out
+#pump_intensity.out
+#qd_est.out
+#qd_est_diag.out
+#tbprob.out
+#tcderiv.out
+tcprob.out
+#tcrate.out
+#times.out
+#tkderiv.out
+#tkprob.out
+#tkrate.out
+#tlprob.out
+#totprob.out
+#vibprob.out
+#projections.plt
+[[End]]
