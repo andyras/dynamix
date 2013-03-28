@@ -1834,25 +1834,20 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  }
 
  // vibrational populations
- cout << "calculating vibrational populations.\n";
  if (outs["vibprob.out"]) {
   double * vibprob_t = new double [N_vib*(timesteps + 1)];
   // loop over time steps
   for (i = 0; i <= timesteps; i++) {
    fprintf(vibprob, "%-.9g", t[i]);
-//cout << "\nno bugs here...\n\n";
    // loop over vibrational states
    for (j = 0; j < N_vib; j++) {
     vibprob_t[i*N_vib + j] = 0.0;
     // loop over electronic states
     for (int kk = 0; kk < NEQ; kk++) {
-     /*cout << "time step:         " << i  << "\n"
-          << "vibrational state: " << j  << "\n"
-	  << "electronic state:  " << kk << "\n";*/
      vibprob_t[i*N_vib + j] += pow(psi_t[i*dim + kk*N_vib + j].re,2)
                             +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
     }
-    fprintf(vibprob, " %-.9g", vibprob_t[i*N_vib + j]); // TODO
+    fprintf(vibprob, " %-.9g", vibprob_t[i*N_vib + j]);
    }
    fprintf(vibprob, "\n");
   }

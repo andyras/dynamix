@@ -99,11 +99,11 @@ kprobs.out
 #ms_est_tot.out
 #projections.out
 #psi2_start_e.out
-#psi_e_t.out
+psi_e_t.out
 psi_start_e.out
 psi_start.out
 psi_start_s.out
-#psi_s_t.out
+psi_s_t.out
 #pump_intensity.out
 #qd_est.out
 #qd_est_diag.out
