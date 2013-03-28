@@ -28,4 +28,6 @@
 
 # change things to camelCase
 
-# make it easier to restrict output
+# add optional FT output for tXprob.out
+
+# move code for making outputs to separate .cpp files
