@@ -16,7 +16,7 @@ do_backup="n"
 
 ## START INPUT PARAMETERS ##
 # method parameters #
-timedepH=0				# if H is TD, use CVODE, else diag H and propogate
+timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance

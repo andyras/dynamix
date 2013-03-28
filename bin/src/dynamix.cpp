@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <time.h>
 #include <numeric>
 #include <complex>
@@ -30,12 +30,6 @@
 //#define DEBUG_SAI
 
 using namespace std;
-
-// structure to hold complex numbers for linear algebra routines
-typedef struct {
- double re;
- double im;
-} complex16;
 
 // GLOBAL VARIABLES GO HERE //
 void * cvode_mem;			// pointer to block of CVode memory
@@ -1309,19 +1303,6 @@ std::cout << "\n\nHere I am\n";
 
 }
 
-void outputYData(realtype * ydata, int n, std::map<std::string, bool> &outs) {
-// prints out initial wave function.  Inputs are the wave function array and
-// the number of equations.
- FILE * psi_start;
- if (outs["psi_start.out"]) {
-  psi_start = fopen("psi_start.out", "w");
-  for (int i = 0; i < n; i++) {
-   fprintf(psi_start, "%-.9g %-.9g\n", ydata[i],2, ydata[i+n]);
-  }
-  fclose(psi_start);
- }
-}
-
 void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N, int N_vib,
                       realtype ** FCkb, realtype ** FCbb, realtype ** FCbc) {
 // builds a Hamiltonian from site energies and couplings.
@@ -1417,87 +1398,6 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, int N, int
    }
   }
  }
-}
-
-void printVector(realtype * W, int N, char * fileName) {
-// prints a vector W of length N
- int i;        // counter
- FILE * out;   // output file
-
- out = fopen(fileName, "w");
-
- for (i = 0; i < N; i++) {
-  fprintf(out, "%-.9e\n", W[i]);
- }
-
- fclose(out);
-}
-
-void printPsiSquare(complex16 * v, realtype * evals,  int N, char * fileName) {
-// prints the elementwise square of a complex vector
- int i;		// counter!
- FILE * out;	// output file
-
- out = fopen(fileName, "w");
-
- for (i = 0; i < N; i++) {
-  fprintf(out, "%-.9e %-.9e\n", evals[i], (pow(v[i].re,2) + pow(v[i].im,2)));
- }
- 
- fclose(out); 
-}
-
-void printCVector(complex16 * v, int N, char * fileName) {
-// prints a complex vector v of length N
- int i;		// counter!
- FILE * out;	// output file
-
- out = fopen(fileName, "w");
-
- for (i = 0; i < N; i++) {
-  fprintf(out, "%-.9e %-.9e\n", v[i].re, v[i].im);
- }
-
- fclose(out);
-}
-
-void printCVectorTime(complex16 * v, int N, int M, char * fileName) {
-// prints a complex vector v of length N with M time steps
- int i, j;	// counters!
- FILE * out;	// output file
-
- out = fopen(fileName, "w");
-
- for (j = 0; j < M; j++) {
-  for (i = 0; i < N; i++) {
-   fprintf(out, "%-.9e %-.9e\n", v[j*N+i].re, v[j*N+i].im);
-  }
-  fprintf(out, "\n");
- }
-
- fclose(out);
-}
-
-void printSquareMatrix(realtype * M, int N, char * fileName) {
-// prints a square matrix M of dimension N
- int i, j;     // counters
- FILE * out; // output file
-
- out = fopen(fileName, "w");
-
- for (i = 0; i < N; i++) {
-  for (j = 0; j < N; j++) {
-   if (j == 0) {
-    fprintf(out, "%-.9e", M[i*N + j]);
-   }
-   else {
-    fprintf(out, " %-.9e", M[i*N + j]);
-   }
-  }
-  fprintf(out, "\n");
- }
-
- fclose(out);
 }
 
 void projectSubsystems(realtype * evecs, realtype * evals, int dim,
@@ -2686,7 +2586,7 @@ int main (int argc, char * argv[]) {
   realtype * H = new realtype [NEQ_vib*NEQ_vib];
   buildHamiltonian(H, energy, V, NEQ_vib, N_vib, FCkb, FCbb, FCbc);
   if (outs["ham.out"]) {
-   printSquareMatrix(H, NEQ_vib, "ham.out");
+   outputSquareMatrix(H, NEQ_vib, "ham.out");
   }
   // declare LAPACK variables
   char JOBZ;            // 'N' to just compute evals; 'V' to compute evals and evecs
@@ -2721,10 +2621,10 @@ int main (int argc, char * argv[]) {
   dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
   // print eigenvalues and eigenvectors
   if (outs["evals.out"]) {
-   printVector(W, N, "evals.out");
+   outputVector(W, N, "evals.out");
   }
   if (outs["evecs.out"]) {
-   printSquareMatrix(H, N, "evecs.out");
+   outputSquareMatrix(H, N, "evecs.out");
   }
   // make a complex array to represent the starting psi (site basis)
   complex16 * psi_S = new complex16 [NEQ_vib];
@@ -2738,13 +2638,13 @@ int main (int argc, char * argv[]) {
   projectSiteToState(psi_S, NEQ_vib, H, psi_E);
   // print the starting wavefunction in the two bases
   if (outs["psi_start_s.out"]) {
-   printCVector(psi_S, NEQ_vib, "psi_start_s.out");
+   outputCVector(psi_S, NEQ_vib, "psi_start_s.out");
   }
   if (outs["psi_start_e.out"]) {
-   printCVector(psi_E, NEQ_vib, "psi_start_e.out");
+   outputCVector(psi_E, NEQ_vib, "psi_start_e.out");
   }
   if (outs["psi2_start_e.out"]) {
-   printPsiSquare(psi_E, W, NEQ_vib, "psi2_start_e.out");
+   outputPsiSquare(psi_E, W, NEQ_vib, "psi2_start_e.out");
   }
   // make arrays to represent the wavefunction in time
   complex16 * psi_S_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
@@ -2753,13 +2653,13 @@ int main (int argc, char * argv[]) {
   propagatePsi(psi_E, psi_E_t, NEQ_vib, W, numOutputSteps, tout);
   // print out the propagated wavefunction (eigenstate basis)
   if (outs["psi_e_t.out"]) {
-   printCVectorTime(psi_E_t, NEQ_vib, (numOutputSteps+1), "psi_e_t.out");
+   outputCVectorTime(psi_E_t, NEQ_vib, (numOutputSteps+1), "psi_e_t.out");
   }
   // project back onto the site basis
   projectStateToSite(psi_E_t, NEQ_vib, H, psi_S_t, numOutputSteps);
   // print out the propagated wavefunction (site basis)
   if (outs["psi_s_t.out"]) {
-   printCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
+   outputCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
   }
   makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps, outs);
   // write out projections of subsystems
