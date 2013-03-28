@@ -17,6 +17,7 @@
 #include "libdynamix_input_parser.h"
 #include "libdynamix_outputs.h"
 #include "output.h"
+#include "numerical.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
 //#define DEBUG
@@ -90,155 +91,6 @@ int random_seed = 0;
 #ifdef DEBUG_SAI
 double last_t = -1.0;				// keeps track of last time for which debuggery was printed
 #endif
-
-int Number_of_values (const char * nameOfFile) {
-// returns the number of numbers in a file.  This way, it doesn't matter if
-// they are one per line or multiple per line.
- FILE * input;
- double value;
- int numberOfValues = 0;
-
- input = fopen(nameOfFile, "r");
-
- if (input != NULL) {
-  while (fscanf(input, "%lf", &value) != EOF) { numberOfValues++; }
-  if (numberOfValues == 0 ) {
-   fprintf(stderr, "WARNING: file %s is empty.\n", nameOfFile);
-  }
- }
- else {
-  fprintf(stderr, "WARNING [Number_of_values]: file %s does not exist.\n", nameOfFile);
-  return -1;
- }
-
- return numberOfValues;
-}
-
-void Read_array_from_file (realtype * array, const char * nameOfFile, int numberOfValues) {
-// reads in the values from file; returns an array the length of the number of 
-// numbers in the file
-
- FILE * input;
- int i = 0;
-
- input = fopen(nameOfFile,"r");
-
- if (input != NULL) {
-  while (fscanf(input, "%lf", &array[i]) != EOF && i < numberOfValues) {
-   i++;
-  }
- }
- else {
-  fprintf(stderr, "ERROR [Read_array_from_file]: file %s does not exist.\n", nameOfFile);
- }
-
- fclose(input);
-}
-
-void Initialize_array(realtype * array, int n, realtype initializeValue) {
-// Returns an array of length n with all values set to initializeValue. //
-#ifdef DEBUG
- cout << "initializeValue is " << initializeValue << endl;
-#endif
-
- int i;
-
- for (i = 0; i < n; i++) {
-  array[i] = initializeValue;
- }
-}
-
-
-void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {
-// builds energies for a quasicontinuum (evenly spaced)
- 
- int i;
-
- Energies[0] = BandEdge;	// the bottom of the conduction band is set
- 
- // loop over the remaining states.  This way the top of the band will be at BandTop
- for (i = 1; i < numberOfStates; i++) {
-  Energies[i] = Energies[i-1] + (BandTop-BandEdge)/(numberOfStates-1);
- }
-}
-
-
-void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp) {
-// populates a set of states according to a Fermi-Dirac distribution.
-// I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
-// below the lowest-energy state in the set of states being populated.
-
- int i;
-
- for (i = 0; i < Nk; i++) {
-  kPops[i] = sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
-#ifdef DEBUG
- cout << "\nk population at state " << i << " is: "
-      << sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
-#endif
- }
-#ifdef DEBUG
- cout << endl;
-#endif
-}
-
-
-void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu) {
-// populates a set of states according to a Gaussian distribution.
-
- int i;
-
- for (i = 0; i < Nk; i++) {
-  kPops[i] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
-#ifdef DEBUG
- cout << "\nk population at state " << i << " is: "
-      << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
-#endif
- }
-#ifdef DEBUG
- cout << endl;
-#endif
-}
-
-
-void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int numN) {
-// creates a matrix of Franck-Condon factors between two displaced harmonic
-// oscillators.
-
- int m, n;
-
- FCmat[0][0] = exp(-pow(g,2)/2);	// first element
- for (m = 1; m < numM; m++)		// first column
-  FCmat[m][0] = g/sqrt((double)m)*FCmat[m-1][0];
- for (n = 1; n < numN; n++)		// first row
-  FCmat[0][n] = -1*g/sqrt((double)n)*FCmat[0][n-1];
- for (m = 1; m < numM; m++)		// recursion for the rest of the matrix
-  for (n = 1; n < numN; n++)
-   FCmat[m][n] = g/sqrt((double)m)*FCmat[m-1][n] + sqrt((double)n/(double)m)*FCmat[m-1][n-1];
-
-}
-
-double parabolicV(double Vee, double E, double bandEdge, double bandTop) {
-// returns the coupling as a function of energy E given that the middle of the
-// band is at position mid.
-// Eq. 31 in Ramakrishna et al., JCP 2001, 115, 2743-2756
-
-// set band edge as zero energy
-E = E - bandEdge;
-double mid = (bandTop - bandEdge)/2.0;
-
-#ifdef DEBUG
- fprintf(stdout, "coupling at (E - band edge) = %.9e: %.9e\n", E, Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid));
-#endif
- // test whether at the very top or bottom of band
- if (abs(abs(E - mid) - mid) < 1e-10) {
-#ifdef DEBUG
-  fprintf(stdout, "(at bottom or top of band edge, returning 0.0)\n");
-#endif
-  return 0.0;
- }
- return Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid);
-}
 
 void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
                     realtype kBandTop, realtype * energy,
@@ -352,12 +204,6 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
  
 }
 
-realtype pump(realtype t) {
-// gives the value of a laser pulse (electric field) at time t
- double sigma = pumpFWHM/2.35482005;
- return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t + pumpPhase);
-}
-
 
 int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 // gives f(y,t) for CVODE
@@ -375,11 +221,11 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype pumpTerm = 0.0;
   if ((scale_laser) && (Nk > 1)) {
    // pumpTerm gives the strength of the pump's interaction, accounting for scaling.
-   pumpTerm = muLK*pump(t)*sqrt((k_bandtop - k_bandedge)/(Nk - 1));
+   pumpTerm = muLK*pump(t, pumpFWHM, pumpAmpl, pumpPeak, pumpFreq, pumpPhase)*sqrt((k_bandtop - k_bandedge)/(Nk - 1));
   }
   else {
    // pumpTerm gives the strength of the pump's interaction, not accounting for scaling.
-   pumpTerm = muLK*pump(t);
+   pumpTerm = muLK*pump(t, pumpFWHM, pumpAmpl, pumpPeak, pumpFreq, pumpPhase);
   }
   // pump pulse coupling l and k states
   for (i = 0; i < Nk; i++)
@@ -566,48 +412,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 }
 
 
-int Normalize_NV(N_Vector nv, realtype total) {
-// normalizes an N_Vector so that the populations of all states are
-// normalized to value 'total'
-
- int i;
- realtype summ = 0;
-
- for (i = 0; i < NV_LENGTH_S(nv); i++) {
-  summ += (NV_Ith_S(nv, i)*NV_Ith_S(nv, i));
- }
- summ = sqrt(summ);
- for (i = 0; i < NV_LENGTH_S(nv); i++) {
-  NV_Ith_S(nv, i) = total*NV_Ith_S(nv,i)/summ;
- }
-
- return 0;
-}
-
-
-int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep) {
-// compute the six-point derivative of an array.
-// Assumes array elements are evenly spaced.
-// Output array is six elements shorter than input.
-
- int i;		// counter
-
- if (inputLength < 6 ) {
-  fprintf(stderr, "ERROR [Derivative]: array has length less than 6 elements, cannot proceed");
-  return -1;
- }
-
- for (i = 2; i < inputLength-3; i++) {
-  outputArray[i-2] = (2* inputArray[i+3]
-		     -15*inputArray[i+2]
-		     +60*inputArray[i+1]
-		     -20*inputArray[i]
-		     -30*inputArray[i-1]
-		     +3 *inputArray[i-2])/(60*timestep);
- }
-
- return 0;
-}
 
 
 int Output_checkpoint(
@@ -860,9 +664,8 @@ realtype Integrate_arrays (realtype * values, realtype * time, int num) {
 }
 
 
+/* Returns maximum element in an array. */
 realtype Find_array_maximum (realtype * inputArray, int num) {
-// Returns maximum element in an array.
-
  int i;
  realtype currentMax = inputArray[0];
 
@@ -872,65 +675,6 @@ realtype Find_array_maximum (realtype * inputArray, int num) {
 
  return currentMax;
 }
-
-
-realtype Find_first_array_maximum (realtype * inputArray, int num) {
-// Finds the first maximum in an array (the first point where the next
-// point is smaller in value).
-
- int i;
- realtype currentMax = inputArray[0];
-
- for (i = 1; i < num; i++) {
-  if (inputArray[i] > currentMax)
-   currentMax = inputArray[i];
-  if (inputArray[i] < currentMax)
-   break;
- }
-
- return currentMax;
-}
-
-
-int Find_first_array_maximum_index (realtype * inputArray, int num) {
-// This function returns the index of the first maximum in an array.
-// Warning: will return 0 as index of first maximum if the second array element
-// is less than the first.  This may not be what you want.
-
- int i;
- realtype currentMax = inputArray[0];
- int currentMax_index = 0;
-
- for (i = 1; i < num; i++) {
-  if (inputArray[i] > currentMax) {
-   currentMax = inputArray[i];
-   currentMax_index = i;
-  }
-  if (inputArray[i] < currentMax)
-   break;
- }
-
- return currentMax_index;
-}
-
-
-int Find_array_maximum_index (realtype * inputArray, int num) {
-// returns index of first maximum in an array.
-
- int i;
- realtype currentMax = inputArray[0];
- int currentMax_index = 0;
-
- for (i = 1; i < num; i++) {
-  if (inputArray[i] > currentMax) {
-   currentMax = inputArray[i];
-   currentMax_index = i;
-  }
- }
-
- return currentMax_index;
-}
-
 
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
@@ -1178,7 +922,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
    fprintf(times, "%-.7g\n", time[i]);
   }
   if (outs["pump_intensity.out"]) {
-   fprintf(pump_intensity, "%-.7g %-.7g\n", time[i], pump(time[i]));
+   fprintf(pump_intensity, "%-.7g %-.7g\n", time[i], pump(time[i], pumpFWHM, pumpAmpl, pumpPeak, pumpFreq, pumpPhase));
   }
   if (outs["energy_exp.out"]) {
    fprintf(energy_exp, "%-.7g %-.7g\n", time[i], energy_expectation[i]);
@@ -1285,7 +1029,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * tkRate;
  if (outs["tkrate.out"]) {
   tkRate = fopen("tkrate.out","w");
-std::cout << "\n\nHere I am\n";
   for (i = 0; i < numOutputSteps-5; i++) {
    fprintf(tkRate, "%-.7g %-.9g\n", time[i+2], tkderivs[i]/tk[i+2]);
   }
@@ -2246,7 +1989,7 @@ int main (int argc, char * argv[]) {
  // assign populations
  Initialize_array(b_pops, Nb, 0.0);		// populate b states
  if (bulk_FDD) {
-  Build_k_pops(k_pops, k_energies, k_bandedge, temperature);   // populate k states with FDD
+  Build_k_pops(k_pops, k_energies, k_bandedge, temperature, Nk);   // populate k states with FDD
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
@@ -2271,7 +2014,7 @@ int main (int argc, char * argv[]) {
  }
  else if (bulk_Gauss) {
   Build_k_pops_Gaussian(k_pops, k_energies, k_bandedge,
-                        bulkGaussSigma, bulkGaussMu);   // populate k states with FDD
+                        bulkGaussSigma, bulkGaussMu, Nk);   // populate k states with FDD
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
