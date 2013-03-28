@@ -8,10 +8,10 @@
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
  */
-void outputCVector(const char * fileName, fftw_complex * vec, double * x, int len);
+void outputFFTWVector(const char * fileName, fftw_complex * vec, double * x, int len);
 
-/* Wrapper to outputCVector, which fftshifts the output.
+/* Wrapper to outputFFTWVector, which fftshifts the output.
  */
-void outputCVectorShift(const char * fileName, fftw_complex * vec, double * x, int len);
+void outputFFTWVectorShift(const char * fileName, fftw_complex * vec, double * x, int len);
 
 #endif

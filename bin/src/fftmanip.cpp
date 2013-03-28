@@ -71,7 +71,7 @@ void writeFT(const char * fileName, double * invec, double * times, int n) {
  fftw_execute(fftw_fwd);
 
  // print the result
- outputCVectorShift(fileName, out, energies, n);
+ outputFFTWVectorShift(fileName, out, energies, n);
 
  // clean up
  delete [] energies;

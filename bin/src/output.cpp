@@ -4,7 +4,7 @@
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
  */
-void outputCVector(const char * fileName, fftw_complex * vec, double * x, int len) {
+void outputFFTWVector(const char * fileName, fftw_complex * vec, double * x, int len) {
  // make output file
  FILE * output;
  output = fopen(fileName, "w");
@@ -20,9 +20,9 @@ void outputCVector(const char * fileName, fftw_complex * vec, double * x, int le
  return;
 }
 
-/* Wrapper to outputCVector, which fftshifts the output.
+/* Wrapper to outputFFTWVector, which fftshifts the output.
  */
-void outputCVectorShift(const char * fileName, fftw_complex * vec, double * x, int len) {
+void outputFFTWVectorShift(const char * fileName, fftw_complex * vec, double * x, int len) {
  // make a shifted copy of the vector to be printed
  fftw_complex * vec_shift;
  vec_shift = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*len);
@@ -35,7 +35,7 @@ void outputCVectorShift(const char * fileName, fftw_complex * vec, double * x, i
  */
 
  // make the output
- outputCVector(fileName, vec_shift, x, len);
+ outputFFTWVector(fileName, vec_shift, x, len);
 
  // clean up the mess
  fftw_free(vec_shift);
