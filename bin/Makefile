@@ -8,7 +8,7 @@ CXX = icpc
 CPP = $(CXX)
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
 CPPFLAGS = -Wall
-INCLUDES = -I./include
+INCLUDES = -I./include -I$(MKLROOT)/include/fftw
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
 # directories for headers, objects and source files
