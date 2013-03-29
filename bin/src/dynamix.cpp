@@ -12,7 +12,7 @@
 #include <nvector/nvector_serial.h>
 #include <mkl.h>
 #include <map>
-#include <fftw3.h>
+#include <fftw/fftw3.h>
 
 #include "libdynamix_input_parser.h"
 #include "libdynamix_outputs.h"
