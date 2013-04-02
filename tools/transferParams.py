@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(description='Script to apply parameters from on
 parser.add_argument('--verbose', '-v', help='Verbose output', action='store_true')
 parser.add_argument('--quiet', '-q', help='Quiet output', action='store_true')
 parser.add_argument('--dryrun', '-d', help='Dry run: nothing changed in output', action='store_true')
+parser.add_argument('--force', '-f', help='Force prepend of parameters to output', action='store_true')
 parser.add_argument('-output', '-o', help='Output file name', type=str)
 parser.add_argument('-input', '-i', help='Input file name', type=str)
 
