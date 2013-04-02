@@ -95,16 +95,25 @@ with open(inputFile, 'r') as infile:
 
 for line in lines:
     (param, paramValue) = getParam(line)
+    # if line has a parameter
     if (not (param == '')):
         oldParamValue = readParam(param, outputFile)
         if (debug):
             print "Old parameter value is %s" % oldParamValue
+        # no change if values are the same
         if (oldParamValue == paramValue):
             if (args.verbose):
                 print "Not changing %s from %s" % (param, paramValue)
+        # parameter not found in output
         elif (oldParamValue == ''):
             if (not args.quiet):
-                print "Parameter %s not found in output file." % param
+                print "Parameter '%s' not found in output file." % param
+            # prepend parameter to file if 'force' option is set
+            if (args.force):
+                if (not args.quiet):
+                    print "prepending '%s' to output file." % line.strip()
+                with open(outputFile, 'r') as f: data = f.read()
+                with open(outputFile, 'w') as f: f.write(line + data)
         else:
             changeParam(param, paramValue, outputFile)
             if (not args.quiet):
