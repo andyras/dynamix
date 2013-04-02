@@ -1,5 +1,3 @@
-#!/bin/bash
-
 ## FLAGS FOR RUN ##
 do_compile="y"
 do_run="y"
