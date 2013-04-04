@@ -5,6 +5,13 @@ Parameters in the input are of the format
 ---------------------------------------------
 paramname=paramvalue
 ---------------------------------------------
+
+TODO
+# make handling of parameters like
+do_run="y"
+better.  Either change to
+do_run=y
+or have better regexp here.
 '''
 
 import re

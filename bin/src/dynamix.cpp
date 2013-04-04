@@ -1389,11 +1389,13 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  // population k states
  if (outs["kprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
-   for (j = Ik_vib; j < Ic_vib; j++) {
-    if (j == Ik_vib) {
-     fprintf(kprobs, "%-.9g", t[i]);
+   fprintf(kprobs, "%-.9g", t[i]);
+   for (j = Ik; j < (Ik + Nk); j++) {
+    summ = 0.0;
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += pow(psi_t[i*dim + (Ik+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Ik+j)*N_vib + kk].im,2);
     }
-    fprintf(kprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+    fprintf(kprobs, " %-.9g", summ);
    }
    fprintf(kprobs, "\n");
   }
@@ -1418,11 +1420,13 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  // population c states
  if (outs["cprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
-   for (j = Ic_vib; j < Ib_vib; j++) {
-    if (j == Ic_vib) {
-     fprintf(cprobs, "%-.9g", t[i]);
+   fprintf(cprobs, "%-.9g", t[i]);
+   for (j = Ic; j < (Ic + Nc); j++) {
+    summ = 0.0;
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += pow(psi_t[i*dim + (Ic+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Ic+j)*N_vib + kk].im,2);
     }
-    fprintf(cprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+    fprintf(cprobs, " %-.9g", summ);
    }
    fprintf(cprobs, "\n");
   }
@@ -1442,11 +1446,13 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  // population b states
  if (outs["bprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
-   for (j = Ib_vib; j < Il_vib; j++) {
-    if (j == Ib_vib) {
-     fprintf(bprobs, "%-.9g", t[i]);
+   fprintf(bprobs, "%-.9g", t[i]);
+   for (j = Ib; j < (Ib + Nb); j++) {
+    summ = 0.0;
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += pow(psi_t[i*dim + (Ib+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Ib+j)*N_vib + kk].im,2);
     }
-    fprintf(bprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+    fprintf(bprobs, " %-.9g", summ);
    }
    fprintf(bprobs, "\n");
   }
@@ -1466,11 +1472,13 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  // population l states
  if (outs["lprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
-   for (j = Il_vib; j < NEQ_vib; j++) {
-    if (j == Il_vib) {
-     fprintf(lprobs, "%-.9g", t[i]);
+   fprintf(lprobs, "%-.9g", t[i]);
+   for (j = Il; j < (Il + Nl); j++) {
+    summ = 0.0;
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += pow(psi_t[i*dim + (Il+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Il+j)*N_vib + kk].im,2);
     }
-    fprintf(lprobs, " %-.9g", pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2));
+    fprintf(lprobs, " %-.9g", summ);
    }
    fprintf(lprobs, "\n");
   }
@@ -1634,6 +1642,34 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  if (outs["times.out"]) {
   fclose(times);
  }
+}
+
+/* Makes a gnuplot file to plot the vibrational populations over time */
+void plot_vibprob(int n, double t) {
+ std::ofstream output("vibprob.plt");
+
+ // make plot file
+ output << "#!/usr/bin/env gnuplot\n"
+ << "reset\n"
+ << "set terminal pdfcairo dashed enhanced color size 4,3 font \"FreeMono,12\" lw 4 dl 1\n"
+ << "set style data lines\n"
+ << "set output 'vibprob.pdf'\n"
+ << "\n"
+ << "set xlabel 'Time (a.u.)'\n"
+ << "set ylabel 'Vibrational Population'\n"
+ << "set title 'Vibrational Populations'\n"
+ << "set xr [0:" << t << "]\n"
+ << "\n"
+ << "set lmargin 18\n"
+ << "set key out left\n"
+ << "\n"
+ << "plot '../outs/vibprob.out' t '0', \\\n";
+ for (int ii = 2; ii < N_vib; ii++) {
+  output << "'' u 1:" << (ii+1) << " t '" << ii << "', \\\n";
+ }
+ output << "'' u 1:" << (N_vib+1) << "t '" << N_vib << "'\n";
+
+ return;
 }
 
 int main (int argc, char * argv[]) {
@@ -2427,6 +2463,13 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
+
+ // make plot outputs
+ if (outs["vibprob.out"]) {
+  if (N_vib > 1) {
+   plot_vibprob(N_vib, tout);
+  }
+ }
  
  // finalize log file //
  time(&endRun);
