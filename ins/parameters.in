@@ -1,16 +1,18 @@
 ## FLAGS FOR RUN ##
-do_compile="y"
-do_run="y"
-make_plotter="y"
-do_plot="y"
-timeandspace_plot="y"
-populations_plot="y"
-kprobs_plot="y"
-make_movie_maker="n"
-do_movie="n"
-do_cleanup="n"
-do_fullcleanup="n"
-do_backup="n"
+do_compile=1
+do_compile_parallel=0
+do_compile_serial=0
+do_run=1
+make_plotter=0
+do_plot=0
+do_time_space_plot=0
+populations_plot=0
+kprobs_plot=0
+make_movie_maker=0
+do_movie=0
+do_cleanup=0
+do_fullcleanup=0
+do_backup=0
 
 ## START INPUT PARAMETERS ##
 # method parameters #
@@ -25,7 +27,7 @@ numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
-Nk=1000					# number of k states to have
+Nk=151					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)

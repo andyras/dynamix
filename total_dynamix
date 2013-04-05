@@ -47,6 +47,26 @@ function compile {
  fi
 }
 
+function compile_serial {
+ export OMP_NUM_THREADS=1
+ export MKL_NUM_THREADS=1
+ export MKL_DOMAIN_NUM_THREADS=1
+ cd bin
+ make clean
+ cd - &> /dev/null
+ compile
+}
+
+function compile_parallel {
+ export OMP_NUM_THREADS=
+ export MKL_NUM_THREADS=
+ export MKL_DOMAIN_NUM_THREADS=
+ cd bin
+ make clean
+ cd - &> /dev/null
+ compile
+}
+
 function run {
 ## RUN THE PROGRAM! ##
  echo "### $(date) running dynamix..."
@@ -66,7 +86,7 @@ function run {
 }
 
 function plot_maker {
- if [ "$populations_plot" == 'y' ] ; then
+ if [ $populations_plot == 1 ] ; then
 ## GENERATE POPULATION PLOTSCRIPT ##
   tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
   echo "### $(date) making plots..."
@@ -119,7 +139,7 @@ set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
   done
  fi
 
- if [ "$kprobs_plot" == 'y' ] ; then
+ if [ $kprobs_plot == 1 ] ; then
   # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
 
   #awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
@@ -147,7 +167,7 @@ set output 'figures/kprobs.tex'
 repl" > figures/kprobs.plt
  fi
 
- if [ "$timeandspace_plot" == 'y' ] ; then
+ if [ $timeandspace_plot == 1 ] ; then
   if [ $(($Nb)) -gt 0 ] ; then
   echo "set terminal postscript enhanced colour dashed lw 2 size 15,10 font 'Arial-Bold,10'
 
@@ -204,12 +224,12 @@ plot './outs/pump_intensity.out' u 1:2 t 'Laser' lt 4" > figures/time_and_space.
 
 function plot {
 # make populations plot
- if [ "$populations_plot" == 'y' ] ; then
+ if [ $populations_plot == 1 ] ; then
   gnuplot figures/populations.plt
-  [ "$do_fullcleanup" == 'y' ] && rm -f figures/populations.plt
+  [ $do_fullcleanup == 1 ] && rm -f figures/populations.plt
  fi
 # make kprobs plot
- if [ "$kprobs_plot" == 'y' ] ; then
+ if [ $kprobs_plot == 1 ] ; then
   gnuplot figures/kprobs.plt
   latex figures/kprobs.tex
   dvipdf kprobs.dvi
@@ -218,13 +238,13 @@ function plot {
   [ -f "kprobs.aux" ] && rm -f kprobs.aux
   [ -f "kprobs.pdf" ] && mv kprobs.pdf figures/
   [ -f "kprobs-inc.eps" ] && mv kprobs-inc.eps figures/
-  [ "$do_fullcleanup" == 'y' ] && rm -f figures/kprob.plt && echo "### $(date) done plotting!"
+  [ $do_fullcleanup == 1 ] && rm -f figures/kprob.plt && echo "### $(date) done plotting!"
  fi
 # make time and space plot
- if [ "$timeandspace_plot" == 'y' ] ; then
+ if [ $timeandspace_plot == 1 ] ; then
   if [ $(($Nb)) -gt 0 ] ; then
    gnuplot figures/time_and_space.plt
-   [ "$do_fullcleanup" == 'y' ] && rm -f figures/time_and_space.plt
+   [ $do_fullcleanup == 1 ] && rm -f figures/time_and_space.plt
   fi
  fi
 }
@@ -312,10 +332,10 @@ function movie {
  mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
  echo "### $(date) done\! movie is bulk_states.avi"
  rm -rf img
- [ "$do_fullcleanup" == 'y' ] && rm -f figures/movie.plt
- [ "$do_cleanup" == 'y' ] && rm -f divx2pass.log
- [ "$do_cleanup" == 'y' ] && rm -f temp*.out
- [ "$do_cleanup" == 'y' ] && rm -f transpose.out
+ [ $do_fullcleanup == 1 ] && rm -f figures/movie.plt
+ [ $do_cleanup == 1 ] && rm -f divx2pass.log
+ [ $do_cleanup == 1 ] && rm -f temp*.out
+ [ $do_cleanup == 1 ] && rm -f transpose.out
 }
 
 
@@ -325,8 +345,8 @@ function backup {
  durr=backup/dynamix_$(date +%F.%H.%M.%S)
  mkdir -p $durr
  cp -rf ins/ outs/ bin/ figures/ doc/ total_dynamix $durr
- [ "$do_plot" == 'y' ] && cp *.eps $durr
- [ "$do_movie" == 'y' ] && cp bulk_states.avi $durr
+ [ $do_plot == 1 ] && cp *.eps $durr
+ [ $do_movie == 1 ] && cp bulk_states.avi $durr
  [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
  echo "### $(date) all backed up\!"
 }
@@ -340,14 +360,16 @@ echo "### $(date) dynamix run starting now..."
 echo "###"
 echo "###"
 
-[ "$do_compile" == 'y' ] && compile
-[ "$do_run" == 'y' ] && run
-[ "$make_plotter" == 'y' ] && plot_maker
-[ "$do_plot" == 'y' ] && plot
-[ "$do_time_space_plot" == 'y' ] && time_space_plot
-[ "$make_movie_maker" == 'y' ] && movie_maker
-[ "$do_movie" == 'y' ] && movie
-[ "$do_backup" == 'y' ] && backup
+[ $do_compile_serial == 1 ] && compile_serial
+[ $do_compile_parallel == 1 ] && compile_parallel
+[ $do_compile == 1 ] && compile
+[ $do_run == 1 ] && run
+[ $make_plotter == 1 ] && plot_maker
+[ $do_plot == 1 ] && plot
+[ $do_time_space_plot == 1 ] && time_space_plot
+[ $make_movie_maker == 1 ] && movie_maker
+[ $do_movie == 1 ] && movie
+[ $do_backup == 1 ] && backup
 
 echo "### $(date) all done!"
 echo "###"
