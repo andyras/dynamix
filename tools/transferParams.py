@@ -12,6 +12,7 @@ do_run="y"
 better.  Either change to
 do_run=y
 or have better regexp here.
+# handle case where parameter is present in output but not input
 '''
 
 import re

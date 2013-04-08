@@ -77,7 +77,8 @@ random_seed=-1				# -1 for random seed, otherwise specify seed
 #c_diag.out
 #c_offdiag.out
 #couplings.out
-#cprobs.out
+cprobs.out
+cprobs.plt
 #energy.out
 #energy_exp.out
 #evals.out
@@ -114,5 +115,6 @@ kprobs.out
 #tlprob.out
 #totprob.out
 #vibprob.out
+#vibprob.plt
 #projections.plt
 [[End]]

@@ -1649,7 +1649,7 @@ void plot_vibprob(int n, double t) {
  std::ofstream output("vibprob.plt");
 
  // make plot file
- output << "#!/usr/bin/env gnuplot\n"
+ output << "#!/usr/bin/env gnuplot\n\n"
  << "reset\n"
  << "set terminal pdfcairo dashed enhanced color size 4,3 font \"FreeMono,12\" lw 4 dl 1\n"
  << "set style data lines\n"
@@ -1664,10 +1664,36 @@ void plot_vibprob(int n, double t) {
  << "set key out left\n"
  << "\n"
  << "plot '../outs/vibprob.out' t '0', \\\n";
- for (int ii = 2; ii < N_vib; ii++) {
+ for (int ii = 2; ii < n; ii++) {
   output << "'' u 1:" << (ii+1) << " t '" << ii << "', \\\n";
  }
- output << "'' u 1:" << (N_vib+1) << "t '" << N_vib << "'\n";
+ output << "'' u 1:" << (n+1) << "t '" << n << "'\n";
+
+ return;
+}
+
+/* Makes a gnuplot file to plot the QD populations over time */
+void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
+ std::ofstream output("cprobs.plt");
+ output << "#!/usr/bin/env gnuplot\n\n"
+ << "reset\n"
+ << "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'\n"
+ << "set output '/dev/null'\n"
+ << "!transpose -o _transpose outs/cprobs.out\n"
+ << "plot './outs/cprobs_transpose.out' every :::1 u ($1*" << t << "/" << n << "):2:3 matrix with image\n"
+ << "set output 'figures/cprobs.eps'\n"
+ << "set title 'Electron probability density in QD'\n"
+ << "set border 0\n"
+ << "set ytics scale 0\n"
+ << "set xtics scale 0\n"
+ << "set ylabel 'Energy above band edge (a.u.)'\n"
+ << "set xlabel 'Time (a.u.)'\n"
+ << "set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]\n"
+ << "set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]\n"
+ << "unset key\n"
+ << "unset colorbox\n"
+ << "set palette defined ( 0 '#000090', 1 '#000fff', 2 '#0090ff', 3 '#0fffee', 4 '#90ff70', 5 '#ffee00', 6 '#ff7000', 7 '#ee0000', 8 '#7f0000')\n"
+ << "repl\n"
 
  return;
 }
@@ -2465,10 +2491,12 @@ int main (int argc, char * argv[]) {
 #endif
 
  // make plot outputs
- if (outs["vibprob.out"]) {
-  if (N_vib > 1) {
-   plot_vibprob(N_vib, tout);
-  }
+ if (outs["vibprob.plt"] && (N_vib > 1)) {
+  plot_vibprob(N_vib, tout);
+ }
+
+ if (outs["cprobs.plt"] && (Nc > 1)) {
+  plot_cprobs(numOutputSteps, tout, k_bandtop, k_bandedge, Nk);
  }
  
  // finalize log file //
