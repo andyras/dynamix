@@ -1390,7 +1390,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  if (outs["kprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
    fprintf(kprobs, "%-.9g", t[i]);
-   for (j = Ik; j < (Ik + Nk); j++) {
+   for (j = 0; j < Nk; j++) {
     summ = 0.0;
     for (int kk = 0; kk < N_vib; kk++) {
      summ += pow(psi_t[i*dim + (Ik+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Ik+j)*N_vib + kk].im,2);
@@ -1421,7 +1421,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  if (outs["cprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
    fprintf(cprobs, "%-.9g", t[i]);
-   for (j = Ic; j < (Ic + Nc); j++) {
+   for (j = 0; j < Nc; j++) {
     summ = 0.0;
     for (int kk = 0; kk < N_vib; kk++) {
      summ += pow(psi_t[i*dim + (Ic+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Ic+j)*N_vib + kk].im,2);
@@ -1447,7 +1447,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  if (outs["bprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
    fprintf(bprobs, "%-.9g", t[i]);
-   for (j = Ib; j < (Ib + Nb); j++) {
+   for (j = 0; j < Nb; j++) {
     summ = 0.0;
     for (int kk = 0; kk < N_vib; kk++) {
      summ += pow(psi_t[i*dim + (Ib+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Ib+j)*N_vib + kk].im,2);
@@ -1473,7 +1473,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
  if (outs["lprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
    fprintf(lprobs, "%-.9g", t[i]);
-   for (j = Il; j < (Il + Nl); j++) {
+   for (j = 0; j < Nl; j++) {
     summ = 0.0;
     for (int kk = 0; kk < N_vib; kk++) {
      summ += pow(psi_t[i*dim + (Il+j)*N_vib + kk].re,2) + pow(psi_t[i*dim + (Il+j)*N_vib + kk].im,2);
