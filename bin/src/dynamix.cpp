@@ -1679,7 +1679,7 @@ void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
  << "reset\n"
  << "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'\n"
  << "set output '/dev/null'\n"
- << "!transpose -o _transpose outs/cprobs.out\n"
+ << "!transpose -o _transpose ../outs/cprobs.out\n"
  << "plot '../outs/cprobs_transpose.out' every :::1 u ($1*" << t << "/" << n << "):2:3 matrix with image\n"
  << "set output 'figures/cprobs.eps'\n"
  << "set title 'Electron probability density in QD'\n"
