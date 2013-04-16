@@ -1299,7 +1299,7 @@ void propagatePsi(complex16 * psi_E, complex16 * psi_E_t, int N,
 }
 
 void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
-                   std::map<std::string, bool> &outs) {
+                   realtype * energies, std::map<std::string, bool> &outs) {
 // makes outputs for the result of a time-independent H time propagation
  FILE * tkprob;
  FILE * tcprob;
@@ -1430,6 +1430,30 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
    }
    fprintf(cprobs, "\n");
   }
+ }
+
+ // "expectation value" of energy on QD states
+ FILE * c_exp;
+ double P_QD;
+ if (outs["c_exp.out"]) {
+  c_exp = fopen("c_exp.out", "w");
+  for (i = 0; i <= timesteps; i++) {
+   // sum of population on all QD states
+   P_QD = 0.0;
+   for (j = Ic_vib; j < Ib_vib; j++) {
+    P_QD += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   // weighted average of energy contribution on each state
+   summ = 0.0;
+   for (j = 0; j < Nc; j++) {
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += energies[(Ic+j)*N_vib]*(pow(psi_t[i*dim + (Ic+j)*N_vib + kk].re,2)
+				   + pow(psi_t[i*dim + (Ic+j)*N_vib + kk].im,2));
+    }
+   }
+   fprintf(c_exp, "%-.9g %-.9g\n", t[i], (summ/P_QD));
+  }
+  fclose(c_exp);
  }
 
  // total population b states
@@ -2466,7 +2490,7 @@ int main (int argc, char * argv[]) {
   if (outs["psi_s_t.out"]) {
    outputCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
   }
-  makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps, outs);
+  makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps, energy, outs);
   // write out projections of subsystems
   projectSubsystems(H, W, NEQ_vib, outs);
   delete [] H;
