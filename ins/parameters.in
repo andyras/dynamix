@@ -78,7 +78,8 @@ return
 #cprobs_gnuplot.out
 #cmax.out
 #cmax_t.out
-#c_diag.out
+#c_exp.out
+##c_diag.out
 #c_offdiag.out
 #couplings.out
 #cprobs.out
