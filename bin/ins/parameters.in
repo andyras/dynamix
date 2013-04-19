@@ -38,7 +38,7 @@ bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
-N_vib=1					# number of vibronic states
+N_vib=2					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
 gkb=1.0					# g factor between k and b states
@@ -68,6 +68,7 @@ random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##
 
 [[Output Files]]
+b_exp.out
 #bprobs.out
 #cmax_first.out
 #cmax_first_t.out
@@ -88,6 +89,7 @@ energy.out
 #ham.out
 #Icprob.out
 #Ikprob.out
+k_exp.out
 #kmax.out
 kprobs.out
 #kprobs_gnuplot.out

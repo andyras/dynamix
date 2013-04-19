@@ -1386,6 +1386,30 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
   }
  }
 
+ // "expectation value" of energy on bulk states
+ FILE * k_exp;
+ double P_bulk;
+ if (outs["k_exp.out"]) {
+  k_exp = fopen("k_exp.out", "w");
+  for (i = 0; i <= timesteps; i++) {
+   // sum of population on all bulk states
+   P_bulk = 0.0;
+   for (j = Ik_vib; j < Ic_vib; j++) {
+    P_bulk += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   // weighted average of energy contribution on each state
+   summ = 0.0;
+   for (j = 0; j < Nk; j++) {
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += energies[(Ik+j)*N_vib]*(pow(psi_t[i*dim + (Ik+j)*N_vib + kk].re,2)
+				   + pow(psi_t[i*dim + (Ik+j)*N_vib + kk].im,2));
+    }
+   }
+   fprintf(k_exp, "%-.9g %-.9g\n", t[i], (summ/P_bulk));
+  }
+  fclose(k_exp);
+ }
+
  // population k states
  if (outs["kprobs.out"]) {
   for (i = 0; i <= timesteps; i++) {
@@ -1465,6 +1489,30 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
    }
    fprintf(tbprob, "%-.9g %-.9g\n", t[i], summ);
   }
+ }
+
+ // "expectation value" of energy on bridge states
+ FILE * b_exp;
+ double P_bridge;
+ if (outs["b_exp.out"]) {
+  b_exp = fopen("b_exp.out", "w");
+  for (i = 0; i <= timesteps; i++) {
+   // sum of population on all bridge states
+   P_bridge = 0.0;
+   for (j = Ib_vib; j < Il_vib; j++) {
+    P_bridge += pow(psi_t[i*dim + j].re,2) + pow(psi_t[i*dim + j].im,2);
+   }
+   // weighted average of energy contribution on each state
+   summ = 0.0;
+   for (j = 0; j < Nb; j++) {
+    for (int kk = 0; kk < N_vib; kk++) {
+     summ += energies[(Ib+j)*N_vib]*(pow(psi_t[i*dim + (Ib+j)*N_vib + kk].re,2)
+				   + pow(psi_t[i*dim + (Ib+j)*N_vib + kk].im,2));
+    }
+   }
+   fprintf(b_exp, "%-.9g %-.9g\n", t[i], (summ/P_bridge));
+  }
+  fclose(b_exp);
  }
 
  // population b states
