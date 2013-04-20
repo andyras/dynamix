@@ -1558,23 +1558,91 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
 
  // vibrational populations
  if (outs["vibprob.out"]) {
-  double * vibprob_t = new double [N_vib*(timesteps + 1)];
+  double vibprob_t;
   // loop over time steps
   for (i = 0; i <= timesteps; i++) {
    fprintf(vibprob, "%-.9g", t[i]);
    // loop over vibrational states
    for (j = 0; j < N_vib; j++) {
-    vibprob_t[i*N_vib + j] = 0.0;
+    vibprob_t = 0.0;
     // loop over electronic states
     for (int kk = 0; kk < NEQ; kk++) {
-     vibprob_t[i*N_vib + j] += pow(psi_t[i*dim + kk*N_vib + j].re,2)
+     vibprob_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
                             +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
     }
-    fprintf(vibprob, " %-.9g", vibprob_t[i*N_vib + j]);
+    fprintf(vibprob, " %-.9g", vibprob_t);
    }
    fprintf(vibprob, "\n");
   }
-  delete [] vibprob_t;
+ }
+
+ // vibrational populations on bulk
+ FILE * vibprob_bu;
+ if (outs["vibprob_bu.out"]) {
+  vibprob_bu = fopen("vibprob_bu.out", "w");
+  double vibprob_bu_t;
+  // loop over time steps
+  for (i = 0; i <= timesteps; i++) {
+   fprintf(vibprob_bu, "%-.9g", t[i]);
+   // loop over vibrational states
+   for (j = 0; j < N_vib; j++) {
+    vibprob_bu_t = 0.0;
+    // loop over electronic states
+    for (int kk = Ik; kk < Ic; kk++) {
+     vibprob_bu_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
+                            +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
+    }
+    fprintf(vibprob_bu, " %-.9g", vibprob_bu_t);
+   }
+   fprintf(vibprob_bu, "\n");
+  }
+  fclose(vibprob_bu);
+ }
+
+ // vibrational populations on bridge
+ FILE * vibprob_br;
+ if (outs["vibprob_br.out"]) {
+  vibprob_br = fopen("vibprob_br.out", "w");
+  double vibprob_br_t;
+  // loop over time steps
+  for (i = 0; i <= timesteps; i++) {
+   fprintf(vibprob_br, "%-.9g", t[i]);
+   // loop over vibrational states
+   for (j = 0; j < N_vib; j++) {
+    vibprob_br_t = 0.0;
+    // loop over electronic states
+    for (int kk = Ib; kk < Il; kk++) {
+     vibprob_br_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
+                            +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
+    }
+    fprintf(vibprob_br, " %-.9g", vibprob_br_t);
+   }
+   fprintf(vibprob_br, "\n");
+  }
+  fclose(vibprob_br);
+ }
+
+ // vibrational populations on QD
+ FILE * vibprob_qd;
+ if (outs["vibprob_qd.out"]) {
+  vibprob_qd = fopen("vibprob_qd.out", "w");
+  double vibprob_qd_t;
+  // loop over time steps
+  for (i = 0; i <= timesteps; i++) {
+   fprintf(vibprob_qd, "%-.9g", t[i]);
+   // loop over vibrational states
+   for (j = 0; j < N_vib; j++) {
+    vibprob_qd_t = 0.0;
+    // loop over electronic states
+    for (int kk = Ic; kk < Ib; kk++) {
+     vibprob_qd_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
+                            +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
+    }
+    fprintf(vibprob_qd, " %-.9g", vibprob_qd_t);
+   }
+   fprintf(vibprob_qd, "\n");
+  }
+  fclose(vibprob_qd);
  }
 
  // max population on k states

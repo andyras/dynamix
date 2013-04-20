@@ -117,7 +117,10 @@ kprobs.out
 #tkrate.out
 #tlprob.out
 #totprob.out
-#vibprob.out
+vibprob.out
+vibprob_bu.out
+vibprob_br.out
+vibprob_qd.out
 #vibprob.plt
 #projections.plt
 [[End]]
