@@ -1612,11 +1612,6 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
   double vibprob_bu_t;
   // loop over time steps
   for (i = 0; i <= timesteps; i++) {
-   // get total population on bulk
-   summ = 0.0;
-   for (int ii = Ik_vib; ii < Ic_vib; ii++) {
-    summ += pow(psi_t[i*dim + ii].re,2) + pow(psi_t[i*dim + ii].im,2);
-   }
    fprintf(vibprob_bu, "%-.9g", t[i]);
    // loop over vibrational states
    for (j = 0; j < N_vib; j++) {
@@ -1626,7 +1621,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
      vibprob_bu_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
                             +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
     }
-    fprintf(vibprob_bu, " %-.9g", vibprob_bu_t/summ);
+    fprintf(vibprob_bu, " %-.9g", vibprob_bu_t);
    }
    fprintf(vibprob_bu, "\n");
   }
@@ -1669,11 +1664,6 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
   double vibprob_br_t;
   // loop over time steps
   for (i = 0; i <= timesteps; i++) {
-   // get total population on bridge
-   summ = 0.0;
-   for (int ii = Ib_vib; ii < Il_vib; ii++) {
-    summ += pow(psi_t[i*dim + ii].re,2) + pow(psi_t[i*dim + ii].im,2);
-   }
    fprintf(vibprob_br, "%-.9g", t[i]);
    // loop over vibrational states
    for (j = 0; j < N_vib; j++) {
@@ -1683,7 +1673,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
      vibprob_br_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
                             +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
     }
-    fprintf(vibprob_br, " %-.9g", vibprob_br_t/summ);
+    fprintf(vibprob_br, " %-.9g", vibprob_br_t);
    }
    fprintf(vibprob_br, "\n");
   }
@@ -1726,11 +1716,6 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
   double vibprob_qd_t;
   // loop over time steps
   for (i = 0; i <= timesteps; i++) {
-   // get total population on QD
-   summ = 0.0;
-   for (int ii = Ic_vib; ii < Ib_vib; ii++) {
-    summ += pow(psi_t[i*dim + ii].re,2) + pow(psi_t[i*dim + ii].im,2);
-   }
    fprintf(vibprob_qd, "%-.9g", t[i]);
    // loop over vibrational states
    for (j = 0; j < N_vib; j++) {
@@ -1740,7 +1725,7 @@ void makeOutputsTI(complex16 * psi_t, int dim, double * t, int timesteps,
      vibprob_qd_t += pow(psi_t[i*dim + kk*N_vib + j].re,2)
                             +  pow(psi_t[i*dim + kk*N_vib + j].im,2);
     }
-    fprintf(vibprob_qd, " %-.9g", vibprob_qd_t/summ);
+    fprintf(vibprob_qd, " %-.9g", vibprob_qd_t);
    }
    fprintf(vibprob_qd, "\n");
   }
