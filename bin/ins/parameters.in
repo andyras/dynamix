@@ -122,5 +122,8 @@ vibprob_bu.out
 vibprob_br.out
 vibprob_qd.out
 #vibprob.plt
+vibshift_bu.out
+vibshift_br.out
+vibshift_qd.out
 #projections.plt
 [[End]]
