@@ -1,12 +1,12 @@
 #!/usr/bin/env python2.7
 
-debug = True
+debug = False
 
 import argparse
 
 parser = argparse.ArgumentParser(description='Script to make plots')
-parser.add_argument('--plot', '-p', help='Make plots with gnuplot (default is only to create scripts)', action='store_true')
-parser.add_argument('--au', '-a', help='Atomic time units (default fs)', action='store_true')
+parser.add_argument('-p', '--plot', help='Make plots with gnuplot (default is only to create scripts)', action='store_true')
+parser.add_argument('-a', '--au', help='Atomic time units (default fs)', action='store_true')
 
 args = parser.parse_args()
 
@@ -39,7 +39,6 @@ def set_plots():
     Set the plots array to contain the names of all the plot files to be made
     '''
     plots = []
-    plots.append("test.plt")
     plots.append("vibprob.plt")
     plots.append("vibprob_subsystem.plt")
 
@@ -69,8 +68,6 @@ def getPlotFn(plotFile):
         print("WARNING: %s is not a normal gnuplot file extension." % fileExt)
 
     plotFn = "plot_"+fileName
-    if (debug):
-        print plotFn
 
     return plotFn
 
@@ -92,10 +89,6 @@ def makePlotFile(plotFile, params):
 
     with open(plotFile, 'w') as f:
         exec plotFn+"(f,params)"
-
-def plot_test(f, p):
-    print 'whoo'
-    f.write("\n")
 
 def plot_vibprob(f, p):
     n = int(readParam("N_vib"))
@@ -227,10 +220,10 @@ if (args.au):
 else:
     params['units'] = 'fs'
 
-print plots
+# make plot files
 for plot in plots:
     makePlotFile(plot, params)
-    print plot
-    print getPlotFn(plot)
 
-gnuplot_all()
+# summon gnuplot
+if (args.plot):
+    gnuplot_all()
