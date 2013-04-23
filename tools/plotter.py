@@ -2,6 +2,14 @@
 
 debug = True
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Script to make plots')
+parser.add_argument('--plot', '-p', help='Make plots with gnuplot (default is only to create scripts)', action='store_true')
+parser.add_argument('--au', '-a', help='Atomic time units (default fs)', action='store_true')
+
+args = parser.parse_args()
+
 import os
 import re
 import sys
@@ -33,6 +41,7 @@ def set_plots():
     plots = []
     plots.append("test.plt")
     plots.append("vibprob.plt")
+    plots.append("vibprob_subsystem.plt")
 
     return plots
 
@@ -65,7 +74,7 @@ def getPlotFn(plotFile):
 
     return plotFn
 
-def makePlotFile(plotFile):
+def makePlotFile(plotFile, params):
     '''
     Executes the plot function corresponding to a certain plot file
     '''
@@ -82,13 +91,13 @@ def makePlotFile(plotFile):
         print("Executing %s." % plotFn)
 
     with open(plotFile, 'w') as f:
-        exec plotFn+"(f)"
+        exec plotFn+"(f,params)"
 
-def plot_test(f):
+def plot_test(f, p):
     print 'whoo'
     f.write("\n")
 
-def plot_vibprob(f):
+def plot_vibprob(f, p):
     n = int(readParam("N_vib"))
     tout = readParam("tout")
 
@@ -100,20 +109,97 @@ def plot_vibprob(f):
     f.write("set style data lines\n")
     f.write("set output 'vibprob.pdf'\n")
     f.write("\n")
-    f.write("set xlabel 'Time (a.u.)'\n")
+    if (p["units"] == 'au'):
+        f.write("set xlabel 'Time (a.u.)'\n")
+    else:
+        f.write("set xlabel 'Time (fs)'\n")
     f.write("set ylabel 'Vibrational Population'\n")
     f.write("set title 'Vibrational Populations'\n")
-    ###
-    f.write("set xr [0:%s]\n" % tout)
+    if (p["units"] == 'au'):
+        f.write("set xr [0:%s]\n" % tout)
+    else:
+        f.write("set xr [0:%s/41.3414]\n" % tout)
     f.write("\n")
     f.write("set lmargin 18\n")
     f.write("set key out left\n")
     f.write("\n")
-    f.write("plot '../outs/vibprob.out' t '0'")
+    if (p["units"] == 'au'):
+        f.write("plot '../outs/vibprob.out' t '0'")
+    else:
+        f.write("plot '../outs/vibprob.out' u ($1/41.3414):2 t '0'")
     for ii in range(1,n):
         f.write(", \\\n")
-        f.write("'' u 1:%d t '%d'" % (ii+2, ii))
+        if (p["units"] == 'au'):
+            f.write("'' u 1:%d t '%d'" % (ii+2, ii))
+        else:
+            f.write("'' u ($1/41.3414):%d t '%d'" % (ii+2, ii))
     f.write("\n")
+    f.write("\n")
+    f.write("reset\n")
+
+def plot_vibprob_subsystem(f, p):
+    n = int(readParam("N_vib"))
+    tout = readParam("tout")
+
+    f.write("#!/usr/bin/env gnuplot\n")
+    f.write("\n")
+    f.write("reset\n")
+    f.write("\n")
+    f.write("set terminal pdfcairo dashed enhanced color size 8,5 font 'FreeMono,12' lw 4 dl 1\n")
+    f.write("set style data lines\n")
+    f.write("set output 'vibprob_subsystem.pdf'\n")
+    f.write("\n")
+    if (p["units"] == 'au'):
+        f.write("set xlabel 'Time (a.u.)'\n")
+    else:
+        f.write("set xlabel 'Time (fs)'\n")
+    if (p["units"] == 'au'):
+        f.write("set xr [0:%s]\n" % tout)
+    else:
+        f.write("set xr [0:%s/41.3414]\n" % tout)
+    f.write("\n")
+    f.write("set lmargin 18\n")
+    f.write("set key out left font ',6'\n")
+    f.write("\n")
+    f.write("set multiplot layout 3,1 title 'Subsystem Vibrational Populations'\n")
+    f.write("\n")
+    f.write("set ylabel 'Bulk'\n")
+    if (p["units"] == 'au'):
+        f.write("plot '../outs/vibprob_bu.out' t '0'")
+    else:
+        f.write("plot '../outs/vibprob_bu.out' u ($1/41.3414):2 t '0'")
+    for ii in range(1,n):
+        f.write(", \\\n")
+        if (p["units"] == 'au'):
+            f.write("'' u 1:%d t '%d'" % (ii+2, ii))
+        else:
+            f.write("'' u ($1/41.3414):%d t '%d'" % (ii+2, ii))
+    f.write("\n\n")
+    f.write("set ylabel 'Bridge'\n")
+    if (p["units"] == 'au'):
+        f.write("plot '../outs/vibprob_br.out' t '0'")
+    else:
+        f.write("plot '../outs/vibprob_br.out' u ($1/41.3414):2 t '0'")
+    for ii in range(1,n):
+        f.write(", \\\n")
+        if (p["units"] == 'au'):
+            f.write("'' u 1:%d t '%d'" % (ii+2, ii))
+        else:
+            f.write("'' u ($1/41.3414):%d t '%d'" % (ii+2, ii))
+    f.write("\n\n")
+    f.write("set ylabel 'QD'\n")
+    if (p["units"] == 'au'):
+        f.write("plot '../outs/vibprob_qd.out' t '0'")
+    else:
+        f.write("plot '../outs/vibprob_qd.out' u ($1/41.3414):2 t '0'")
+    for ii in range(1,n):
+        f.write(", \\\n")
+        if (p["units"] == 'au'):
+            f.write("'' u 1:%d t '%d'" % (ii+2, ii))
+        else:
+            f.write("'' u ($1/41.3414):%d t '%d'" % (ii+2, ii))
+    f.write("\n\n")
+    f.write("unset multiplot\n")
     f.write("\n")
     f.write("reset\n")
 
@@ -131,11 +217,19 @@ if not (os.path.isdir(path)):
 # go to the directory since we know it exists.
 os.chdir(path)
 
+# get list of plots to make
 plots = set_plots()
+
+# set up parameters
+params = {}
+if (args.au):
+    params['units'] = 'au'
+else:
+    params['units'] = 'fs'
 
 print plots
 for plot in plots:
-    makePlotFile(plot)
+    makePlotFile(plot, params)
     print plot
     print getPlotFn(plot)
 
