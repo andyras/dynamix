@@ -38,11 +38,11 @@ bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
-N_vib=10					# number of vibronic states
+N_vib=5					# number of vibronic states
 E_vib=0.0036749843813			# vibrational energy
 gkc=0.0					# g factor between k and c states
-gkb=1.5					# g factor between k and b states
-gbc=-1.5				# g factor between b and c states
+gkb=2.0					# g factor between k and b states
+gbc=-2.0				# g factor between b and c states
 gbb=0.0					# g factor between b states
 # laser parameters #
 muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
@@ -53,9 +53,9 @@ pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 bulk_FDD=0
-bulk_Gauss=0
+bulk_Gauss=1
 bulk_constant=0
-qd_pops=1
+qd_pops=0
 laser_on=0
 parabolicCoupling=0
 scale_bubr=0
@@ -67,8 +67,7 @@ random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##
 
-# return here so that when this file is sourced by bash the output files are
-# not confusing.
+# return here so that when this file is sourced by bash the output files are not confusing.
 return
 
 [[Output Files]]
@@ -79,7 +78,7 @@ return
 #cmax.out
 #cmax_t.out
 #c_exp.out
-##c_diag.out
+#c_diag.out
 #c_offdiag.out
 #couplings.out
 #cprobs.out
@@ -120,5 +119,9 @@ tkprob.out
 #totprob.out
 vibprob.out
 vibprob.plt
+vibprob_bu.out
+vibprob_br.out
+vibprob_qd.out
+vibprob_subsystem.plt
 #projections.plt
 [[End]]

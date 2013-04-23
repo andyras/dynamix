@@ -1899,6 +1899,52 @@ void plot_vibprob(int n, double t) {
  return;
 }
 
+/* Makes a gnuplot file to plot the subsystem vibrational populations over time */
+void plot_vibprob_subsystem(int n, double t) {
+ std::ofstream output("vibprob_subsystem.plt");
+
+ // make plot file
+ output << "#!/usr/bin/env gnuplot\n\n"
+ << "reset\n"
+ << "set terminal pdfcairo dashed enhanced color size 8,5 font \"FreeMono,12\" lw 4 dl 1\n"
+ << "set style data lines\n"
+ << "set output 'vibprob_subsystem.pdf'\n"
+ << "\n"
+ << "set xlabel 'Time (a.u.)'\n"
+ << "set title 'Vibrational Populations'\n"
+ << "set xr [0:" << t << "]\n"
+ << "\n"
+ << "set lmargin 18\n"
+ << "set key out left font ',6'\n"
+ << "\n"
+ << "set multiplot layout 3,1 title 'Subsystem Vibrational Populations'\n"
+ << "set ylabel 'Bulk'\n"
+ << "plot '../outs/vibprob_bu.out' t '0', \\\n";
+ for (int ii = 2; ii < n; ii++) {
+  output << "'' u 1:" << (ii+1) << " t '" << ii << "', \\\n";
+ }
+ output << "'' u 1:" << (n+1) << "t '" << n << "'\n"
+ << "\n"
+ << "set ylabel 'Bridge'\n"
+ << "plot '../outs/vibprob_br.out' t '0', \\\n";
+ for (int ii = 2; ii < n; ii++) {
+  output << "'' u 1:" << (ii+1) << " t '" << ii << "', \\\n";
+ }
+ output << "'' u 1:" << (n+1) << "t '" << n << "'\n"
+ << "\n"
+ << "set ylabel 'QD'\n"
+ << "plot '../outs/vibprob_qd.out' t '0', \\\n";
+ for (int ii = 2; ii < n; ii++) {
+  output << "'' u 1:" << (ii+1) << " t '" << ii << "', \\\n";
+ }
+ output << "'' u 1:" << (n+1) << "t '" << n << "'\n"
+ << "unset multiplot\n"
+ << "\n"
+ << "reset\n";
+
+ return;
+}
+
 /* Makes a gnuplot file to plot the QD populations over time */
 void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
  std::ofstream output("cprobs.plt");
@@ -2720,6 +2766,10 @@ int main (int argc, char * argv[]) {
  // make plot outputs
  if (outs["vibprob.plt"] && (N_vib > 1)) {
   plot_vibprob(N_vib, tout);
+ }
+
+ if (outs["vibprob_subsystem.plt"] && (N_vib > 1)) {
+  plot_vibprob_subsystem(N_vib, tout);
  }
 
  if (outs["cprobs.plt"] && (Nc > 1)) {
