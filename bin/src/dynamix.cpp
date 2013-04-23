@@ -2368,6 +2368,9 @@ int main (int argc, char * argv[]) {
   for (i = 0; i < N_vib; i++)
    FCkc[i] = new realtype [N_vib];
   Build_Franck_Condon_factors(FCkc, gkc, N_vib, N_vib);
+  if (outs["FCkc.out"]) {
+   output2DSquareMatrix(FCkc, N_vib, "FCkc.out");
+  }
 #ifdef DEBUG
    cout << "\n FCkc:\n";
    for (i = 0; i < N_vib; i++) {
@@ -2383,6 +2386,9 @@ int main (int argc, char * argv[]) {
    for (i = 0; i < N_vib; i++)
     FCbb[i] = new realtype [N_vib];
    Build_Franck_Condon_factors(FCbb, gbb, N_vib, N_vib);
+  if (outs["FCbb.out"]) {
+   output2DSquareMatrix(FCbb, N_vib, "FCbb.out");
+  }
 #ifdef DEBUG
    cout << "\n FCbb:\n";
    for (i = 0; i < N_vib; i++) {
@@ -2396,6 +2402,9 @@ int main (int argc, char * argv[]) {
   for (i = 0; i < N_vib; i++)
    FCkb[i] = new realtype [N_vib];
   Build_Franck_Condon_factors(FCkb, gkb, N_vib, N_vib);
+  if (outs["FCkb.out"]) {
+   output2DSquareMatrix(FCkb, N_vib, "FCkb.out");
+  }
 #ifdef DEBUG
    cout << "\n FCkb:\n";
    for (i = 0; i < N_vib; i++) {
@@ -2408,6 +2417,9 @@ int main (int argc, char * argv[]) {
   for (i = 0; i < N_vib; i++)
    FCbc[i] = new realtype [N_vib];
   Build_Franck_Condon_factors(FCbc, gbc, N_vib, N_vib);
+  if (outs["FCbc.out"]) {
+   output2DSquareMatrix(FCbc, N_vib, "FCbc.out");
+  }
 #ifdef DEBUG
    cout << "\n FCbc:\n";
    for (i = 0; i < N_vib; i++) {

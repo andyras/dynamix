@@ -141,3 +141,21 @@ void outputSquareMatrix(realtype * M, int N, char * fileName) {
  fclose(out);
 }
 
+/* prints a square matrix stored as a 2D array */
+void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
+ FILE * out;	// output file
+
+ out = fopen(fileName, "w");
+
+ for (int i = 0; i < N; i++) {
+  fprintf(out, "%-.9e", M[i][0]);
+  for (int j = 1; j < N; j++) {
+   fprintf(out, " %-.9e", M[i][j]);
+  }
+  fprintf(out, "\n");
+ }
+
+ fclose(out);
+
+ return;
+}

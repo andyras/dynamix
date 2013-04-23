@@ -37,7 +37,7 @@ function compile {
  which icpc &> /dev/null
  if [ $? == 0 ] ; then CPP=icpc ; fi
  cd bin
- make CPP=$CPP && echo "### $(date) done compiling!"
+ make -j 12 CPP=$CPP && echo "### $(date) done compiling!"
  if [ $? == 0 ] ; then
   echo "### $(date) done compiling!"
   cd ..

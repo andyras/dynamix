@@ -48,4 +48,7 @@ void outputCVectorTime(complex16 * v, int N, int M, char * fileName);
 /* prints a square matrix M of dimension N */
 void outputSquareMatrix(realtype * M, int N, char * fileName);
 
+/* prints a square matrix stored as a 2D array */
+void output2DSquareMatrix(realtype ** M, int N, char * fileName);
+
 #endif

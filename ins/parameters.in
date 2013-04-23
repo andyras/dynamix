@@ -86,6 +86,10 @@ return
 #energy_exp.out
 #evals.out
 #evecs.out
+FCkc.out
+FCkb.out
+FCbc.out
+FCbb.out
 #FTtcprob.out
 ham.out
 #Icprob.out
