@@ -521,6 +521,84 @@ int Output_checkpoint(
 }
 
 
+void computeSSBreakdown(double tout, int timesteps, realtype * energies,
+			double kBandEdge, double kBandTop, N_Vector y,
+			std::map<std::string, bool> &outs) {
+// Breakdown of different terms in the analytical expression for population
+// on a single state
+
+ FILE * ss_breakdown;
+ ss_breakdown = fopen("ss_breakdown.out", "w");
+ 
+ double prefactor1, prefactor2, prefactor3;
+ double term1, term2, term3, term4, term5;
+
+ // coefficients
+ // ASSUMPTION: these are real
+ double cm, cmp;
+
+ // frequencies
+ double wmn, wmpn, wmmp, wmpm;
+
+ // energy spacing in bulk
+ double dE  = (kBandTop-kBandEdge)/(Nk-1);
+ // bulk-QD coupling
+ double Vee = V[Ik][Ic];
+ // rate constant (can be defined also as K/2)
+ double K = M_PI*pow(Vee,2)/dE;
+
+ for (double t = 0.0; t <= tout; t += (tout/timesteps)) {
+  term1 = 0.0;
+  term2 = 0.0;
+  term3 = 0.0;
+  term4 = 0.0;
+  term5 = 0.0;
+  for (int m = 0; m < Nk; m++) {
+   cm = NV_Ith_S(y, Ik+m);
+   wmn = energies[Ik+m] - energies[Ic];
+   for (int mp = 0; mp < Nk; mp++) {
+    // compute constants
+    cmp = NV_Ith_S(y, Ik+mp);
+    wmpn = energies[Ik+mp] - energies[Ic];
+    wmmp = energies[Ik+m] - energies[Ik+mp];
+    wmpm = -1*wmmp;
+    prefactor1 = pow(Vee,2)*cm*cmp/((pow(K,2)+pow(wmn,2))*(pow(K,2)+pow(wmpn,2)));
+    prefactor2 = prefactor1*(pow(K,2) + wmn*wmpn);
+    prefactor3 = prefactor1*(K*wmpm);
+    // compute terms
+    term1 += prefactor2*cos(wmmp*t);
+    term2 += prefactor2*-1*exp(-1*K*t)*(cos(wmn*t) + cos(wmpn*t));
+    term3 += prefactor2*exp(-2*K*t);
+    term4 += prefactor3*sin(wmmp*t);
+    term5 += prefactor3*-1*exp(-1*K*t)*(sin(wmn*t) - sin(wmpn*t));
+    if ((t > 0.0) && (t < 1.0)) {
+     //cout << "term 1 (m = " << m << ", m' = " << mp << "): " << term1 << "\n";
+     fprintf(stdout, "(m=%d,m'=%d) t1 %-14.9e t2 %-14.9e t3 %-14.9e t4 %-14.9e t5 %-14.9e\n", m, mp, term1, term2, term3, term4, term5);
+     fprintf(stdout, "energies: E_m %-8.3e E_m' %-8.3e E_n %-8.3e\n", energies[Ik+m], energies[Ik+mp], energies[Ic]);
+     fprintf(stdout, "frequencies: w_mn %-8.3e w_m'n %-8.3e w_mm' %-8.3e\n", wmn, wmpn, wmmp);
+     fprintf(stdout, "sine test: prefactor3*sin(wmmp*t) = prefactor3*sin(%-8.3e*%-8.3e) = %-14.9e\n", wmmp, t, prefactor3*sin(wmmp*t));
+     fprintf(stdout, "\n");
+     //cout << "(m = " << m << ", m' = " << mp << "): t1 " << term1
+          //<< "\tt2: " << term2
+          //<< "\tt3: " << term3
+          //<< "\tt4: " << term4
+          //<< "\tt5: " << term5 << "\n";
+     //cout << "term 2 (m = " << m << ", m' = " << mp << "): " << term2 << "\n";
+     //cout << "term 3 (m = " << m << ", m' = " << mp << "): " << term3 << "\n";
+     //cout << "term 4 (m = " << m << ", m' = " << mp << "): " << term4 << "\n";
+     //cout << "term 5 (m = " << m << ", m' = " << mp << "): " << term5 << "\n";
+    }
+   }
+  }
+  fprintf(ss_breakdown, "%-.7g %-.7g %-.7g %-.7g %-.7g %-.7g %-.7g\n",
+          t, (term1+term2+term3+term4+term5), term1, term2, term3, term4, term5);
+ }
+
+ fclose(ss_breakdown);
+
+ return;
+}
+
 int Analytical_c (
  double tout, int timesteps, realtype * energies,
  double kBandEdge, double kBandTop, N_Vector y,
@@ -648,8 +726,13 @@ int Analytical_c (
   fclose(c_offdiag);
  }
 
+ if (outs["ss_breakdown.out"]) {
+  computeSSBreakdown(tout, timesteps, energies, kBandEdge, kBandTop, y, outs);
+ }
+
  return 0;
 }
+
 realtype Integrate_arrays (realtype * values, realtype * time, int num) {
 // Riemann sum of an array (values) at time points (time).
 // Does not assume equal spacing in time.
