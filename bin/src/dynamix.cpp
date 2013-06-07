@@ -567,29 +567,22 @@ void computeSSBreakdown(double tout, int timesteps, realtype * energies,
     prefactor3 = prefactor1*(K*wmpm);
     // compute terms
     term1 += prefactor2*cos(wmmp*t);
-    term2 += prefactor2*-1*exp(-1*K*t)*(cos(wmn*t) + cos(wmpn*t));
+    term2 -= prefactor2*exp(-1*K*t)*(cos(wmn*t) + cos(wmpn*t));
     term3 += prefactor2*exp(-2*K*t);
-    term4 += prefactor3*sin(wmmp*t);
-    term5 += prefactor3*-1*exp(-1*K*t)*(sin(wmn*t) - sin(wmpn*t));
+    term4 -= prefactor3*sin(wmmp*t);
+    term5 += prefactor3*exp(-1*K*t)*(sin(wmn*t) - sin(wmpn*t));
+#ifdef DEBUGf
     if ((t > 0.0) && (t < 1.0)) {
-     //cout << "term 1 (m = " << m << ", m' = " << mp << "): " << term1 << "\n";
      fprintf(stdout, "(m=%d,m'=%d) t1 %-14.9e t2 %-14.9e t3 %-14.9e t4 %-14.9e t5 %-14.9e\n", m, mp, term1, term2, term3, term4, term5);
      fprintf(stdout, "energies: E_m %-8.3e E_m' %-8.3e E_n %-8.3e\n", energies[Ik+m], energies[Ik+mp], energies[Ic]);
      fprintf(stdout, "frequencies: w_mn %-8.3e w_m'n %-8.3e w_mm' %-8.3e\n", wmn, wmpn, wmmp);
      fprintf(stdout, "sine test: prefactor3*sin(wmmp*t) = prefactor3*sin(%-8.3e*%-8.3e) = %-14.9e\n", wmmp, t, prefactor3*sin(wmmp*t));
      fprintf(stdout, "\n");
-     //cout << "(m = " << m << ", m' = " << mp << "): t1 " << term1
-          //<< "\tt2: " << term2
-          //<< "\tt3: " << term3
-          //<< "\tt4: " << term4
-          //<< "\tt5: " << term5 << "\n";
-     //cout << "term 2 (m = " << m << ", m' = " << mp << "): " << term2 << "\n";
-     //cout << "term 3 (m = " << m << ", m' = " << mp << "): " << term3 << "\n";
-     //cout << "term 4 (m = " << m << ", m' = " << mp << "): " << term4 << "\n";
-     //cout << "term 5 (m = " << m << ", m' = " << mp << "): " << term5 << "\n";
     }
+#endif
    }
   }
+  // I think there is a sign error somewhere here, in terms 4/5
   fprintf(ss_breakdown, "%-.7g %-.7g %-.7g %-.7g %-.7g %-.7g %-.7g\n",
           t, (term1+term2+term3+term4+term5), term1, term2, term3, term4, term5);
  }
