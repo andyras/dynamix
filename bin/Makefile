@@ -3,18 +3,18 @@
 BIN = dynamix
 #############################################################
 
+# directories for headers, objects and source files
+INCDIR = ./include
+OBJDIR = ./obj
+SRCDIR = ./src
+
 # flags for compiler and linker
 CXX = icpc
 CPP = $(CXX)
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
 CPPFLAGS = -Wall
-INCLUDES = -I./include -I$(MKLROOT)/include/fftw
+INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
-
-# directories for headers, objects and source files
-INCDIR = ./include
-OBJDIR = ./obj
-SRCDIR = ./src
 
 # make will look for .cpp files in $(SRCDIR)
 vpath %.cpp $(SRCDIR)
