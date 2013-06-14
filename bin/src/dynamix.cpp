@@ -521,6 +521,85 @@ int Output_checkpoint(
 }
 
 
+void computeLongTimeAnalyticalFromSingleState(
+  realtype * energies, double kBandEdge, double kBandTop,
+  N_Vector y, int Nk_first, int Nk_final, std::map<std::string, bool> &outs) {
+// Prints out the population on the c states at long times, assuming the
+// electron starts in a single state in the quasicontinuum.
+
+ // error out if the electron is not just in one state
+ if (!bulk_constant ) {
+  cerr << "ERROR [" << __FUNCTION__ << "]: bulk_constant is not turned on.\n"
+       << "Electron must be in one initial state to compute long time population.\n";
+  std::exit(0);
+ }
+ if (Nk_first != Nk_final) {
+  cerr << "ERROR [" << __FUNCTION__ << "]: Nk_first not equal to Nk_final.\n"
+       << "Electron must be in one initial state to compute long time population.\n";
+  std::exit(0);
+ }
+
+ // error out if bridge is on
+ if (bridge_on) {
+  cerr << "ERROR [" << __FUNCTION__ << "]: bridge is on.\n";
+  std::exit(0);
+ }
+
+ FILE * longtime;
+ longtime = fopen("longtime_from_singlestate.out", "w");
+ FILE * longtimesum;
+ longtimesum = fopen("longtime_from_singlestate_sum.out", "w");
+
+ // assume the electron starts in state number Nk_first
+ // m is the index for the starting state
+ int m = (Nk_first + Ik)*N_vib;
+
+ // energy spacing in bulk
+ double dE  = (kBandTop-kBandEdge)/(Nk-1);
+ // bulk-QD coupling
+ double Vee = V[Ik][Ic];
+ // rate constant (can be defined also as K/2)
+ double K = M_PI*pow(Vee,2)/dE;
+ // we just need the square of the rate constant
+ K = pow(K,2);
+
+ // accumulators
+ double sum1, sum2, sum3;
+
+ // precompute all the frequency differences
+ // (terms that look like 1/(wmn^2 + K^2)
+ double * wmn = new double [Nc];
+ double * wmnK = new double [Nc];
+ for (int i = 0; i < Nc; i++) {
+  wmn[i] = energies[m] - energies[Ic + i];
+  wmnK[i] = 1/(pow(wmn[i],2) + pow(K,2));
+ }
+
+ sum1 = 0.0;
+ // loop over n
+ for (int i = 0; i < Nc; i++) {
+  sum2 = 0.0;
+  // loop over n'
+  for (int j = 0; j < Nc; j++) {
+   sum3 = 0.0;
+   // loop over n''
+   for (int k = 0; k < j; k++) {
+    sum3 += (wmn[j]*wmn[k] + K)*wmnK[k];
+   }
+   sum2 += K*wmnK[j]*(1 - sum3);
+  }
+  fprintf(longtime, "%.7g\n", pow(Vee,2)*wmnK[i]*(1 - sum2));
+  sum1 += pow(Vee,2)*wmnK[i]*(1 - sum2);
+ }
+ fprintf(longtimesum, "%.7g\n", sum1);
+
+ delete [] wmn;
+ delete [] wmnK;
+
+ return;
+}
+
+
 void computeSSBreakdown(double tout, int timesteps, realtype * energies,
 			double kBandEdge, double kBandTop, N_Vector y,
 			std::map<std::string, bool> &outs) {
@@ -594,7 +673,7 @@ void computeSSBreakdown(double tout, int timesteps, realtype * energies,
 
 int Analytical_c (
  double tout, int timesteps, realtype * energies,
- double kBandEdge, double kBandTop, N_Vector y,
+ double kBandEdge, double kBandTop, N_Vector y, int Nk_first, int Nk_final,
  std::map<std::string, bool> &outs) {
 // computes analytically the population on a single c state
 
@@ -721,6 +800,10 @@ int Analytical_c (
 
  if (outs["ss_breakdown.out"]) {
   computeSSBreakdown(tout, timesteps, energies, kBandEdge, kBandTop, y, outs);
+ }
+
+ if (outs["longtime_from_singlestate.out"]) {
+  computeLongTimeAnalyticalFromSingleState(energies, kBandEdge, kBandTop, y, Nk_first, Nk_final, outs);
  }
 
  return 0;
@@ -2675,7 +2758,7 @@ int main (int argc, char * argv[]) {
 
  if (analytical) {
   // Compute the analytical population on the c states
-  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y, outs);
+  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y, Nk_first, Nk_final, outs);
  }
 
  // create CVode object //

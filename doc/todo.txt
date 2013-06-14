@@ -31,3 +31,5 @@
 # add optional FT output for tXprob.out
 
 # move code for making outputs to separate .cpp files
+
+# compute things like Delta, kappa at the start and pass around in data struct

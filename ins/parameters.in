@@ -21,13 +21,13 @@ analytical=1				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=4270				# final time reached by solver (a.u.)
+tout=42700				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
-Nk=101					# number of k states to have
+Nk=1001					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -53,8 +53,8 @@ pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 bulk_FDD=0
-bulk_Gauss=1
-bulk_constant=0
+bulk_Gauss=0
+bulk_constant=1
 qd_pops=0
 laser_on=0
 parabolicCoupling=0
@@ -99,6 +99,7 @@ kprobs.out
 kprobs_gnuplot.out
 #lprobs.out
 #log.out
+longtime_from_singlestate.out
 ms_est.out
 #ms_est_tot.out
 #projections.out

@@ -4,6 +4,7 @@
 *.eps
 *.swp
 *plt
+*pdf
 backup/
 whoo
 debuggery/
