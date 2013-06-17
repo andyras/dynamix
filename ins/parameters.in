@@ -21,7 +21,7 @@ analytical=1				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=42700				# final time reached by solver (a.u.)
+tout=10000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
@@ -101,7 +101,7 @@ kprobs_gnuplot.out
 #log.out
 longtime_from_singlestate.out
 ms_est.out
-#ms_est_tot.out
+ms_est_tot.out
 #projections.out
 #psi2_start_e.out
 #psi_e_t.out
