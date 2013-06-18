@@ -110,6 +110,37 @@ def do_runs2(infile, w, timesteps, redo=False):
     np.savetxt('avg/tcprob_avg.out', output_avg, '%-.7g')
 
 
+def averageFile(fileName, w):
+    # TODO add flag for whether time-dep property
+    '''
+    This function averages the contents of a file, which is expected to be
+    in all folders in the directory 'avg/'.
+    '''
+    # get dimensions of file
+    currentFile = 'avg/1/'+fileName
+    data = np.loadtxt(currentFile)
+    nr = data.shape[0]  # number of rows
+    nc = data.shape[1]  # number of cols
+
+    # create output data
+    outputData = np.zeros((nr,nc))
+
+    # for each starting state
+    for i in range(len(w)):
+        currentFile = 'avg/'+str(i+1)+'/'+fileName
+        data = np.loadtxt(currentFile)
+        # loop over each element in files
+        # TODO maybe just use matrix op here
+        for j in range(nr):
+            for k in range(nc):
+                # weight the input data by the distribution
+                outputData[j,k] += w[i]*data[j,k]
+    # TODO if time-dep, copy times rather than keeping average
+
+    # output to file
+    np.savetxt('avg/avg_%s' % fileName, outputData, '%-.7g')
+
+
 def do_setup(w):
     '''
     This function sets up input files for each job to be run
@@ -145,11 +176,8 @@ def do_averaging(w):
     '''
     This function averages the data in certain output files
     '''
-    # create data variables
-    # for each starting state
-        # add weighted contribution to output data
-    # add times to output
-    # write output to file
+    # average population on c states
+    averageFile('tcprob.out', w)
 
 
 ## parameters of FDD distribution
@@ -178,5 +206,5 @@ if (args.run):
 
 if (args.average):
     print 'averaging data...'
-    do_averaging()
+    do_averaging(w)
     print 'done averaging data!'
