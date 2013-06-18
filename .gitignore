@@ -5,6 +5,7 @@
 *.swp
 *plt
 *pdf
+avg/
 backup/
 whoo
 debuggery/
