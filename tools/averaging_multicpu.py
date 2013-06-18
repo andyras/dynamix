@@ -23,7 +23,8 @@ def dist(dist_fn, Ef, BE, BT, T, Nk):
     '''
     arr = dist_fn(Ef, BE, BT, T, Nk)
     #print("arr is "+str(arr))
-    arr /= np.linalg.norm(arr)
+    #arr /= np.linalg.norm(arr)
+    arr /= sum(arr)
     #print("arr is "+str(arr))
     return arr
 
@@ -94,7 +95,7 @@ def do_runs2(infile, w, timesteps, redo=False):
                 change_param('Nk_final', infile, str(i+1))
                 # run total_dynamix
                 # os.system('./total_dynamix')
-                os.system('../../dynamix')
+                os.system('../../dynamix && rm -rf ins/')
                 # cp output(s) to folder for averaging
                 os.system('cp tcprob.out '+run_file)
             # load values from output
@@ -110,8 +111,7 @@ def do_runs2(infile, w, timesteps, redo=False):
     np.savetxt('avg/tcprob_avg.out', output_avg, '%-.7g')
 
 
-def averageFile(fileName, w):
-    # TODO add flag for whether time-dep property
+def averageFile(fileName, w, isTimeDep=True):
     '''
     This function averages the contents of a file, which is expected to be
     in all folders in the directory 'avg/'.
@@ -119,26 +119,34 @@ def averageFile(fileName, w):
     # get dimensions of file
     currentFile = 'avg/1/'+fileName
     data = np.loadtxt(currentFile)
-    nr = data.shape[0]  # number of rows
-    nc = data.shape[1]  # number of cols
 
     # create output data
-    outputData = np.zeros((nr,nc))
+    if (len(data.shape) > 1):
+        outputData = np.zeros((data.shape[0],data.shape[1]))
+    else:
+        outputData = np.zeros((data.shape))
 
     # for each starting state
     for i in range(len(w)):
+        # load data file
         currentFile = 'avg/'+str(i+1)+'/'+fileName
         data = np.loadtxt(currentFile)
-        # loop over each element in files
-        # TODO maybe just use matrix op here
-        for j in range(nr):
-            for k in range(nc):
-                # weight the input data by the distribution
-                outputData[j,k] += w[i]*data[j,k]
-    # TODO if time-dep, copy times rather than keeping average
+        # increment weighted average of data
+        outputData += w[i]*data
 
+    # if time-dep, copy times rather than keeping average
+    if (isTimeDep):
+        outputData[:,0] = data[:,0]
+
+    if (debug):
+        print 'output data is ', outputData
+        print 'output data shape is ', outputData.shape
     # output to file
-    np.savetxt('avg/avg_%s' % fileName, outputData, '%-.7g')
+    if (np.rank(outputData) == 0):
+        with open('avg/avg_%s' % fileName, 'w') as f:
+            f.write('%f' % float(outputData))
+    else:
+        np.savetxt('avg/avg_%s' % fileName, outputData, '%-.7g')
 
 
 def do_setup(w):
@@ -176,8 +184,11 @@ def do_averaging(w):
     '''
     This function averages the data in certain output files
     '''
-    # average population on c states
     averageFile('tcprob.out', w)
+    averageFile('ms_est.out', w)
+    averageFile('ms_est_tot.out', w)
+    averageFile('longtime_from_singlestate.out', w, False)
+    averageFile('longtime_from_singlestate_sum.out', w, False)
 
 
 ## parameters of FDD distribution
@@ -191,6 +202,8 @@ timesteps = int(read_param('numOutputSteps', infile)) + 1 # timesteps
 
 # array of weights for each run
 w = dist(fdd, Ef, BE, BT, T, Nk)
+if (debug):
+    print 'sum of distribution w is ', sum(w)
 
 #do_runs(infile, w, timesteps, True)
 

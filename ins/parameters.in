@@ -26,8 +26,8 @@ numsteps=60000				# number of timesteps
 numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
-k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
-Nk=11					# number of k states to have
+k_bandtop=0.0735			# upper band edge of bulk conduction band (a.u.)
+Nk=1001					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -86,20 +86,21 @@ return
 #energy_exp.out
 #evals.out
 #evecs.out
-FCkc.out
-FCkb.out
-FCbc.out
-FCbb.out
+#FCkc.out
+#FCkb.out
+#FCbc.out
+#FCbb.out
 #FTtcprob.out
-ham.out
+#ham.out
 #Icprob.out
 #Ikprob.out
 #kmax.out
-kprobs.out
-kprobs_gnuplot.out
+#kprobs.out
+#kprobs_gnuplot.out
 #lprobs.out
 #log.out
 longtime_from_singlestate.out
+longtime_from_singlestate_sum.out
 ms_est.out
 ms_est_tot.out
 #projections.out
@@ -112,22 +113,22 @@ ms_est_tot.out
 #pump_intensity.out
 #qd_est.out
 #qd_est_diag.out
-ss_breakdown.out
-tbprob.out
+#ss_breakdown.out
+#tbprob.out
 #tcderiv.out
 tcprob.out
 #tcrate.out
 #times.out
 #tkderiv.out
-tkprob.out
+#tkprob.out
 #tkrate.out
 #tlprob.out
 #totprob.out
-vibprob.out
-vibprob.plt
-vibprob_bu.out
-vibprob_br.out
-vibprob_qd.out
-vibprob_subsystem.plt
+#vibprob.out
+#vibprob.plt
+#vibprob_bu.out
+#vibprob_br.out
+#vibprob_qd.out
+#vibprob_subsystem.plt
 #projections.plt
 [[End]]
