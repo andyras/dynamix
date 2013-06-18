@@ -562,8 +562,8 @@ void computeLongTimeAnalyticalFromSingleState(
  double K = M_PI*pow(Vee,2)/dE;
  // we just need the square of the rate constant
  K = pow(K,2);
-cerr << "\nSTUFF IN LONG TIME EXPRESSION\n";
-cerr << "K is " << K << endl;
+//cerr << "\nSTUFF IN LONG TIME EXPRESSION\n";
+//cerr << "K is " << K << endl;
 
  // accumulators
  double sum1, sum2, sum3;
@@ -574,36 +574,36 @@ cerr << "K is " << K << endl;
  double * wmnK = new double [Nc];
  for (int i = 0; i < Nc; i++) {
   wmn[i] = energies[m] - energies[Ic + i];
-cerr << "wmn[" << i << "] " << wmn[i] << endl;
+//cerr << "wmn[" << i << "] " << wmn[i] << endl;
   wmnK[i] = 1/(pow(wmn[i],2) + K);
-cerr << "wmnK[" << i << "] " << wmnK[i] << endl;
+//cerr << "wmnK[" << i << "] " << wmnK[i] << endl;
  }
 
  sum1 = 0.0;
  // loop over n
  for (int i = 0; i < Nc; i++) {
-cerr << "n is   " << i << endl;
+//cerr << "n is   " << i << endl;
   sum2 = 0.0;
   // loop over n'
   for (int j = 0; j < Nc; j++) {
    if (j == i) {
     continue;
    }
-cerr << "n' is  " << j << endl;
+//cerr << "n' is  " << j << endl;
    sum3 = 0.0;
    // loop over n''
    for (int k = 0; k < j; k++) {
-cerr << "n'' is  " << k << endl;
+//cerr << "n'' is  " << k << endl;
     sum3 += (wmn[j]*wmn[k] + K)*wmnK[k];
    }
    sum2 += K*wmnK[j]*(1 - 2*sum3);
-cerr << "sum3 " << sum3 << endl;
+//cerr << "sum3 " << sum3 << endl;
   }
-cerr << "sum2 " << sum2 << endl;
+//cerr << "sum2 " << sum2 << endl;
   fprintf(longtime, "%.7g\n", pow(Vee,2)*wmnK[i]*(1 - sum2));
   sum1 += pow(Vee,2)*wmnK[i]*(1 - sum2);
  }
-cerr << "sum1 " << sum1 << endl;
+//cerr << "sum1 " << sum1 << endl;
  fprintf(longtimesum, "%.7g\n", sum1);
 
  delete [] wmn;

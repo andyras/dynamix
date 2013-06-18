@@ -14,6 +14,10 @@ CPP = $(CXX)
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
 CPPFLAGS = -Wall
 INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw
+# addition for radon
+INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib
+# addition for quest
+INCLUDES += -I/home/ara132/bin/include -I/home/ara132/bin/include/cvode -L/home/ara132/bin/lib
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
 # make will look for .cpp files in $(SRCDIR)
@@ -27,7 +31,7 @@ OBJECTS = $(patsubst $(SRCDIR)/%.cpp,obj/%.o,$(SOURCES))
 
 # build the main executable; this should be listed first
 $(BIN): $(OBJECTS)
-	$(CPP) -o $@ $^ $(LDFLAGS)
+	$(CPP) -o $@ $^ $(LDFLAGS) $(INCLUDES)
 
 # automatic rule for building objects
 $(OBJDIR)/%.o: %.cpp
