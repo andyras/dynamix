@@ -113,35 +113,34 @@ def averageFile(fileName, w, isTimeDep=True):
         np.savetxt('avg/avg_%s' % fileName, outputData, '%-.7g')
 
 
-def do_setup(w):
+def do_setup(i):
     '''
-    This function sets up input files for each job to be run
+    This function sets up input files for a job to be run
     '''
-    # for each starting state
-    for i in range(len(w)):
-        runDir = 'avg/'+str(i+1)
-        # make new directory
-        os.system('mkdir -p %s' % runDir)
-        # copy inputs
-        os.system('cp -r ins/ %s' % runDir)
-        # change inputs
-        change_param('Nk_first', runDir+'/ins/parameters.in', str(i+1))
-        change_param('Nk_final', runDir+'/ins/parameters.in', str(i+1))
+
+    print 'Setting up job number %d' % i
+    runDir = 'avg/'+str(i)
+    # make new directory
+    os.system('mkdir -p %s' % runDir)
+    # copy inputs
+    os.system('cp -r ins/ %s' % runDir)
+    # change inputs
+    change_param('Nk_first', runDir+'/ins/parameters.in', str(i))
+    change_param('Nk_final', runDir+'/ins/parameters.in', str(i))
 
 
-def do_runs(w):
+def do_run(i):
     '''
-    This function submits the jobs created by do_setup
+    This function submits a jobs created by do_setup
     '''
-    # for each starting state
-    for i in range(len(w)):
-        runDir = 'avg/'+str(i+1)
-        # cd to the directory
-        os.chdir(runDir)
-        # run hoagie with command "$maindir/bin/dynamix && rm -rf ins/"
-        os.system('hoagie -k -l -e $(pwd)/../../bin/dynamix')
-        # go back to the parent directory
-        os.chdir('../..')
+
+    runDir = 'avg/'+str(i)
+    # cd to the directory
+    os.chdir(runDir)
+    # run hoagie with command "$maindir/bin/dynamix && rm -rf ins/"
+    os.system('hoagie -e "$(pwd)/../../bin/dynamix && rm -rf ins')
+    # go back to the parent directory
+    os.chdir('../..')
 
 
 def do_averaging(w):
@@ -169,15 +168,15 @@ w = dist(fdd, Ef, BE, BT, T, Nk)
 if (debug):
     print 'sum of distribution w is ', sum(w)
 
-if (args.setup):
-    print 'doing setup...'
-    do_setup(w)
-    print 'done with setup!'
+# for each starting state
+print 'setting up and/or submitting jobs...'
+for i in range(1,len(w)+1):
+    if (args.setup):
+        do_setup(i)
 
-if (args.run):
-    print 'submitting jobs...'
-    do_runs(w)
-    print 'done submitting jobs!'
+    if (args.run):
+        do_run(i)
+print 'done setting up and/or submitting jobs!'
 
 if (args.average):
     print 'averaging data...'
