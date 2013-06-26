@@ -185,6 +185,8 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
 
 int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 // gives f(y,t) for CVODE
+
+ // TODO: decompose data into energies
  
  int i, j, n, m;
  // variables for indices
@@ -192,7 +194,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  // accumulators
  realtype sum1, sum2;
 
- // TODO: decompose data into energies
 
  // initialize ydot
  for (i = 0; i < 2*NEQ_vib; i++) {
@@ -212,12 +213,16 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
     IkkpIm = IkkpRe + NEQ2;
+    IbkpRe = NEQ*Ib + IkpRe;
+    IbkpIm = IbkpRe + NEQ2;
+    IkbRe = NEQ*Ik + Ib;
+    IkbIm = IkbRe + NEQ2;
     // Re(\dot{\rho_{kk'}})
     NV_Ith_S(ydot, IkkpRe) += (energy[IkRe] - energy[IkpRe])*NV_Ith_S(y, IkkpIm)
-                           +  Vkb*NV_Ith_S(y, IbkpIm) - Vbc*NV_Ith_S(y, IkbIm);
+                           +  Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
     // Im(\dot{\rho_{kk'}})
     NV_Ith_S(ydot, IkkpIm) += (energy[IkpRe] - energy[IkRe])*NV_Ith_S(y, IkkpRe)
-                           -  Vkb*NV_Ith_S(y, IbkpRe) - Vbc*NV_Ith_S(y, IkbRe);
+                           -  Vkb*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
    }
   }
 
@@ -258,6 +263,26 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   NV_Ith_S(ydot, IbbRe) += Vbc*sum1;
   // imaginary part
   NV_Ith_S(ydot, IbbIm) += Vbc*sum2;
+
+  //// \dot{\rho_{cc'}}
+  for (ii = 0; ii < Nc; ii++) {
+   for (jj = 0; jj < Nc; jj++) {
+    IcRe = Ic + ii;
+    IcpRe = Ic + jj;
+    IccpRe = NEQ*IcRe + jj;
+    IccpIm = IccpRe + NEQ2;
+    IbcpRe = NEQ*Ib + IcpRe;
+    IbcpIm = IbcpRe + NEQ2;
+    IcbRe = NEQ*IcRe + Ib;
+    IcbIm = IcbRe + NEQ2;
+    // real part
+    NV_Ith_S(ydot, IccpRe) += (energy[IcRe] - energy[IcpRe])*NV_Ith_S(y, IccpIm)
+                           +  Vbc*(NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm);
+    // imaginary part
+    NV_Ith_S(ydot, IccpIm) += (energy[IcpRe] - energy[IcRe])*NV_Ith_S(y, IccpRe)
+                           +  Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe);
+   }
+  }
 
 
   int IbRe, IbIm, IBRe, IBIm;
