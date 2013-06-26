@@ -50,7 +50,7 @@ int Ic_vib;
 int Ib_vib;
 int Il_vib;
 int NEQ;				// total number of states/equations
-int NEQ_vib;
+int NEQ2;
 int numOutputSteps;			// number of timesteps
 realtype k_bandedge;			// lower edge of bulk conduction band
 realtype k_bandtop;			// upper edge of bulk conduction band
@@ -2165,6 +2165,8 @@ int main (int argc, char * argv[]) {
  realtype * c_pops;
  realtype * b_pops;
  realtype * ydata;				// pointer to ydata (contains all populations)
+ realtype * wavefunction;			// (initial) wavefunction
+ realtype * dm;					// density matrix
  realtype * k_energies;				// pointers to arrays of energies
  realtype * c_energies;
  realtype * b_energies;
@@ -2474,7 +2476,7 @@ int main (int argc, char * argv[]) {
 
  // PREPROCESS DATA FROM INPUTS //
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
- NEQ_vib = NEQ*N_vib;
+ NEQ2 = NEQ*NEQ;				// number of elements in DM
 #ifdef DEBUG
  cout << "\nTotal number of states: " << NEQ << endl;
  cout << Nk << " bulk, " << Nc << " QD, " << Nb << " bridge, " << Nl << " bulk VB.\n";
@@ -2505,20 +2507,20 @@ int main (int argc, char * argv[]) {
  Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);
  // assign bulk valence band energies
  Build_continuum(l_energies, Nl, k_bandedge - valenceBand - bulk_gap, k_bandedge - bulk_gap);
- // assign populations
- Initialize_array(b_pops, Nb, 0.0);		// populate b states
- if (bulk_FDD) {
-  Build_k_pops(k_pops, k_energies, k_bandedge, temperature, Nk);   // populate k states with FDD
-  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
-  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
- }
- else if (bulk_constant) {
+
+ //// Build initial wavefunction
+
+ // bridge states (empty to start)
+ Initialize_array(b_pops, Nb, 0.0);
+
+ // coefficients in bulk and other states depend on input conditions in bulk
+ if (bulk_constant) {
 #ifdef DEBUG
   cout << "\ninitializing k_pops\n";
 #endif
   Initialize_array(k_pops, Nk, 0.0);
 #ifdef DEBUG
-  cout << "\ninitializing k_pops with constant population in states\n";
+  cout << "\ninitializing k_pops with constant probability in range of states\n";
 #endif
   Initialize_array(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
 #ifdef DEBUG
@@ -2547,146 +2549,67 @@ int main (int argc, char * argv[]) {
   Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
- if (Nb == 0) {					// assign Franck-Condon factors
-  FCkc = new realtype * [N_vib];
-  for (i = 0; i < N_vib; i++)
-   FCkc[i] = new realtype [N_vib];
-  Build_Franck_Condon_factors(FCkc, gkc, N_vib, N_vib);
-  if (outs["FCkc.out"]) {
-   output2DSquareMatrix(FCkc, N_vib, "FCkc.out");
-  }
-#ifdef DEBUG
-   cout << "\n FCkc:\n";
-   for (i = 0; i < N_vib; i++) {
-    for (j = 0; j < N_vib; j++)
-     printf("%+.7e ", FCkc[i][j]);
-    cout << endl;
-   }
-#endif
- }
- else if (bridge_on) {
-  if (Nb > 1) {
-   FCbb = new realtype * [N_vib];
-   for (i = 0; i < N_vib; i++)
-    FCbb[i] = new realtype [N_vib];
-   Build_Franck_Condon_factors(FCbb, gbb, N_vib, N_vib);
-  if (outs["FCbb.out"]) {
-   output2DSquareMatrix(FCbb, N_vib, "FCbb.out");
-  }
-#ifdef DEBUG
-   cout << "\n FCbb:\n";
-   for (i = 0; i < N_vib; i++) {
-    for (j = 0; j < N_vib; j++)
-     printf("%+.7g ", FCbb[i][j]);
-    cout << endl;
-   }
-#endif
-  }
-  FCkb = new realtype * [N_vib];
-  for (i = 0; i < N_vib; i++)
-   FCkb[i] = new realtype [N_vib];
-  Build_Franck_Condon_factors(FCkb, gkb, N_vib, N_vib);
-  if (outs["FCkb.out"]) {
-   output2DSquareMatrix(FCkb, N_vib, "FCkb.out");
-  }
-#ifdef DEBUG
-   cout << "\n FCkb:\n";
-   for (i = 0; i < N_vib; i++) {
-    for (j = 0; j < N_vib; j++)
-     printf("%+.7g ", FCkb[i][j]);
-    cout << endl;
-   }
-#endif
-  FCbc = new realtype * [N_vib];
-  for (i = 0; i < N_vib; i++)
-   FCbc[i] = new realtype [N_vib];
-  Build_Franck_Condon_factors(FCbc, gbc, N_vib, N_vib);
-  if (outs["FCbc.out"]) {
-   output2DSquareMatrix(FCbc, N_vib, "FCbc.out");
-  }
-#ifdef DEBUG
-   cout << "\n FCbc:\n";
-   for (i = 0; i < N_vib; i++) {
-    for (j = 0; j < N_vib; j++)
-     printf("%+.7g ", FCbc[i][j]);
-    cout << endl;
-   }
-#endif
- }
 
- ydata = new realtype [2*NEQ_vib];			// assemble ydata
- Initialize_array(ydata, 2*NEQ_vib, 0.0);
+ // create empty wavefunction
+ wavefunction = new realtype [2*NEQ];
+ Initialize_array(wavefunction, 2*NEQ, 0.0);
+
+ // assign real parts of wavefunction coefficients (imaginary are zero)
  for (i = 0; i < Nk; i++)
-  ydata[Ik_vib + i*N_vib] = k_pops[i];
+  wavefunction[Ik_vib + i*N_vib] = k_pops[i];
  for (i = 0; i < Nc; i++)
-  ydata[Ic_vib + i*N_vib] = c_pops[i];
+  wavefunction[Ic_vib + i*N_vib] = c_pops[i];
  for (i = 0; i < Nb; i++)
-  ydata[Ib_vib + i*N_vib] = b_pops[i];
+  wavefunction[Ib_vib + i*N_vib] = b_pops[i];
  for (i = 0; i < Nl; i++)
-  ydata[Il_vib + i*N_vib] = l_pops[i];
+  wavefunction[Il_vib + i*N_vib] = l_pops[i];
 
-#ifdef DEBUG
- cout << "\n to start, y data is:\n";
- for (i = 0; i < NEQ_vib; i++) {
-  cout << ydata[i] << "\n";
+ if (outs["psi_start.out"]) {
+  outputYData(wavefunction, NEQ);
  }
-#endif
 
- outputYData(ydata, NEQ_vib, outs);
-
- // If random_phase is on, give all coefficients a random phase
+ // Give all coefficients a random phase
  if (random_phase) {
   float phi;
   // set the seed
   if (random_seed == -1) { srand(time(NULL)); }
   else { srand(random_seed); }
-  for (i = 0; i < NEQ_vib; i++) {
+  for (i = 0; i < NEQ; i++) {
    phi = 2*3.1415926535*(float)rand()/(float)RAND_MAX;
-   ydata[i] = ydata[i]*cos(phi);
-   ydata[i + NEQ_vib] = ydata[i + NEQ_vib]*sin(phi);
+   wavefunction[i] = wavefunction[i]*cos(phi);
+   wavefunction[i + NEQ] = wavefunction[i + NEQ]*sin(phi);
   }
  }
-//these lines are a test
- //Initialize_array(ydata, 2*NEQ_vib, 0.0000001);
- // for (i = 0; i < NEQ_vib; i += 2) {
-  // ydata[i] = 0.0000001;
- // }
- // Activate the following line to have the electron start on the first bridge
- // ydata[Ib_vib] = 1.0;
+
 #ifdef DEBUG
+ // print out details of wavefunction coefficients
  cout << endl;
  for (i = 0; i < Nk; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Re[k(" << i << "," << j << ")] = " << ydata[Ik_vib + i*N_vib + j] << endl;
+  cout << "starting wavefunction: Re[k(" << i << ")] = " << wavefunction[Ik + i] << endl;
  for (i = 0; i < Nc; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Re[c(" << i << "," << j << ")] = " << ydata[Ic_vib + i*N_vib + j] << endl;
+  cout << "starting wavefunction: Re[c(" << i << ")] = " << wavefunction[Ic + i] << endl;
  for (i = 0; i < Nb; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Re[b(" << i << "," << j << ")] = " << ydata[Ib_vib + i*N_vib + j] << endl;
+  cout << "starting wavefunction: Re[b(" << i << ")] = " << wavefunction[Ib + i] << endl;
  for (i = 0; i < Nl; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Re[l(" << i << "," << j << ")] = " << ydata[Il_vib + i*N_vib + j] << endl;
+  cout << "starting wavefunction: Re[l(" << i << ")] = " << wavefunction[Il + i] << endl;
  for (i = 0; i < Nk; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Im[k(" << i << "," << j << ")] = " << ydata[Ik_vib + i*N_vib + j + NEQ_vib] << endl;
+  cout << "starting wavefunction: Im[k(" << i << ")] = " << wavefunction[Ik + i + NEQ] << endl;
  for (i = 0; i < Nc; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Im[c(" << i << "," << j << ")] = " << ydata[Ic_vib + i*N_vib + j + NEQ_vib] << endl;
+  cout << "starting wavefunction: Im[c(" << i << ")] = " << wavefunction[Ic + i + NEQ] << endl;
  for (i = 0; i < Nb; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Im[b(" << i << "," << j << ")] = " << ydata[Ib_vib + i*N_vib + j + NEQ_vib] << endl;
+  cout << "starting wavefunction: Im[b(" << i << ")] = " << wavefunction[Ib + i + NEQ] << endl;
  for (i = 0; i < Nl; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "starting ydata: Im[l(" << i << "," << j << ")] = " << ydata[Il_vib + i*N_vib + j + NEQ_vib] << endl;
+  cout << "starting wavefunction: Im[l(" << i << ")] = " << wavefunction[Il + i + NEQ] << endl;
  cout << endl;
  summ = 0;
- for (i = 0; i < 2*NEQ_vib; i++) {
-  summ += pow(ydata[i],2);
+ for (i = 0; i < 2*NEQ; i++) {
+  summ += pow(wavefunction[i],2);
  }
  cout << "\nTotal population is " << summ << "\n\n";
 #endif
- energy = new realtype [NEQ_vib];			// assemble energy array
+
+ // Assemble array of energies
+ energy = new realtype [NEQ_vib];
  for (i = 0; i < Nk; i++)
   for (j = 0; j < N_vib; j++)
    energy[Ik_vib + i*N_vib + j] = k_energies[i] + E_vib*j;
@@ -2700,19 +2623,17 @@ int main (int argc, char * argv[]) {
   for (j = 0; j < N_vib; j++)
    energy[Il_vib + i*N_vib + j] = l_energies[i] + E_vib*j;
  user_data = energy;
+
 #ifdef DEBUG
+ // output energies
  for (i = 0; i < Nk; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "energy[k(" << i << "," << j << ")] = " << energy[Ik_vib + i*N_vib + j] << endl;
+  cout << "energy[k(" << i << ")] = " << energy[Ik_vib + i] << endl;
  for (i = 0; i < Nc; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "energy[c(" << i << "," << j << ")] = " << energy[Ic_vib + i*N_vib + j] << endl;
+  cout << "energy[c(" << i << ")] = " << energy[Ic_vib + i] << endl;
  for (i = 0; i < Nb; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "energy[b(" << i << "," << j << ")] = " << energy[Ib_vib + i*N_vib + j] << endl;
+  cout << "energy[b(" << i << ")] = " << energy[Ib_vib + i] << endl;
  for (i = 0; i < Nl; i++)
-  for (j = 0; j < N_vib; j++)
-  cout << "energy[l(" << i << "," << j << ")] = " << energy[Il_vib + i*N_vib + j] << endl;
+  cout << "energy[l(" << i << ")] = " << energy[Il_vib + i] << endl;
  cout << endl;
 #endif
 
@@ -2749,14 +2670,63 @@ int main (int argc, char * argv[]) {
   }
  }
 
+ // Create the initial density matrix
+ dm = new realtype [2*NEQ2];
+ Initialize_array(dm, 2*NEQ2, 0.0);
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < ii; jj++) {
+   // real part of \rho_{ii,jj}
+   dm[NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+NEQ]*wavefunction[jj+NEQ];
+   // imaginary part of \rho_{ii,jj}
+   dm[NEQ*ii + jj + NEQ2] = wavefunction[ii]*wavefunction[jj+NEQ] - wavefunction[jj]*wavefunction[ii*NEQ];
+   // real part of \rho_{jj,ii}
+   dm[NEQ*jj + ii] = dm[NEQ*ii + jj];
+   // imaginary part of \rho_{jj,ii}
+   dm[NEQ*jj + ii + NEQ2] = -1*dm[NEQ*ii + jj + NEQ*NEQ];
+  }
+ }
+
+ // Normalize the DM so that populations add up to 1.
+ summ = 0.0;
+ for (int ii = 0; ii < NEQ; ii++) {
+  summ += pow(dm[NEQ*ii + ii],2) + pow(dm[NEQ*ii + ii + NEQ2],2);
+ }
+ if ( summ == 0.0 ) {
+  cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+  return -1;
+ }
+ if (summ != 1.0) {
+  // the variable 'summ' is now a multiplicative normalization factor
+  summ = 1.0/summ;
+  for (int ii = 0; ii < 2*NEQ2; ii++) {
+   dm[ii] *= summ;
+  }
+ }
+#ifdef DEBUG
+ cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+#endif
+
+ // Error checking for total population; recount population first
+ summ = 0.0;
+ for (int ii = 0; ii < NEQ; ii++) {
+  summ += pow(dm[NEQ*ii + ii],2) + pow(dm[NEQ*ii + ii + NEQ2],2);
+ }
+ if ( fabs(summ-1.0) > 1e-12 ) {
+  cerr << "\nWARNING [populations]: total population is not 1, it is " << summ << "!\n";
+ }
+#ifdef DEBUG
+ cout << "\nThe sum of the populations in the density matrix is " << summ << "\n\n";
+#endif
+
+
  // DONE PREPROCESSING //
 
  // Creates N_Vector y with initial populations which will be used by CVode//
- y = N_VMake_Serial(2*NEQ_vib, ydata);
+ y = N_VMake_Serial(2*NEQ2, dm);
+ // the vector yout has the same dimensions as y
  yout = N_VClone(y);
 
  // print t = 0 information //
- Normalize_NV(y, 1.00);			// normalizes all populations to 1; this is for one electron
  summ = 0;
  for (i = 0; i < 2*NEQ_vib; i++) {
   summ += pow(NV_Ith_S(y, i),2);
@@ -2764,13 +2734,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   cout << "\nAfter normalization, total population is " << summ << "\n\n";
 #endif
- if ( summ == 0.0 ) {
-  cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-  return -1;
- }
- if ( fabs(summ-1.0) > 1e-12 ) {
-  cerr << "\nWARNING [populations]: total population is not 1, it is " << summ << "!\n";
- }
 #ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
 #endif

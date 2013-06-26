@@ -31,7 +31,7 @@ void outputFFTWVectorShift(const char * fileName, fftw_complex * vec, double * x
 /* prints out initial wave function.  Inputs are the wave function array and
  * the number of equations.
  */
-void outputYData(realtype * ydata, int n, std::map<std::string, bool> &outs);
+void outputWavefunction(realtype * psi, int n);
 
 /* prints a vector W of length N */
 void outputVector(realtype * W, int N, char * fileName);
