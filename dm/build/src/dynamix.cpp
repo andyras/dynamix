@@ -187,6 +187,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 // gives f(y,t) for CVODE
 
  // TODO: decompose data into energies
+ // TODO: only calculate upper/lower triangle of DM
  
  int i, j, n, m;
  // variables for indices
@@ -206,10 +207,27 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype Vkb = V[Ik][Ib];
   realtype Vbc = V[Ib][Ic];
 
+  //// Contributions from energy gaps
+  for (int ii = 0; ii < NEQ; ii++) {
+   // only need off-diagonal terms (would be 0 if ii == jj)
+   for (int jj = 0; jj < ii; jj++) {
+    IijRe = NEQ*ii + jj;
+    IijIm = IijRe + NEQ2;
+    IjiRe = NEQ*jj + ii;
+    IjiEm = IjiRe + NEQ2;
+    // real parts
+    NV_Ith_S(yout, IijRe) += (energy[ii] - energy[jj])*NV_Ith_S(y, IijIm);
+    NV_Ith_S(yout, IjiRe) += (energy[jj] - energy[ii])*NV_Ith_S(y, IjiIm);
+    // imaginary parts
+    NV_Ith_S(yout, IijIm) += (energy[jj] - energy[ii])*NV_Ith_S(y, IijRe);
+    NV_Ith_S(yout, IjiIm) += (energy[ii] - energy[jj])*NV_Ith_S(y, IjiRe);
+   }
+  }
+
   // \dot{\rho_{kk'}}
   for (int ii = 0; ii < Nk; ii++) {
+   IkRe = Ik + ii;
    for (int jj = 0; jj < Nk; jj++) {
-    IkRe = Ik + ii;
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
     IkkpIm = IkkpRe + NEQ2;
@@ -218,11 +236,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IkbRe = NEQ*Ik + Ib;
     IkbIm = IkbRe + NEQ2;
     // Re(\dot{\rho_{kk'}})
-    NV_Ith_S(ydot, IkkpRe) += (energy[IkRe] - energy[IkpRe])*NV_Ith_S(y, IkkpIm)
-                           +  Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
+    NV_Ith_S(ydot, IkkpRe) += Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
     // Im(\dot{\rho_{kk'}})
-    NV_Ith_S(ydot, IkkpIm) += (energy[IkpRe] - energy[IkRe])*NV_Ith_S(y, IkkpRe)
-                           -  Vkb*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
+    NV_Ith_S(ydot, IkkpIm) -= Vkb*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
    }
   }
 
@@ -266,23 +282,71 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   //// \dot{\rho_{cc'}}
   for (ii = 0; ii < Nc; ii++) {
+   IcRe = Ic + ii;
    for (jj = 0; jj < Nc; jj++) {
-    IcRe = Ic + ii;
     IcpRe = Ic + jj;
-    IccpRe = NEQ*IcRe + jj;
+    IccpRe = NEQ*IcRe + IcpRe;
     IccpIm = IccpRe + NEQ2;
     IbcpRe = NEQ*Ib + IcpRe;
     IbcpIm = IbcpRe + NEQ2;
     IcbRe = NEQ*IcRe + Ib;
     IcbIm = IcbRe + NEQ2;
     // real part
-    NV_Ith_S(ydot, IccpRe) += (energy[IcRe] - energy[IcpRe])*NV_Ith_S(y, IccpIm)
-                           +  Vbc*(NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm);
+    NV_Ith_S(ydot, IccpRe) += Vbc*(NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm));
     // imaginary part
-    NV_Ith_S(ydot, IccpIm) += (energy[IcpRe] - energy[IcRe])*NV_Ith_S(y, IccpRe)
-                           +  Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe);
+    NV_Ith_S(ydot, IccpIm) -= Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe));
    }
   }
+
+  //// \dot{\rho_{kb}}
+  for (ii = 0; ii < Nk; ii++) {
+   IkRe = Ik + ii;
+   IkbRe = NEQ*IkRe + Ib;
+   IkbIm = IkbRe + NEQ2;
+   // real part		V_{kb}\rho_{bb} term
+   sum1 = NV_Ith_S(y, NEQ*Ib + Ib + NEQ2);
+   // imaginary part	V_{kb}\rho_{bb} term
+   sum2 = -1*NV_Ith_S(y, NEQ*Ib + Ib);
+   for (jj = 0; jj < Nk; jj++) {
+    IkpRe = Ik + jj;
+    IkkpRe = NEQ*IkRe + IkpRe;
+    IkkpIm = IkkpRe + NEQ2;
+    // real part	V_{kb}\rho_{kk'} term
+    sum1 -= NV_Ith_S(y, IkkpIm);
+    // imaginary part	V_{kb}\rho_{kk'} term
+    sum2 += NV_Ith_S(y, IkkpRe);
+   }
+   // real part		V_{kb} terms
+   NV_Ith_S(yout, IkbRe) += Vkb*sum1;
+   // imaginary part	V_{kb} terms
+   NV_Ith_S(yout, IkbIm) += Vkb*sum2;
+
+   sum1 = 0.0;
+   sum2 = 0.0;
+   for (jj = 0; jj < Nc; jj++) {
+    IcRe = Ic + jj;
+    IkcRe = NEQ*IkRe + IcRe;
+    IkcIm = IkcRe + NEQ2;
+    // real part	V_{bc}\rho_{kc} term
+    sum1 -= NV_Ith_S(IkcIm);
+    // imaginary part	V_{bc}\rho_{kc} term
+    sum2 += NV_Ith_S(IkcRe);
+   }
+   // real part		V_{bc}\rho_{kc} term
+   NV_Ith_S(yout, IkbRe) += Vbc*sum1
+   // imaginary part	V_{bc}\rho_{kc} term
+   NV_Ith_S(yout, IkbIm) += Vbc*sum2
+  }
+
+  //// \dot{\rho_{kc}}
+
+  //// \dot{\rho_{bk}}
+
+  //// \dot{\rho_{bc}}
+
+  //// \dot{\rho_{ck}}
+
+  //// \dot{\rho_{cb}}
 
 
   int IbRe, IbIm, IBRe, IBIm;
