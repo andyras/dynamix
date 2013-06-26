@@ -27,8 +27,6 @@
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
 //#define DEBUGf
-/* This flag is debuggery related to checking against Sai's code.             */
-//#define DEBUG_SAI
 
 using namespace std;
 
@@ -40,25 +38,15 @@ int Nk;				// number of each type of state
 int Nc;
 int Nb;
 int Nl;
-int N_vib;				// number of vibronic states
 int Ik;				// index starters for each type of state
 int Ic;
 int Ib;
 int Il;
-int Ik_vib;				// index starters for each type of vibronic state
-int Ic_vib;
-int Ib_vib;
-int Il_vib;
 int NEQ;				// total number of states/equations
 int NEQ2;
 int numOutputSteps;			// number of timesteps
 realtype k_bandedge;			// lower edge of bulk conduction band
 realtype k_bandtop;			// upper edge of bulk conduction band
-double E_vib;				// vibrational energy
-double gkc;				// g factor between k and c states
-double gkb;				// g factor between k and b states
-double gbc;				// g factor between b and c states
-double gbb;				// g factor between b states
 double muLK;                           // transition dipole moment from l to k (energy a.u.)
 double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
 double pumpPeak;                       // time of peak of pump pulse (a.u.)
@@ -66,10 +54,6 @@ double pumpFreq;                       // frequency of pump pulse (energy a.u.)
 double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
 double pumpPhase;                      // pump pulse phase (in units of radians)
 realtype ** V;				// pointer to k-c coupling constants
-realtype ** FCkc;			// Franck-Condon factors
-realtype ** FCkb;
-realtype ** FCbb;
-realtype ** FCbc;
 realtype * energy;
 realtype * Vbridge;			// pointer to array of bridge coupling constants.
 					// first element [0] is Vkb1, last [Nb] is VcbN
@@ -88,9 +72,6 @@ bool bridge_on = 0;
 bool random_phase = 0;
 int random_seed = 0;
 // END GLOBAL VARIABLES
-#ifdef DEBUG_SAI
-double last_t = -1.0;				// keeps track of last time for which debuggery was printed
-#endif
 
 void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
                     realtype kBandTop, realtype * energy,
@@ -158,9 +139,6 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
   else {
    Vkc = Vnobridge[0];
   }
-#ifdef DEBUG_SAI
-  Vkc = Vnobridge[0]/sqrt(Nk-1)*sqrt((kBandTop-kBandEdge)*27.211);
-#endif
 
   // parabolic coupling of bulk band to QD
   if (parabolicCoupling) {
@@ -370,42 +348,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    cout << "Im[b(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ib_vib+i*N_vib+j+NEQ_vib);
    cout << ", ydot = " << NV_Ith_S(ydot, Ib_vib+i*N_vib+j+NEQ_vib) << endl;
   }
-#endif
-
-#ifdef DEBUG_SAI
-   // this bit spits out dy/dt for t = 0, so one can check initial conditions.
-   // the file dydt.out can be compared directly to dydt.dat from Sai's code
- double end_time = 3.445;
- if (t == 0 || (t > 0.0001 && t < end_time && t != last_t)) {
-  cout << "tee is " << t << endl;
-  FILE * dydt;
-  dydt = fopen("dydt.out", "a+");
-  cout << "whoot\n";
-  // for (i = 0; i < 2*NEQ_vib; i++)
-   // cout << NV_Ith_S(ydot, i)*41.3414 << endl;
-  for (i = 0; i < Nc ; i++)
-   for (j = 0; j < N_vib ; j++) {
-    fprintf(dydt, "Re(c%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ic_vib + i*N_vib + j)*41.3414);
-    fprintf(dydt, "Im(c%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ic_vib + i*N_vib + j + NEQ_vib)*41.3414);
-   }
-  for (i = 0; i < Nb ; i++)
-   for (j = 0; j < N_vib ; j++) {
-    fprintf(dydt, "Re(b%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ib_vib + i*N_vib + j)*41.3414);
-    fprintf(dydt, "Im(b%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ib_vib + i*N_vib + j + NEQ_vib)*41.3414);
-   }
-  for (i = 0; i < Nk ; i++)
-   for (j = 0; j < N_vib ; j++) {
-    fprintf(dydt, "Re(k%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ik_vib + i*N_vib + j)*41.3414);
-    fprintf(dydt, "Im(k%d,%-.5g): %-.9g\n", j, t, NV_Ith_S(ydot, Ik_vib + i*N_vib + j + NEQ_vib)*41.3414);
-   }
-  fclose(dydt);
-  last_t = t;
- }
- // this is when I'm looking for a sign error somewhere... *sign*
- if (t == -1) {
-  NV_Ith_S(ydot, 7) = -NV_Ith_S(ydot, 7);
-  cout << NV_Ith_S(ydot, 7)*41.3414 << endl;
- }
 #endif
 
  return 0;
@@ -2712,12 +2654,11 @@ int main (int argc, char * argv[]) {
   summ += pow(dm[NEQ*ii + ii],2) + pow(dm[NEQ*ii + ii + NEQ2],2);
  }
  if ( fabs(summ-1.0) > 1e-12 ) {
-  cerr << "\nWARNING [populations]: total population is not 1, it is " << summ << "!\n";
+  cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
  }
 #ifdef DEBUG
- cout << "\nThe sum of the populations in the density matrix is " << summ << "\n\n";
+ cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
 #endif
-
 
  // DONE PREPROCESSING //
 
@@ -2732,9 +2673,6 @@ int main (int argc, char * argv[]) {
   summ += pow(NV_Ith_S(y, i),2);
  }
 #ifdef DEBUG
-  cout << "\nAfter normalization, total population is " << summ << "\n\n";
-#endif
-#ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
 #endif
  Output_checkpoint(
@@ -2744,14 +2682,11 @@ int main (int argc, char * argv[]) {
    allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
    qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
 
- if (analytical) {
-  // Compute the analytical population on the c states
-  Analytical_c(tout, numOutputSteps, energy, k_bandedge, k_bandtop, y, Nk_first, Nk_final, outs);
- }
-
- // create CVode object //
- cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);	// this is a stiff problem, I guess?
- flag = CVodeSetUserData(cvode_mem, (void *) user_data);	// now stuff in energy is available to CVode
+ // create CVode object
+ // this is a stiff problem, I guess?
+ cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+ // make 'energy' array available to CVode via 'user_data'
+ flag = CVodeSetUserData(cvode_mem, (void *) user_data);
 
  // initialize CVode solver //
  flag = CVodeInit(cvode_mem, &f, t0, y);
@@ -2760,155 +2695,32 @@ int main (int argc, char * argv[]) {
  flag = CVodeSStolerances(cvode_mem, reltol, abstol);
 
  // attach linear solver module //
- flag = CVDense(cvode_mem, 2*NEQ_vib);
-#ifdef DEBUG_SAI
- // match up the timesteps with Sai's
- /*flag = CVodeSetInitStep(cvode_mem, (tout - t0)/((double) numsteps));
- if (flag == CV_MEM_NULL)
-  fprintf(stderr, "ERROR [CVodeSetInitStep]: cvode_mem pointer is null");*/
- cout << (tout - t0)/((double) numsteps) << endl;
- flag = CVodeSetMinStep(cvode_mem, (tout - t0)/((double) numsteps));
- if (flag == CV_MEM_NULL)
-  fprintf(stderr, "ERROR [CVodeSetMinStep]: cvode_mem pointer is null");
- if (flag == CV_ILL_INPUT)
-  fprintf(stderr, "ERROR [CVodeSetMinStep]: hmin is nonpositive or it exceeds the maximum allowable step size.");
- flag = CVodeSetMaxStep(cvode_mem, (tout - t0)/((double) numsteps));
- if (flag == CV_MEM_NULL)
-  fprintf(stderr, "ERROR [CVodeSetMaxStep]: cvode_mem pointer is null");
- if (flag == CV_ILL_INPUT)
-  fprintf(stderr, "ERROR [CVodeSetMaxStep]: hmin is nonpositive or it exceeds the maximum allowable step size.");
- // specify integration tolerances; don't much care about errors here
- flag = CVodeSStolerances(cvode_mem, 1.0e-1, 1.0e-1);
-#endif
+ flag = CVDense(cvode_mem, 2*NEQ2);
 
  // advance the solution in time! //
  // use CVODE for time-dependent H
- if (timedepH) {
-  for (i = 1; i <= numsteps; ++i) {
-   t = (tout*((double) i)/((double) numsteps));
-   flag = CVode(cvode_mem, t, yout, &tret, 1);
+ for (i = 1; i <= numsteps; ++i) {
+  t = (tout*((double) i)/((double) numsteps));
+  flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
-   cout << endl << "CVode flag at step " << i << ": " << flag << endl;
+  cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
-   if (i % (numsteps/numOutputSteps) == 0) {
-    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
-    Output_checkpoint(
+  if (i % (numsteps/numOutputSteps) == 0) {
+   fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+   Output_checkpoint(
 #ifdef DEBUG
-      realImaginary, 
+     realImaginary, 
 #endif
-      allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
-      qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
-      k_bandedge, k_bandtop, k_pops);
-   }
+     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
+     qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
+     k_bandedge, k_bandtop, k_pops);
   }
+ }
 
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,
    tlprob, tcprob, tbprob, vibprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
- }
- // use LAPACK for time-independent H
- else {
-#ifdef DEBUG
-  fprintf(stderr, "calculating output times.\n");
-#endif
-  // calculate output times
-  for (i = 0; i <= numOutputSteps; i++) {
-   times[i] = tout*((double)i/((double)numOutputSteps));
-  }
-  // build Hamiltonian
-#ifdef DEBUG
-  fprintf(stderr, "Building Hamiltonian.\n");
-#endif
-  realtype * H = new realtype [NEQ_vib*NEQ_vib];
-  buildHamiltonian(H, energy, V, NEQ_vib, N_vib, FCkb, FCbb, FCbc);
-  if (outs["ham.out"]) {
-   outputSquareMatrix(H, NEQ_vib, "ham.out");
-  }
-  // declare LAPACK variables
-  char JOBZ;            // 'N' to just compute evals; 'V' to compute evals and evecs
-  char UPLO;            // 'U' to store upper diagonal of matrix
-  int N;                // order of matrix
-  int LDA;              // leading dimension of matrix
-  double * W;           // output array of evals
-  double * WORK;	// working memory to use during diagonalization
-  int LWORK;            // length of WORK; LWORK >= (MAX(1,LWORK))
-  int INFO;             // state flag: (0 success, -i ith argument bad, >0 fail)
-  // assign LAPACK variables
-  JOBZ = 'V';
-  UPLO = 'U';
-  N = NEQ_vib;
-  LDA = N;
-  W = new double [N];
-  LWORK = -1;
-  WORK = new double [1];
-  INFO = 0;
-  // dry run to compute LWORK
-  // using same arguments as actual calculation
-#ifdef DEBUG
-  fprintf(stderr, "Diagonalizing Hamiltonian.\n");
-#endif
-  dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
-  // assign LWORK from first element of WORK
-  LWORK = WORK[0];
-  // reallocate WORK
-  delete [] WORK;
-  WORK = new double [LWORK];
-  // diagonalize the guy!
-  dsyev_(&JOBZ, &UPLO, &N, H, &LDA, W, WORK, &LWORK, &INFO);
-  // print eigenvalues and eigenvectors
-  if (outs["evals.out"]) {
-   outputVector(W, N, "evals.out");
-  }
-  if (outs["evecs.out"]) {
-   outputSquareMatrix(H, N, "evecs.out");
-  }
-  // make a complex array to represent the starting psi (site basis)
-  complex16 * psi_S = new complex16 [NEQ_vib];
-  for (i = 0; i < NEQ_vib; i++) {
-   psi_S[i].re = NV_Ith_S(y, i);
-   psi_S[i].im = NV_Ith_S(y, i+NEQ_vib);
-  }
-  // make a complex array to represent the starting psi (eigenstate basis)
-  complex16 * psi_E = new complex16 [NEQ_vib];
-  // project the starting wavefunction onto the eigenstate basis
-  projectSiteToState(psi_S, NEQ_vib, H, psi_E);
-  // print the starting wavefunction in the two bases
-  if (outs["psi_start_s.out"]) {
-   outputCVector(psi_S, NEQ_vib, "psi_start_s.out");
-  }
-  if (outs["psi_start_e.out"]) {
-   outputCVector(psi_E, NEQ_vib, "psi_start_e.out");
-  }
-  if (outs["psi2_start_e.out"]) {
-   outputPsiSquare(psi_E, W, NEQ_vib, "psi2_start_e.out");
-  }
-  // make arrays to represent the wavefunction in time
-  complex16 * psi_S_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
-  complex16 * psi_E_t = new complex16 [NEQ_vib*(numOutputSteps+1)];
-  // propagate the wavefunction in time
-  propagatePsi(psi_E, psi_E_t, NEQ_vib, W, numOutputSteps, tout);
-  // print out the propagated wavefunction (eigenstate basis)
-  if (outs["psi_e_t.out"]) {
-   outputCVectorTime(psi_E_t, NEQ_vib, (numOutputSteps+1), "psi_e_t.out");
-  }
-  // project back onto the site basis
-  projectStateToSite(psi_E_t, NEQ_vib, H, psi_S_t, numOutputSteps);
-  // print out the propagated wavefunction (site basis)
-  if (outs["psi_s_t.out"]) {
-   outputCVectorTime(psi_S_t, NEQ_vib, (numOutputSteps+1), "psi_s_t.out");
-  }
-  makeOutputsTI(psi_S_t, NEQ_vib, times, numOutputSteps, energy, outs);
-  // write out projections of subsystems
-  projectSubsystems(H, W, NEQ_vib, outs);
-  delete [] H;
-  delete [] W;
-  delete [] WORK;
-  delete [] psi_S;
-  delete [] psi_E;
-  delete [] psi_S_t;
-  delete [] psi_E_t;
- }
 
  // compute time-independent outputs
  if (outs["energy.out"]) {
@@ -2921,15 +2733,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
-
- // make plot outputs
- if (outs["vibprob.plt"] && (N_vib > 1)) {
-  plot_vibprob(N_vib, tout);
- }
-
- if (outs["vibprob_subsystem.plt"] && (N_vib > 1)) {
-  plot_vibprob_subsystem(N_vib, tout);
- }
 
  if (outs["cprobs.plt"] && (Nc > 1)) {
   plot_cprobs(numOutputSteps, tout, k_bandtop, k_bandedge, Nk);
