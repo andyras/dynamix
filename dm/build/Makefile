@@ -7,6 +7,7 @@ BIN = dynamix
 INCDIR = ./include
 OBJDIR = ./obj
 SRCDIR = ./src
+BINDIR = ../bin
 
 # flags for compiler and linker
 CXX = icpc
@@ -44,7 +45,7 @@ $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean cleantest build
+.PHONY: clean cleantest build install uninstall $(BINDIR)
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(BIN)
@@ -57,6 +58,15 @@ cleantest:
 build:
 	make clean
 	make
+
+install: $(BIN) $(BINDIR)
+	cp dynamix ../bin
+
+uninstall:
+	rm -rf $(BINDIR)/$(BIN)
+
+$(BINDIR):
+	mkdir -p ../bin
 
 # TODO update testing section of this file
 tests: dynamix libdynamix_outputs_test.o libdynamix_input_parser_test.o
