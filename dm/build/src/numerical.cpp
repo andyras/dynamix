@@ -194,6 +194,31 @@ int Derivative(double *inputArray, int inputLength, double *outputArray, double 
  return 0;
 }
 
+/* Riemann sum of an array (values) at time points (time).
+ * Does not assume equal spacing in time.
+ */
+realtype Integrate_arrays (realtype * values, realtype * time, int num) {
+ int i;
+ realtype riemann = 0;
+
+ for (i = 0; i < num-1; i++)
+  riemann += (values[i+1] + values[i])*(time[i+1]-time[i])/2;
+
+ return riemann;
+}
+
+/* Returns maximum element in an array. */
+realtype Find_array_maximum (realtype * inputArray, int num) {
+ int i;
+ realtype currentMax = inputArray[0];
+
+ for (i = 1; i < num; i++)
+  if (inputArray[i] > currentMax)
+   currentMax = inputArray[i];
+
+ return currentMax;
+}
+
 /* Finds the first maximum in an array (the first point where the next
  * point is smaller in value).
  */

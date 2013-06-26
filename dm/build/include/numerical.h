@@ -56,6 +56,14 @@ int Normalize_NV(N_Vector nv, realtype total);
  */
 int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep);
 
+/* Riemann sum of an array (values) at time points (time).
+ * Does not assume equal spacing in time.
+ */
+realtype Integrate_arrays (realtype * values, realtype * time, int num);
+
+/* Returns maximum element in an array. */
+realtype Find_array_maximum (realtype * inputArray, int num);
+
 /* Finds the first maximum in an array (the first point where the next
  * point is smaller in value).
  */
