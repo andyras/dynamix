@@ -1,0 +1,376 @@
+#!/bin/bash
+#$ -S /bin/bash
+#$ -cwd
+#$ -V
+
+# set up the proper environment variables for a PBS job.
+#PBS -V
+#PBS -o stdout.log
+#PBS -e stderr.log
+##PBS -o /dev/null
+##PBS -e /dev/null
+#PBS -l mem=5gb
+
+if [ ${HOSTNAME} == "tim.selfip.org" ]; then
+ # go to directory from which job was submitted.  If this job is being run
+ # (not submitted to a queue) this should not run.
+ if [ ! -z ${PBS_O_WORKDIR} ]; then
+  echo "going to PBS working directory: ${PBS_O_WORKDIR}"
+  cd ${PBS_O_WORKDIR}
+ fi
+fi
+
+## INPUT PARAMETERS ##
+. ./ins/parameters.in
+
+function compile {
+## COMPILE ##
+ echo "### $(date) compiling dynamix.cpp..."
+ CPP=g++
+ # check if better compilers are installed
+ which g++-4.7.0 &> /dev/null
+ if [ $? == 0 ] ; then CPP=g++-4.7.0 ; fi
+ which g++-4.7.1 &> /dev/null
+ if [ $? == 0 ] ; then CPP=g++-4.7.1 ; fi
+ which g++-4.7.2 &> /dev/null
+ if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
+ which icpc &> /dev/null
+ if [ $? == 0 ] ; then CPP=icpc ; fi
+ cd bin
+ make -j 12 CPP=$CPP && echo "### $(date) done compiling!"
+ if [ $? == 0 ] ; then
+  echo "### $(date) done compiling!"
+  cd ..
+ else
+  echo "### $(date) failed to compile :("
+  exit
+ fi
+}
+
+function compile_serial {
+ export OMP_NUM_THREADS=1
+ export MKL_NUM_THREADS=1
+ export MKL_DOMAIN_NUM_THREADS=1
+ cd bin
+ make clean
+ cd - &> /dev/null
+ compile
+}
+
+function compile_parallel {
+ export OMP_NUM_THREADS=
+ export MKL_NUM_THREADS=
+ export MKL_DOMAIN_NUM_THREADS=
+ cd bin
+ make clean
+ cd - &> /dev/null
+ compile
+}
+
+function run {
+## RUN THE PROGRAM! ##
+ echo "### $(date) running dynamix..."
+ ./bin/dynamix
+ if [ $? == 0 ] ; then
+  echo "### $(date) dynamix done!"
+ else
+  echo "### $(date) dynamix did not run :("
+  exit
+ fi
+ mkdir -p outs
+ rm -f outs/*
+ mv *.out outs/
+ mkdir -p figures
+ chmod 755 *.plt
+ mv *.plt figures/
+}
+
+function plot_maker {
+ if [ $populations_plot == 1 ] ; then
+## GENERATE POPULATION PLOTSCRIPT ##
+  tout_fs=$(echo "scale=4; ($tout/41.3414)" | bc)
+  echo "### $(date) making plots..."
+  echo "set terminal postscript eps enhanced colour dashed lw 2 size 6,4 font 'Arial-Bold,20'
+set output '/dev/null'
+plot './outs/tkprob.out', './outs/tcprob.out'
+set output 'figures/populations.eps'
+set multiplot
+set style data lines
+set style line 1 lw 2 lt 1 lc rgb 'red'
+set style line 2 lw 2 lt 1 lc rgb 'green'
+set style line 3 lw 2 lt 1 lc rgb 'blue'
+set style line 4 lw 2 lt 1 lc rgb 'purple'
+set style line 5 lw 2 lt 1 lc rgb 'dark-goldenrod'
+set style increment user
+set key lmargin
+set lmargin 24
+set border 10
+set ytics scale 0.5
+set ylabel 'Population (a.u.)'
+set xrange [GPVAL_DATA_X_MIN/41.3414:GPVAL_DATA_X_MAX/41.3414]
+set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]
+set xtics nomirror scale 0.5" > figures/populations.plt
+  # k and c population plot
+  if [ $(($Nb)) == 0 ]
+  then
+   echo "set size 1, 1.0; set origin 0.0,0.0;  set xlabel 'Time (fs)'" >> figures/populations.plt
+   else
+   echo "set size 1, 0.7; set origin 0.0,0.3" >> figures/populations.plt
+  fi
+  echo "plot './outs/tkprob.out' using (\$1/41.34):2 title 'k states' lt 1, \\" >> figures/populations.plt
+  echo "'./outs/tcprob.out' using (\$1/41.34):2 title 'c states' lt 2" >> figures/populations.plt
+  # Bridge population plot
+  if [ $bridge_on == 1 ]
+   then
+    bmax=$(cat outs/bmax.out)
+    echo "set size 1, 0.3
+set origin 0.0,0.0
+set format y '%.2e'
+set yr [0:$bmax]
+set ytics ('0' 0 ,sprintf('%.1e',$bmax) $bmax)" >> figures/populations.plt
+  fi
+  echo "set xlabel 'Time (fs)'" >> figures/populations.plt
+  echo "set ylabel 'Bridge Pop. (a.u.)'" >> figures/populations.plt
+  [ $((Nb)) -ge 1 ] && echo -n "plot './outs/bprobs.out' using (\$1/41.34):2 title 'b1' lt 3" >> figures/populations.plt
+  for ((i=0 ; i < $(($Nb - 1)) ; i++))
+  do
+   echo ", \\" >> figures/populations.plt
+   echo -n "'./outs/bprobs.out' using (\$1/41.34):3 title 'b$(($i+2))' lt $(($i+4))" >> figures/populations.plt
+  done
+ fi
+
+ if [ $kprobs_plot == 1 ] ; then
+  # plot k populations in 2D plot; have to scale the ymax a bit so things look nice.
+
+  #awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
+  new_k_bandtop=$(echo "scale=8; ($k_bandtop*1.00001)" | bc)
+  echo "set terminal postscript eps enhanced colour size 10cm,8cm font 'Arial-Bold,14'
+set output '/dev/null'
+#!awk 'BEGIN {FS=\" \"}{for (i=1;i<=NF;i++){ arr[NR,i]=\$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf(\"%s\\t\",arr[j,i]); } printf(\"\\n\"); }}' outs/kprobs.out | sed '1d' > outs/kprobs_transpose.out
+!transpose -o _transpose outs/kprobs.out
+plot './outs/kprobs_transpose.out' every :::1 u (\$1*$tout/$numOutputSteps):(\$2*($k_bandtop-$k_bandedge)/($Nk-1)):3 matrix with image
+set output 'figures/kprobs.eps'
+set title 'Electron probability density in bulk conduction band'
+set border 0
+set ytics scale 0
+set xtics scale 0
+set ylabel 'Energy above band edge (a.u.)'
+set xlabel 'Time (a.u.)'
+set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]
+set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]
+unset key
+unset colorbox
+set palette defined ( 0 '#000090', 1 '#000fff', 2 '#0090ff', 3 '#0fffee', 4 '#90ff70', 5 '#ffee00', 6 '#ff7000', 7 '#ee0000', 8 '#7f0000')
+repl
+set terminal epslatex standalone color colortext 10 size 10cm,8cm
+set output 'figures/kprobs.tex'
+repl" > figures/kprobs.plt
+ fi
+
+ if [ $timeandspace_plot == 1 ] ; then
+  if [ $(($Nb)) -gt 0 ] ; then
+  echo "set terminal postscript enhanced colour dashed lw 2 size 15,10 font 'Arial-Bold,10'
+
+# dummy plot to get GPVAL_DATA_X_MAX
+set output '/dev/null'
+plot './outs/tkprob.out'
+set output 'figures/time_and_space.eps'
+
+set multiplot
+
+set style data lines
+set style increment user
+set style line 1 lt 1 lc rgb 'red'
+set style line 2 lt 1 lc rgb 'green'
+set style line 3 lt 1 lc rgb 'blue'
+set style line 4 lt 1 lc rgb 'black'
+
+set key rmargin
+
+set rmargin 15
+set lmargin 12
+set tmargin 1
+set bmargin 1
+
+set format y '%.2e'
+
+set xr[0:GPVAL_DATA_X_MAX]
+
+set ytics nomirror scale 0.5
+unset xtics
+
+set size 1, 0.23
+set origin 0.0,0.77
+plot './outs/tkprob.out' u 1:2 t 'Bulk' lt 1
+
+set size 1, 0.23
+set origin 0.0,0.54
+set ylabel 'Population (a.u.)'
+plot './outs/tbprob.out' u 1:2 t 'Bridge' lt 3
+unset ylabel
+
+set size 1, 0.23
+set origin 0.0,0.31
+plot './outs/tcprob.out' u 1:2 t 'QD' lt 2
+
+set size 1, 0.23
+set origin 0.0,0.08
+set xlabel 'Time (a.u.)'
+set xtics nomirror scale 0.5
+plot './outs/pump_intensity.out' u 1:2 t 'Laser' lt 4" > figures/time_and_space.plt
+  fi
+ fi
+}
+
+function plot {
+# make populations plot
+ if [ $populations_plot == 1 ] ; then
+  gnuplot figures/populations.plt
+  [ $do_fullcleanup == 1 ] && rm -f figures/populations.plt
+ fi
+# make kprobs plot
+ if [ $kprobs_plot == 1 ] ; then
+  gnuplot figures/kprobs.plt
+  latex figures/kprobs.tex
+  dvipdf kprobs.dvi
+  [ -f "kprobs.dvi" ] && rm -f kprobs.dvi
+  [ -f "kprobs.log" ] && rm -f kprobs.log
+  [ -f "kprobs.aux" ] && rm -f kprobs.aux
+  [ -f "kprobs.pdf" ] && mv kprobs.pdf figures/
+  [ -f "kprobs-inc.eps" ] && mv kprobs-inc.eps figures/
+  [ $do_fullcleanup == 1 ] && rm -f figures/kprob.plt && echo "### $(date) done plotting!"
+ fi
+# make time and space plot
+ if [ $timeandspace_plot == 1 ] ; then
+  if [ $(($Nb)) -gt 0 ] ; then
+   gnuplot figures/time_and_space.plt
+   [ $do_fullcleanup == 1 ] && rm -f figures/time_and_space.plt
+  fi
+ fi
+}
+
+function movie_maker {
+ ## GENERATE MOVIE MAKER ##
+ timestep=$(echo "scale=4; ($tout/$numOutputSteps/41.34)" | bc)
+ echo "### $(date) making movie maker..."
+ sed 's/[^ ]* \(.*\)/\1/' outs/kprobs.out > temp1.out	# strip first column (times) from kprobs.out
+ sed 's/[^ ]* \(.*\)/\1/' outs/cprobs.out > temp2.out	# strip first column (times) from cprobs.out
+ sed 's/[^ ]* \(.*\)/\1/' outs/bprobs.out > temp3.out	# strip first column (times) from bprobs.out
+ paste -d " " temp1.out temp2.out temp3.out > temp4.out
+ cat outs/energy.out temp4.out > temp.out
+ cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
+ 
+ max_pop=$(python2 tools/findMaxZ.py outs/kprobs_gnuplot.out)
+ max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
+ 
+ echo "set term png truecolor size 800,800 font 'Arial-Bold,14'
+set xtics scale 0
+unset key" > figures/movie.plt
+
+ xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
+ for (( i=0 ; i<=$tout ; i+=1000 ))	# builds the xtics string
+ do
+  time_au=$i
+  time_fs=$(echo "scale=4; ($i/41.3414)" | bc)
+  time_x=$time_au	# make this line reflect the units you want in the plot
+  xtics_string=$xtics_string"\"$time_x\" $i, "
+ done
+
+ #for (( i=0; i<=$numOutputSteps; i++ ))
+ for (( i=500; i<=515; i++ ))	# for testing movie making
+ do
+  time_fs=$(echo "scale=4; ($i*$tout/$numOutputSteps/41.3414)" | bc)
+  time_au=$(echo "scale=4; ($i*$tout/$numOutputSteps)" | bc)
+  time_n=$(echo "scale=4; ($time_au/$tout)" | bc)
+  time_x=$time_au	# make this line reflect the units you want in the plot
+  time_unit="a.u."	# make this line reflect the units you want in the plot
+  foo=$(printf "%07d" $(($i)))
+  xtix=$xtics_string"\"\" $time_x 1)"	# terminates the xtics string
+  echo "set output \"img/${foo}.png\"
+set multiplot
+
+set origin 0,0
+set size 1.1,0.5
+set border 0
+set ytics scale 0
+set ylabel \"Energy above band edge \(a.u.\)\"
+set xlabel \"Time \($time_unit\)\"
+set xrange [0:$tout]
+set yrange [$k_bandedge:$k_bandtop]
+unset colorbox
+set pm3d map
+set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
+set arrow 1 from graph $time_n, graph -0.03 to graph $time_n, graph -0.01 nohead lw 3
+set arrow 2 from graph $time_n, graph 1.01 to graph $time_n, graph 0.98 nohead lw 3
+splot './outs/kprobs_gnuplot.out'
+unset arrow
+
+set origin 0,0.5
+set size 1,0.5
+set border 15
+set ytics scale 1 nomirror
+set xlabel \"Energy above band edge \(a.u.\)\"
+set ylabel \"Electron probability\"
+set title \"Bulk populations at time = $time_x $time_unit\"
+plot [$k_bandedge:$k_bandtop] [0:$max_pop] '../transpose.out' every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve x1
+unset title
+
+unset multiplot" >> figures/movie.plt
+ done
+ echo "### $(date) done making movie maker!"
+}
+
+
+function movie {
+ ## MAKE MOVIE ##
+ echo "### $(date) making .png for each frame of the movie..."
+ mkdir -p img
+ rm -rf img/*
+ gnuplot figures/movie.plt && echo "### $(date) done making .pngs!"
+ echo "### $(date) making movie..."
+ mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
+ mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
+ echo "### $(date) done\! movie is bulk_states.avi"
+ rm -rf img
+ [ $do_fullcleanup == 1 ] && rm -f figures/movie.plt
+ [ $do_cleanup == 1 ] && rm -f divx2pass.log
+ [ $do_cleanup == 1 ] && rm -f temp*.out
+ [ $do_cleanup == 1 ] && rm -f transpose.out
+}
+
+
+function backup {
+## BACK UP FILES ##
+ echo "### $(date) backing things up..."
+ durr=backup/dynamix_$(date +%F.%H.%M.%S)
+ mkdir -p $durr
+ cp -rf ins/ outs/ bin/ figures/ doc/ total_dynamix $durr
+ [ $do_plot == 1 ] && cp *.eps $durr
+ [ $do_movie == 1 ] && cp bulk_states.avi $durr
+ [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
+ echo "### $(date) all backed up\!"
+}
+
+### This is where the script actually starts doing things. ###
+
+Nb=$(wc -l "ins/b_energies.in" | awk '{print $1}')
+mkdir -p figures
+
+echo "### $(date) dynamix run starting now..."
+echo "###"
+echo "###"
+
+[ $do_compile_serial == 1 ] && compile_serial
+[ $do_compile_parallel == 1 ] && compile_parallel
+[ $do_compile == 1 ] && compile
+[ $do_run == 1 ] && run
+[ $make_plotter == 1 ] && plot_maker
+[ $do_plot == 1 ] && plot
+[ $do_time_space_plot == 1 ] && time_space_plot
+[ $make_movie_maker == 1 ] && movie_maker
+[ $do_movie == 1 ] && movie
+[ $do_backup == 1 ] && backup
+
+echo "### $(date) all done!"
+echo "###"
+echo "###"

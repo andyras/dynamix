@@ -1,0 +1,35 @@
+# add switch for vibrational mode
+ # when off, should default to setting g-factors to 0
+ # error check for whether bridge is on
+# catch exception/prevent segfault when file doesn't exist
+# error check for scale_buqd having no bridge
+# make Nl read in from file instead of hard-coded
+# add flag to do analytical bit
+
+# header file
+
+# get this to run on Quest
+-need environment checking of some kind
+-different submission script for Moab
+
+# parallelize
+
+# get rid of cout (<iostream>), use stdout and stderr consistently
+
+# importParam function
+-assign variable
+-debug code inside
+-takes value and string for debug code as params
+
+# test suite
+-make sure simple case has expected value
+ -injection from single state to continuum has certain rate
+-(ins) folders for each test system
+
+# change things to camelCase
+
+# add optional FT output for tXprob.out
+
+# move code for making outputs to separate .cpp files
+
+# compute things like Delta, kappa at the start and pass around in data struct
