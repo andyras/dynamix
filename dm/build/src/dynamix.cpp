@@ -187,47 +187,79 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 // gives f(y,t) for CVODE
  
  int i, j, n, m;
+ // variables for indices
  int IkRe, IkIm, IcRe, IcIm, IlRe, IlIm;
- realtype sinn;
- realtype coss;
- realtype Vee;
- // initialization
- for (i = 0; i < 2*NEQ_vib; i++)
-  NV_Ith_S(ydot, i) = 0;
+ // accumulators
+ realtype sum1, sum2;
 
- if (laser_on) {
-  realtype pumpTerm = 0.0;
-  if ((scale_laser) && (Nk > 1)) {
-   // pumpTerm gives the strength of the pump's interaction, accounting for scaling.
-   pumpTerm = muLK*pump(t, pumpFWHM, pumpAmpl, pumpPeak, pumpFreq, pumpPhase)*sqrt((k_bandtop - k_bandedge)/(Nk - 1));
-  }
-  else {
-   // pumpTerm gives the strength of the pump's interaction, not accounting for scaling.
-   pumpTerm = muLK*pump(t, pumpFWHM, pumpAmpl, pumpPeak, pumpFreq, pumpPhase);
-  }
-  // pump pulse coupling l and k states
-  for (i = 0; i < Nk; i++)
-   for (j = 0; j < Nl; j++)
-    for (n = 0; n < N_vib; n++)
-     for (m = 0; m < N_vib; m++) {
-      IkRe = Ik_vib + i*N_vib + n;
-      IkIm = IkRe + NEQ_vib;
-      IlRe = Il_vib + j*N_vib + m;
-      IlIm = IlRe + NEQ_vib;
-      coss = cos((energy[IkRe] - energy[IlRe])*t);
-      sinn = sin((energy[IkRe] - energy[IlRe])*t);
-      NV_Ith_S(ydot, IkRe) += pumpTerm*(coss*NV_Ith_S(y, IlIm) + sinn*NV_Ith_S(y, IlRe)); // k Re
-      NV_Ith_S(ydot, IkIm) += pumpTerm*(sinn*NV_Ith_S(y, IlIm) - coss*NV_Ith_S(y, IlRe)); // k Im
-      NV_Ith_S(ydot, IlRe) += pumpTerm*(coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // l Re
-      NV_Ith_S(ydot, IlIm) -= pumpTerm*(sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // l Im
-#ifdef DEBUGf
-      cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IlRe " << IcRe << " IlIm ";
-      cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t << endl;
-#endif
-     }
+ // TODO: decompose data into energies
+
+ // initialize ydot
+ for (i = 0; i < 2*NEQ_vib; i++) {
+  NV_Ith_S(ydot, i) = 0;
  }
 
- if (bridge_on) {					// bridge
+ // equations of motion for system with bridge
+ if (bridge_on) {
+  // couplings
+  realtype Vkb = V[Ik][Ib];
+  realtype Vbc = V[Ib][Ic];
+
+  // \dot{\rho_{kk'}}
+  for (int ii = 0; ii < Nk; ii++) {
+   for (int jj = 0; jj < Nk; jj++) {
+    IkRe = Ik + ii;
+    IkpRe = Ik + jj;
+    IkkpRe = NEQ*IkRe + IkpRe;
+    IkkpIm = IkkpRe + NEQ2;
+    // Re(\dot{\rho_{kk'}})
+    NV_Ith_S(ydot, IkkpRe) += (energy[IkRe] - energy[IkpRe])*NV_Ith_S(y, IkkpIm)
+                           +  Vkb*NV_Ith_S(y, IbkpIm) - Vbc*NV_Ith_S(y, IkbIm);
+    // Im(\dot{\rho_{kk'}})
+    NV_Ith_S(ydot, IkkpIm) += (energy[IkpRe] - energy[IkRe])*NV_Ith_S(y, IkkpRe)
+                           -  Vkb*NV_Ith_S(y, IbkpRe) - Vbc*NV_Ith_S(y, IkbRe);
+   }
+  }
+
+  //// \dot{\rho_{bb}}
+  IbbRe = NEQ*Ib + Ib;
+  IbbIm = IbbRe + NEQ2;
+  sum1 = 0.0;
+  sum2 = 0.0;
+  /// contribution from \rho_{bk}, \rho_{kb}
+  for (int ii = 0; ii < Nk; ii++) {
+   IkRe = Ik + ii;
+   IkbRe = NEQ*IkRe + Ib;
+   IkbIm = IkbRe + NEQ2;
+   IbkRe = NEQ*Ib + IkRe;
+   IbkIm = IbkRe + NEQ2;
+   // real part
+   sum1 += NV_Ith_S(y, IkbIm) - NV_Ith_S(y, IbkIm);
+   // imaginary part
+   sum2 -= NV_Ith_S(y, IkbRe) - NV_Ith_S(y, IbkRe);
+  }
+  // real part
+  NV_Ith_S(ydot, IbbRe) += Vkb*sum1;
+  // imaginary part
+  NV_Ith_S(ydot, IbbIm) += Vkb*sum2;
+  /// contribution from \rho_{bc}, \rho_{cb}
+  for (int ii = 0; ii < Nc; ii++) {
+   IcRe = Ic + ii;
+   IcbRe = NEQ*IcRe + Ib;
+   IcbIm = IcbRe + NEQ2;
+   IbcRe = NEQ*Ib + IcRe;
+   IbcIm = IbcRe + NEQ2;
+   // real part
+   sum1 += NV_Ith_S(y, IbcIm) - NV_Ith_S(y, IcbIm);
+   // imaginary part
+   sum2 -= NV_Ith_S(y, IbcRe) - NV_Ith_S(y, IcbRe);
+  }
+  // real part
+  NV_Ith_S(ydot, IbbRe) += Vbc*sum1;
+  // imaginary part
+  NV_Ith_S(ydot, IbbIm) += Vbc*sum2;
+
+
   int IbRe, IbIm, IBRe, IBIm;
   realtype Vkb = V[Ik][Ib];
   realtype Vbc = V[Ic][Ib+Nb-1];
@@ -352,8 +384,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
  return 0;
 }
-
-
 
 
 int Output_checkpoint(
