@@ -3,7 +3,7 @@
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
  */
-int Number_of_values (const char * nameOfFile) {
+int numberOfValuesInFile(const char * nameOfFile) {
  FILE * input;
  double value;
  int numberOfValues = 0;
@@ -17,7 +17,7 @@ int Number_of_values (const char * nameOfFile) {
   }
  }
  else {
-  fprintf(stderr, "WARNING [Number_of_values]: file %s does not exist.\n", nameOfFile);
+  fprintf(stderr, "WARNING [numberOfValuesInFile]: file %s does not exist.\n", nameOfFile);
   return -1;
  }
 
@@ -27,7 +27,7 @@ int Number_of_values (const char * nameOfFile) {
 /* reads in the values from file; returns an array the length of the number of 
  * numbers in the file
  */
-void Read_array_from_file (realtype * array, const char * nameOfFile, int numberOfValues) {
+void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfValues) {
  FILE * input;
  int i = 0;
 
@@ -39,14 +39,14 @@ void Read_array_from_file (realtype * array, const char * nameOfFile, int number
   }
  }
  else {
-  fprintf(stderr, "ERROR [Read_array_from_file]: file %s does not exist.\n", nameOfFile);
+  fprintf(stderr, "ERROR [readArrayFromFile]: file %s does not exist.\n", nameOfFile);
  }
 
  fclose(input);
 }
 
 /* Returns an array of length n with all values set to initializeValue. */
-void Initialize_array(realtype * array, int n, realtype initializeValue) {
+void initializeArray(realtype * array, int n, realtype initializeValue) {
 #ifdef DEBUG
  cout << "initializeValue is " << initializeValue << endl;
 #endif
@@ -59,7 +59,7 @@ void Initialize_array(realtype * array, int n, realtype initializeValue) {
 }
 
 /* builds energies for a quasicontinuum (evenly spaced) */
-void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {
+void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {
  
  int i;
 
@@ -75,7 +75,7 @@ void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge,
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
  * below the lowest-energy state in the set of states being populated.
  */
-void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk) {
+void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk) {
 
  int i;
 
@@ -92,7 +92,7 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
 }
 
 /* populates a set of states according to a Gaussian distribution. */
-void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
+void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
 
  int i;
 
@@ -106,22 +106,6 @@ void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBan
 #ifdef DEBUG
  cout << endl;
 #endif
-}
-
-/* creates a matrix of Franck-Condon factors between two displaced harmonic
- * oscillators.
- */
-void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int numN) {
- int m, n;
-
- FCmat[0][0] = exp(-pow(g,2)/2);	// first element
- for (m = 1; m < numM; m++)		// first column
-  FCmat[m][0] = g/sqrt((double)m)*FCmat[m-1][0];
- for (n = 1; n < numN; n++)		// first row
-  FCmat[0][n] = -1*g/sqrt((double)n)*FCmat[0][n-1];
- for (m = 1; m < numM; m++)		// recursion for the rest of the matrix
-  for (n = 1; n < numN; n++)
-   FCmat[m][n] = g/sqrt((double)m)*FCmat[m-1][n] + sqrt((double)n/(double)m)*FCmat[m-1][n-1];
 }
 
 /* returns the coupling as a function of energy E given that the middle of the
@@ -197,7 +181,7 @@ int Derivative(double *inputArray, int inputLength, double *outputArray, double 
 /* Riemann sum of an array (values) at time points (time).
  * Does not assume equal spacing in time.
  */
-realtype Integrate_arrays (realtype * values, realtype * time, int num) {
+realtype integrateArray(realtype * values, realtype * time, int num) {
  int i;
  realtype riemann = 0;
 
@@ -208,7 +192,7 @@ realtype Integrate_arrays (realtype * values, realtype * time, int num) {
 }
 
 /* Returns maximum element in an array. */
-realtype Find_array_maximum (realtype * inputArray, int num) {
+realtype findArrayMaximum(realtype * inputArray, int num) {
  int i;
  realtype currentMax = inputArray[0];
 
@@ -222,7 +206,7 @@ realtype Find_array_maximum (realtype * inputArray, int num) {
 /* Finds the first maximum in an array (the first point where the next
  * point is smaller in value).
  */
-realtype Find_first_array_maximum (realtype * inputArray, int num) {
+realtype findFirstArrayMaximum(realtype * inputArray, int num) {
  int i;
  realtype currentMax = inputArray[0];
 
@@ -240,7 +224,7 @@ realtype Find_first_array_maximum (realtype * inputArray, int num) {
  * Warning: will return 0 as index of first maximum if the second array element
  * is less than the first.  This may not be what you want.
  */
-int Find_first_array_maximum_index (realtype * inputArray, int num) {
+int findFirstArrayMaximumIndex(realtype * inputArray, int num) {
  int i;
  realtype currentMax = inputArray[0];
  int currentMax_index = 0;
@@ -258,7 +242,7 @@ int Find_first_array_maximum_index (realtype * inputArray, int num) {
 }
 
 /* returns index of first maximum in an array. */
-int Find_array_maximum_index (realtype * inputArray, int num) {
+int findArrayMaximumIndex(realtype * inputArray, int num) {
  int i;
  realtype currentMax = inputArray[0];
  int currentMax_index = 0;

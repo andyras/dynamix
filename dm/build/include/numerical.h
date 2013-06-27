@@ -9,32 +9,27 @@
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
  */
-int Number_of_values (const char * nameOfFile);
+int numberOfValuesInFile(const char * nameOfFile);
 
 /* reads in the values from file; returns an array the length of the number of 
  * numbers in the file
  */
-void Read_array_from_file (realtype * array, const char * nameOfFile, int numberOfValues);
+void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfValues);
 
 /* Returns an array of length n with all values set to initializeValue. */
-void Initialize_array(realtype * array, int n, realtype initializeValue);
+void initializeArray(realtype * array, int n, realtype initializeValue);
 
 /* builds energies for a quasicontinuum (evenly spaced) */
-void Build_continuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop);
+void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop);
 
 /* populates a set of states according to a Fermi-Dirac distribution.
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
  * below the lowest-energy state in the set of states being populated.
  */
-void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk);
+void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk);
 
 /* populates a set of states according to a Gaussian distribution. */
-void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk);
-
-/* creates a matrix of Franck-Condon factors between two displaced harmonic
- * oscillators.
- */
-void Build_Franck_Condon_factors (realtype ** FCmat, double g, int numM, int numN);
+void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk);
 
 /* returns the coupling as a function of energy E given that the middle of the
  * band is at position mid.
@@ -59,10 +54,10 @@ int Derivative(double *inputArray, int inputLength, double *outputArray, double 
 /* Riemann sum of an array (values) at time points (time).
  * Does not assume equal spacing in time.
  */
-realtype Integrate_arrays (realtype * values, realtype * time, int num);
+realtype integrateArray(realtype * values, realtype * time, int num);
 
 /* Returns maximum element in an array. */
-realtype Find_array_maximum (realtype * inputArray, int num);
+realtype findArrayMaximum(realtype * inputArray, int num);
 
 /* Finds the first maximum in an array (the first point where the next
  * point is smaller in value).
@@ -76,6 +71,6 @@ realtype Find_first_array_maximum (realtype * inputArray, int num);
 int Find_first_array_maximum_index (realtype * inputArray, int num);
 
 /* returns index of first maximum in an array. */
-int Find_array_maximum_index (realtype * inputArray, int num);
+int findArrayMaximumIndex(realtype * inputArray, int num);
 
 #endif

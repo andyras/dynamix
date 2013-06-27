@@ -186,19 +186,39 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
 int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 // gives f(y,t) for CVODE
 
- // TODO: decompose data into energies
- // TODO: only calculate upper/lower triangle of DM
+ // TODO: decompose 'data' variable into energies
+ // TODO: only calculate upper/lower triangle of diagonal blocks in DM
  
- int i, j, n, m;
+ //// Checklist for debugging this code
+ // * Make sure all indices have declared variables
+ // * Check that indices are computed properly
+ //   * I_{x_i}Re = I_x + i;
+ //   * I_{x_i,y_j}Re = NEQ*I_{x_i} + I_{y_j};
+ //   * I_{x_i,y_j}Im = I_{x_i,y_j}Re + NEQ2;
+ // * Check that indices used have correct Re/Im
+ // * Check signs of each term and each sum
+ //   * In general Re/Im have opposite signs
+ //   * For complex conjugates, Re have same sign, Im opposite
+ // * Check usage of y (LHS) and ydot (RHS)
+ // * Check usage of sumRe vs. sumIm
+ 
  // variables for indices
- int IkRe, IkIm, IcRe, IcIm, IlRe, IlIm;
- // accumulators
- realtype sum1, sum2;
+ int IkRe, IkIm, IbRe, IbIm, IcRe, IcIm;
+ int IkpRe, IbpRe, IcpRe;
+ int IkkpRe, IkkpIm, IbbpRe, IbbpIm, IccpRe, IccpIm;
+ int IkbRe, IkbIm, IkcRe, IkcIm;
+ int IbkRe, IbkIm, IbcRe, IbcIm;
+ int IckRe, IckIm, IcbRe, IcbIm;
 
+ // accumulators
+ realtype sumRe, sumIm;
+
+ // energy gap
+ realtype wij;
 
  // initialize ydot
- for (i = 0; i < 2*NEQ_vib; i++) {
-  NV_Ith_S(ydot, i) = 0;
+ for (int ii = 0; ii < 2*NEQ_vib; ii++) {
+  NV_Ith_S(ydot, ii) = 0;
  }
 
  // equations of motion for system with bridge
@@ -206,8 +226,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // couplings
   realtype Vkb = V[Ik][Ib];
   realtype Vbc = V[Ib][Ic];
-  // These indices won't change for only one bridge
-  IbbRe = NEQ*Ib + Ib;
+  // These indices won't change with only one bridge
+  IbRe = Ib;
+  IbbRe = NEQ*IbRe + IbRe;
   IbbIm = IbbRe + NEQ2;
 
   //// Contributions from energy gaps
@@ -218,131 +239,158 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IijIm = IijRe + NEQ2;
     IjiRe = NEQ*jj + ii;
     IjiEm = IjiRe + NEQ2;
-    // real parts
-    NV_Ith_S(yout, IijRe) += (energy[ii] - energy[jj])*NV_Ith_S(y, IijIm);
-    NV_Ith_S(yout, IjiRe) += (energy[jj] - energy[ii])*NV_Ith_S(y, IjiIm);
-    // imaginary parts
-    NV_Ith_S(yout, IijIm) += (energy[jj] - energy[ii])*NV_Ith_S(y, IijRe);
-    NV_Ith_S(yout, IjiIm) += (energy[ii] - energy[jj])*NV_Ith_S(y, IjiRe);
+    wij = energy[ii] - energy[jj];
+
+    // real parts of complex conjugates are the same
+    NV_Ith_S(ydot, IijRe) += wij*NV_Ith_S(y, IijIm);
+    NV_Ith_S(ydot, IjiRe) += wij*NV_Ith_S(y, IijIm);
+    // imaginary parts of complex conjugates have opposite sign
+    NV_Ith_S(ydot, IijIm) += wij*NV_Ith_S(y, IijRe);
+    NV_Ith_S(ydot, IjiIm) -= wij*NV_Ith_S(y, IijRe);
    }
   }
 
   // \dot{\rho_{kk'}}
+  sumRe = 0.0;
+  sumIm = 0.0;
   for (int ii = 0; ii < Nk; ii++) {
    IkRe = Ik + ii;
    for (int jj = 0; jj < Nk; jj++) {
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
     IkkpIm = IkkpRe + NEQ2;
-    IbkpRe = NEQ*Ib + IkpRe;
+    IbkpRe = NEQ*IbRe + IkpRe;
     IbkpIm = IbkpRe + NEQ2;
-    IkbRe = NEQ*Ik + Ib;
+    IkbRe = NEQ*Ik + IbRe;
     IkbIm = IkbRe + NEQ2;
-    // Re(\dot{\rho_{kk'}})
-    NV_Ith_S(ydot, IkkpRe) += Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
-    // Im(\dot{\rho_{kk'}})
-    NV_Ith_S(ydot, IkkpIm) -= Vkb*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
+
+    // real part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
+    sumRe += NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm);
+    // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
+    sumIm -= NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe);
    }
   }
 
+  // real part		V_{kb}(\rho_{bk'} - \rho_{kb}) term
+  NV_Ith_S(ydot, IkkpRe) += Vkb*sumRe;
+  // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
+  NV_Ith_S(ydot, IkkpIm) += Vkb*sumIm;
+
   //// \dot{\rho_{bb}}
-  sum1 = 0.0;
-  sum2 = 0.0;
+  sumRe = 0.0;
+  sumIm = 0.0;
   /// contribution from \rho_{bk}, \rho_{kb}
   for (int ii = 0; ii < Nk; ii++) {
    IkRe = Ik + ii;
-   IkbRe = NEQ*IkRe + Ib;
+   IkbRe = NEQ*IkRe + IbRe;
    IkbIm = IkbRe + NEQ2;
-   IbkRe = NEQ*Ib + IkRe;
+   IbkRe = NEQ*IbRe + IkRe;
    IbkIm = IbkRe + NEQ2;
-   // real part
-   sum1 += NV_Ith_S(y, IkbIm) - NV_Ith_S(y, IbkIm);
-   // imaginary part
-   sum2 -= NV_Ith_S(y, IkbRe) - NV_Ith_S(y, IbkRe);
+
+   // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
+   sumRe += NV_Ith_S(y, IkbIm) - NV_Ith_S(y, IbkIm);
+   // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
+   sumIm -= NV_Ith_S(y, IkbRe) - NV_Ith_S(y, IbkRe);
   }
-  // real part
-  NV_Ith_S(ydot, IbbRe) += Vkb*sum1;
-  // imaginary part
-  NV_Ith_S(ydot, IbbIm) += Vkb*sum2;
+
+  // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
+  NV_Ith_S(ydot, IbbRe) += Vkb*sumRe;
+  // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
+  NV_Ith_S(ydot, IbbIm) += Vkb*sumIm;
+
   /// contribution from \rho_{bc}, \rho_{cb}
   for (int ii = 0; ii < Nc; ii++) {
    IcRe = Ic + ii;
-   IcbRe = NEQ*IcRe + Ib;
+   IcbRe = NEQ*IcRe + IbRe;
    IcbIm = IcbRe + NEQ2;
-   IbcRe = NEQ*Ib + IcRe;
+   IbcRe = NEQ*IbRe + IcRe;
    IbcIm = IbcRe + NEQ2;
-   // real part
-   sum1 += NV_Ith_S(y, IbcIm) - NV_Ith_S(y, IcbIm);
-   // imaginary part
-   sum2 -= NV_Ith_S(y, IbcRe) - NV_Ith_S(y, IcbRe);
+
+   // real part		V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
+   sumRe += NV_Ith_S(y, IbcIm) - NV_Ith_S(y, IcbIm);
+   // imaginary part	V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
+   sumIm -= NV_Ith_S(y, IbcRe) - NV_Ith_S(y, IcbRe);
   }
-  // real part
-  NV_Ith_S(ydot, IbbRe) += Vbc*sum1;
-  // imaginary part
-  NV_Ith_S(ydot, IbbIm) += Vbc*sum2;
+
+  // real part		V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
+  NV_Ith_S(ydot, IbbRe) += Vbc*sumRe;
+  // imaginary part	V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
+  NV_Ith_S(ydot, IbbIm) += Vbc*sumIm;
 
   //// \dot{\rho_{cc'}}
+  sumRe = 0.0;
+  sumIm = 0.0;
   for (ii = 0; ii < Nc; ii++) {
    IcRe = Ic + ii;
    for (jj = 0; jj < Nc; jj++) {
     IcpRe = Ic + jj;
     IccpRe = NEQ*IcRe + IcpRe;
     IccpIm = IccpRe + NEQ2;
-    IbcpRe = NEQ*Ib + IcpRe;
+    IbcpRe = NEQ*IbRe + IcpRe;
     IbcpIm = IbcpRe + NEQ2;
-    IcbRe = NEQ*IcRe + Ib;
+    IcbRe = NEQ*IcRe + IbRe;
     IcbIm = IcbRe + NEQ2;
-    // real part
-    NV_Ith_S(ydot, IccpRe) += Vbc*(NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm));
-    // imaginary part
-    NV_Ith_S(ydot, IccpIm) -= Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe));
+
+    // real part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
+    sumRe += NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm);
+    // imaginary part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
+    sumIm -= NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe);
    }
   }
+
+  // real part		V_{bc}(\rho_{bc'} - \rho_{cb}) term
+  NV_Ith_S(ydot, IccpRe) += Vbc*sumRe;
+  // imaginary part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
+  NV_Ith_S(ydot, IccpIm) += Vbc*sumIm;
 
   //// \dot{\rho_{kb}} and \dot{\rho_{bk}}
   for (ii = 0; ii < Nk; ii++) {
    IkRe = Ik + ii;
-   IkbRe = NEQ*IkRe + Ib;
+   IkbRe = NEQ*IkRe + IbRe;
    IkbIm = IkbRe + NEQ2;
-   IbkRe = NEQ*Ib + IkRe;
+   IbkRe = NEQ*IbRe + IkRe;
    IbkIm = IbkRe + NEQ2;
+
    // real part		V_{kb}\rho_{bb} term
-   sum1 = NV_Ith_S(y, IbbIm);
+   sumRe = NV_Ith_S(y, IbbIm);
    // imaginary part	V_{kb}\rho_{bb} term
-   sum2 = -1*NV_Ith_S(y, IbbRe);
+   sumIm = -1*NV_Ith_S(y, IbbRe);
+
    for (jj = 0; jj < Nk; jj++) {
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
     IkkpIm = IkkpRe + NEQ2;
     // real part	V_{kb}\rho_{kk'} term
-    sum1 -= NV_Ith_S(y, IkkpIm);
+    sumRe -= NV_Ith_S(y, IkkpIm);
     // imaginary part	V_{kb}\rho_{kk'} term
-    sum2 += NV_Ith_S(y, IkkpRe);
+    sumIm += NV_Ith_S(y, IkkpRe);
    }
    // real part		V_{kb} terms
-   NV_Ith_S(yout, IkbRe) += Vkb*sum1;
-   NV_Ith_S(yout, IbkRe) += Vkb*sum1;
+   NV_Ith_S(ydot, IkbRe) += Vkb*sumRe;
+   NV_Ith_S(ydot, IbkRe) += Vkb*sumRe;
    // imaginary part	V_{kb} terms
-   NV_Ith_S(yout, IkbIm) += Vkb*sum2;
-   NV_Ith_S(yout, IbkIm) -= Vkb*sum2;
+   NV_Ith_S(ydot, IkbIm) += Vkb*sumIm;
+   NV_Ith_S(ydot, IbkIm) -= Vkb*sumIm;
 
-   sum1 = 0.0;
-   sum2 = 0.0;
+   sumRe = 0.0;
+   sumIm = 0.0;
    for (jj = 0; jj < Nc; jj++) {
     IcRe = Ic + jj;
     IkcRe = NEQ*IkRe + IcRe;
     IkcIm = IkcRe + NEQ2;
+
     // real part	V_{bc}\rho_{kc} term
-    sum1 -= NV_Ith_S(IkcIm);
+    sumRe -= NV_Ith_S(IkcIm);
     // imaginary part	V_{bc}\rho_{kc} term
-    sum2 += NV_Ith_S(IkcRe);
+    sumIm += NV_Ith_S(IkcRe);
    }
+
    // real part		V_{bc}\rho_{kc} term
-   NV_Ith_S(yout, IkbRe) += Vbc*sum1
-   NV_Ith_S(yout, IbkRe) += Vbc*sum1
+   NV_Ith_S(ydot, IkbRe) += Vbc*sumRe
+   NV_Ith_S(ydot, IbkRe) += Vbc*sumRe
    // imaginary part	V_{bc}\rho_{kc} term
-   NV_Ith_S(yout, IkbIm) += Vbc*sum2
-   NV_Ith_S(yout, IbkIm) += Vbc*sum2
+   NV_Ith_S(ydot, IkbIm) += Vbc*sumIm
+   NV_Ith_S(ydot, IbkIm) += Vbc*sumIm
   }
 
   //// \dot{\rho_{kc}} and \dot{\rho_{ck}}
@@ -352,16 +400,17 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IcRe = Ic + jj;
     IkcRe = NEQ*IkRe + IcRe;
     IkcIm = IkcRe + NEQ2;
-    IbcRe = NEQ*Ib + IcRe;
+    IbcRe = NEQ*IbRe + IcRe;
     IbcIm = IbcRe + NEQ2;
-    IkbRe = NEQ*IkRe + Ib;
+    IkbRe = NEQ*IkRe + IbRe;
     IkbIm = IkbRe + NEQ2;
+
     // real part	V_{kb}\rho_{bc} term
-    NV_Ith_S(yout, IkcRe) += Vkb*NV_Ith_S(y, IbcIm) - Vbc*NV_Ith_S(y, IkbIm);
-    NV_Ith_S(yout, IckRe) += Vkb*NV_Ith_S(y, IbcIm) - Vbc*NV_Ith_S(y, IkbIm);
+    NV_Ith_S(ydot, IkcRe) += Vkb*NV_Ith_S(y, IbcIm) - Vbc*NV_Ith_S(y, IkbIm);
+    NV_Ith_S(ydot, IckRe) += Vkb*NV_Ith_S(y, IbcIm) - Vbc*NV_Ith_S(y, IkbIm);
     // imaginary part	V_{kb}\rho_{bc} term
-    NV_Ith_S(yout, IkcIm) -= Vkb*NV_Ith_S(y, IbcRe) - Vbc*NV_Ith_S(y, IkbRe);
-    NV_Ith_S(yout, IckIm) += Vkb*NV_Ith_S(y, IbcRe) - Vbc*NV_Ith_S(y, IkbRe);
+    NV_Ith_S(ydot, IkcIm) -= Vkb*NV_Ith_S(y, IbcRe) - Vbc*NV_Ith_S(y, IkbRe);
+    NV_Ith_S(ydot, IckIm) += Vkb*NV_Ith_S(y, IbcRe) - Vbc*NV_Ith_S(y, IkbRe);
    }
   }
 
@@ -369,171 +418,53 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < Nc; ii++) {
    IcRe = Ic + ii;
    IcIm = IcRe + NEQ;
-   IbcRe = NEQ*Ib + IcRe;
+   IbcRe = NEQ*IbRe + IcRe;
    IbcIm = IbcRe + NEQ2;
-   IcbRe = NEQ*IcRe + Ib;
+   IcbRe = NEQ*IcRe + IbRe;
    IcbIm = IcbRe + NEQ2;
+
    // real part		V_bc\rho_{bb} term
-   sum1 = -1*NV_Ith_S(y, IbbIm);
+   sumRe = -1*NV_Ith_S(y, IbbIm);
    // imaginary part	V_bc\rho_{bb} term
-   sum2 = NV_Ith_S(y, IbbRe);
+   sumIm = NV_Ith_S(y, IbbRe);
+
    for (int jj = 0; jj < Nc; jj++) {
     IcpRe = Ic + jj;
     IcpcRe = NEQ*IcpRe + IcRe;
     IcpcIm = IcpcRe + NEQ2;
-    // real part	V_bc\rho_{c'c} term
-    sum1 += NV_Ith_S(y, IcpcIm);
-    // imaginary part	V_bc\rho_{c'c} term
-    sum2 -= NV_Ith_S(y, IcpcRe);
-   }
-   // real part		V_bc\rho_{c'c} term
-   NV_Ith_S(yout, IbcRe) += Vbc*sum1;
-   NV_Ith_S(yout, IcbRe) += Vbc*sum1;
-   // imaginary part	V_bc\rho_{c'c} term
-   NV_Ith_S(yout, IbcIm) += Vbc*sum2;
-   NV_Ith_S(yout, IcbIm) -= Vbc*sum2;
 
-   sum1 = 0.0;
-   sum2 = 0.0;
+    // real part	V_bc\rho_{c'c} term
+    sumRe += NV_Ith_S(y, IcpcIm);
+    // imaginary part	V_bc\rho_{c'c} term
+    sumIm -= NV_Ith_S(y, IcpcRe);
+   }
+
+   // real part		V_bc\rho_{c'c} term
+   NV_Ith_S(ydot, IbcRe) += Vbc*sumRe;
+   NV_Ith_S(ydot, IcbRe) += Vbc*sumRe;
+   // imaginary part	V_bc\rho_{c'c} term
+   NV_Ith_S(ydot, IbcIm) += Vbc*sumIm;
+   NV_Ith_S(ydot, IcbIm) -= Vbc*sumIm;
+
+   sumRe = 0.0;
+   sumIm = 0.0;
    for (int jj = 0; jj < Nk; jj++) {
     IkRe = Ik + jj;
     IkcRe = NEQ*IkRe + IcRe;
     IkcIm = IkcRe + NEQ2;
     // real part	V_kb\rho_{kc} term
-    sum1 += NV_Ith_S(y, IkcIm);
+    sumRe += NV_Ith_S(y, IkcIm);
     // imaginary part	V_kb\rho_{kc} term
-    sum2 -= NV_Ith_S(y, IkcRe);
+    sumIm -= NV_Ith_S(y, IkcRe);
    }
+
     // real part	V_kb\rho_{kc} term
-    NV_Ith_S(yout, IbcRe) += Vkb*sum1;
-    NV_Ith_S(yout, IcbRe) += Vkb*sum1;
+    NV_Ith_S(ydot, IbcRe) += Vkb*sumRe;
+    NV_Ith_S(ydot, IcbRe) += Vkb*sumRe;
     // imaginary part	V_kb\rho_{kc} term
-    NV_Ith_S(yout, IbcIm) += Vkb*sum2;
-    NV_Ith_S(yout, IcbIm) -= Vkb*sum2;
+    NV_Ith_S(ydot, IbcIm) += Vkb*sumIm;
+    NV_Ith_S(ydot, IcbIm) -= Vkb*sumIm;
   }
-
-
-  int IbRe, IbIm, IBRe, IBIm;
-  realtype Vkb = V[Ik][Ib];
-  realtype Vbc = V[Ic][Ib+Nb-1];
-  for (i = 0; i < Nk; i++)				// Vkb
-   for (n = 0; n < N_vib; n++)
-    for (m = 0; m < N_vib; m++) {
-     IkRe = Ik_vib + i*N_vib + n;
-     IkIm = IkRe + NEQ_vib;
-     IbRe = Ib_vib + m;
-     IbIm = IbRe + NEQ_vib;
-     Vee = Vkb*FCkb[n][m];
-     coss = Vee*cos((energy[IkRe] - energy[IbRe])*t);
-     sinn = Vee*sin((energy[IkRe] - energy[IbRe])*t);
-     NV_Ith_S(ydot, IkRe) += (coss*NV_Ith_S(y, IbIm) + sinn*NV_Ith_S(y, IbRe));	// k Re
-     NV_Ith_S(ydot, IkIm) += (sinn*NV_Ith_S(y, IbIm) - coss*NV_Ith_S(y, IbRe));	// k Im
-     NV_Ith_S(ydot, IbRe) += (coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe));	// b1 Re
-     NV_Ith_S(ydot, IbIm) -= (sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe));	// b1 Im
-#ifdef DEBUGf
-     cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IbRe " << IbRe << " IbIm ";
-     cout << IbIm << " Vkb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
-#endif
-    }
-  for (i = 0; i < Nc; i++)				// Vcb
-   for (n = 0; n < N_vib; n++)
-    for (m = 0; m < N_vib; m++) {
-     IcRe = Ic_vib + i*N_vib + n;
-     IcIm = IcRe + NEQ_vib;
-     IbRe = Ib_vib + (Nb-1)*N_vib + m;
-     IbIm = IbRe + NEQ_vib;
-     Vee = Vbc*FCbc[m][n];
-     coss = Vee*cos((energy[IcRe] - energy[IbRe])*t);
-     sinn = Vee*sin((energy[IcRe] - energy[IbRe])*t);
-     NV_Ith_S(ydot, IcRe) += (coss*NV_Ith_S(y, IbIm) + sinn*NV_Ith_S(y, IbRe));	// c Re
-     NV_Ith_S(ydot, IcIm) += (sinn*NV_Ith_S(y, IbIm) - coss*NV_Ith_S(y, IbRe));	// c Im
-     NV_Ith_S(ydot, IbRe) += (coss*NV_Ith_S(y, IcIm) - sinn*NV_Ith_S(y, IcRe));	// b1 Re
-     NV_Ith_S(ydot, IbIm) -= (sinn*NV_Ith_S(y, IcIm) + coss*NV_Ith_S(y, IcRe));	// b1 Im
-#ifdef DEBUGf
-     cout << endl << "IcRe " << IcRe << " IcIm " << IcIm << " IbRe " << IbRe << " IbIm ";
-     cout << IbIm << " Vcb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
-#endif
-    }
-  for (i = 0; i < Nb - 1; i++)				// Vb_nb_{n+1}
-   for (n = 0; n < N_vib; n++)
-    for (m = 0; m < N_vib; m++) {
-     IbRe = Ib_vib + i*N_vib + n;
-     IbIm = IbRe + NEQ_vib;
-     IBRe = Ib_vib + (i+1)*N_vib + m;
-     IBIm = IBRe + NEQ_vib;
-     Vee = Vbridge[i+1]*FCbb[n][m];
-     coss = Vee*cos((energy[IbRe] - energy[IBRe])*t);
-     sinn = Vee*sin((energy[IbRe] - energy[IBRe])*t);
-     NV_Ith_S(ydot, IbRe) += (coss*NV_Ith_S(y, IBIm) + sinn*NV_Ith_S(y, IBRe));	// b Re
-     NV_Ith_S(ydot, IbIm) += (sinn*NV_Ith_S(y, IBIm) - coss*NV_Ith_S(y, IBRe));	// b Im
-     NV_Ith_S(ydot, IBRe) += (coss*NV_Ith_S(y, IbIm) - sinn*NV_Ith_S(y, IbRe));	// b1 Re
-     NV_Ith_S(ydot, IBIm) -= (sinn*NV_Ith_S(y, IbIm) + coss*NV_Ith_S(y, IbRe));	// b1 Im
-#ifdef DEBUGf
-     cout << endl << "IbRe " << IbRe << " IbIm " << IbIm << " IBRe " << IBRe << " IBIm ";
-     cout << IBIm << " Vbb " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
-#endif
-    }
- }
- else {						// no bridge
-  realtype Vkc = V[Ik][Ic];
-  for (i = 0; i < Nk; i++)
-   for (j = 0; j < Nc; j++)
-    for (n = 0; n < N_vib; n++)
-     for (m = 0; m < N_vib; m++) {
-      IkRe = Ik_vib + i*N_vib + n;			// indices
-      IkIm = IkRe + NEQ_vib;
-      IcRe = Ic_vib + j*N_vib + m;
-      IcIm = IcRe + NEQ_vib;
-      /* Franck-Condon indices should be consistent in direction from one end of the 
-       * system to the other.  That is, if the first index is for the beginning state
-       * the second should be for the next in the chain, and so on. */
-      Vee = Vkc*FCkc[n][m];
-      coss = Vee*cos((energy[IkRe] - energy[IcRe])*t);	// do the cosine now for speed
-      sinn = Vee*sin((energy[IkRe] - energy[IcRe])*t);	// do the sine now for speed
-      NV_Ith_S(ydot, IkRe) += (coss*NV_Ith_S(y, IcIm) + sinn*NV_Ith_S(y, IcRe)); // k Re
-      NV_Ith_S(ydot, IkIm) += (sinn*NV_Ith_S(y, IcIm) - coss*NV_Ith_S(y, IcRe)); // k Im
-      NV_Ith_S(ydot, IcRe) += (coss*NV_Ith_S(y, IkIm) - sinn*NV_Ith_S(y, IkRe)); // c Re
-      NV_Ith_S(ydot, IcIm) -= (sinn*NV_Ith_S(y, IkIm) + coss*NV_Ith_S(y, IkRe)); // c Im
-#ifdef DEBUGf
-      cout << endl << "IkRe " << IkRe << " IkIm " << IkIm << " IcRe " << IcRe << " IcIm ";
-      cout << IcIm << " V " << Vee << " cos " << coss << " sin " << sinn << " t " << t;
-#endif
-     }
- }
-
-#ifdef DEBUGf
- cout << "\n\nN_Vectors at time " << t << ":\n";
- for (i = 0; i < Nk; i++)
-  for (j = 0; j < N_vib; j++) {
-   cout << "Re[k(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ik_vib+i*N_vib+j);
-   cout << ", ydot = " << NV_Ith_S(ydot, Ik_vib+i*N_vib+j) << endl;
-  }
- for (i = 0; i < Nc; i++)
-  for (j = 0; j < N_vib; j++) {
-   cout << "Re[c(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ic_vib+i*N_vib+j);
-   cout << ", ydot = " << NV_Ith_S(ydot, Ic_vib+i*N_vib+j) << endl;
-  }
- for (i = 0; i < Nb; i++)
-  for (j = 0; j < N_vib; j++) {
-   cout << "Re[b(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ib_vib+i*N_vib+j);
-   cout << ", ydot = " << NV_Ith_S(ydot, Ib_vib+i*N_vib+j) << endl;
-  }
- for (i = 0; i < Nk; i++)
-  for (j = 0; j < N_vib; j++) {
-   cout << "Im[k(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ik_vib+i*N_vib+j+NEQ_vib);
-   cout << ", ydot = " << NV_Ith_S(ydot, Ik_vib+i*N_vib+j+NEQ_vib) << endl;
-  }
- for (i = 0; i < Nc; i++)
-  for (j = 0; j < N_vib; j++) {
-   cout << "Im[c(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ic_vib+i*N_vib+j+NEQ_vib);
-   cout << ", ydot = " << NV_Ith_S(ydot, Ic_vib+i*N_vib+j+NEQ_vib) << endl;
-  }
- for (i = 0; i < Nb; i++)
-  for (j = 0; j < N_vib; j++) {
-   cout << "Im[b(" << i << "," << j << ")]: y = " << NV_Ith_S(y, Ib_vib+i*N_vib+j+NEQ_vib);
-   cout << ", ydot = " << NV_Ith_S(ydot, Ib_vib+i*N_vib+j+NEQ_vib) << endl;
-  }
-#endif
 
  return 0;
 }
@@ -808,7 +739,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
 
   if (outs["Ibprob.out"]) {
    Ibprob = fopen("Ibprob.out", "w");
-   fprintf(Ibprob, "%-.7g", Integrate_arrays(tb, time, num+1));
+   fprintf(Ibprob, "%-.7g", integrateArray(tb, time, num+1));
    fclose(Ibprob);
   }
 
@@ -822,7 +753,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
     }
    }
    // TODO THE MYSTERY!!!
-   //fprintf(bmax, "%-.7g", Find_array_maximum(tb, num+1));
+   //fprintf(bmax, "%-.7g", findArrayMaximum(tb, num+1));
    fprintf(bmax, "%-.7g", max_b_prob);
    fclose(bmax);
   }
@@ -856,26 +787,26 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  }
 
  if (outs["Ikprob.out"]) {
-  fprintf(Ikprob, "%-.7g", Integrate_arrays(tk, time, num+1));
+  fprintf(Ikprob, "%-.7g", integrateArray(tk, time, num+1));
  }
  if (outs["Icprob.out"]) {
-  fprintf(Icprob, "%-.7g", Integrate_arrays(tc, time, num+1));
+  fprintf(Icprob, "%-.7g", integrateArray(tc, time, num+1));
  }
  
  if (outs["kmax.out"]) {
-  fprintf(kmax, "%-.7g", Find_array_maximum(tk, num+1));
+  fprintf(kmax, "%-.7g", findArrayMaximum(tk, num+1));
  }
  if (outs["cmax.out"]) {
-  fprintf(cmax, "%-.7g", Find_array_maximum(tc, num+1));
+  fprintf(cmax, "%-.7g", findArrayMaximum(tc, num+1));
  }
  if (outs["cmax_first.out"]) {
-  fprintf(cmax_first, "%-.7g", Find_first_array_maximum(tc, num+1));
+  fprintf(cmax_first, "%-.7g", findFirstArrayMaximum(tc, num+1));
  }
  if (outs["cmax_t.out"]) {
-  fprintf(cmax_t, "%-.7g", time[Find_array_maximum_index(tc, num+1)]);
+  fprintf(cmax_t, "%-.7g", time[findArrayMaximumIndex(tc, num+1)]);
  }
  if (outs["cmax_first_t.out"]) {
-  fprintf(cmax_first_t, "%-.7g", time[Find_first_array_maximum_index(tc, num+1)]);
+  fprintf(cmax_first_t, "%-.7g", time[findFirstArrayMaximumIndex(tc, num+1)]);
  }
 
  if (outs["energy.out"]) {
@@ -1327,8 +1258,8 @@ int main (int argc, char * argv[]) {
  // DONE ASSIGNING VARIABLES FROM RUN SCRIPT //
 
  // READ DATA FROM INPUTS //
- Nc = Number_of_values("ins/c_energies.in");
- Nb = Number_of_values("ins/b_energies.in");
+ Nc = numberOfValuesInFile("ins/c_energies.in");
+ Nb = numberOfValuesInFile("ins/b_energies.in");
  k_pops = new realtype [Nk];
  c_pops = new realtype [Nc];
  b_pops = new realtype [Nb];
@@ -1337,24 +1268,24 @@ int main (int argc, char * argv[]) {
  c_energies = new realtype [Nc];
  b_energies = new realtype [Nb];
  l_energies = new realtype [Nl];
- if (Number_of_values("ins/c_pops.in") != Nc) {
+ if (numberOfValuesInFile("ins/c_pops.in") != Nc) {
   fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.\n");
   return -1;
  }
- Read_array_from_file(c_energies, "ins/c_energies.in", Nc);
+ readArrayFromFile(c_energies, "ins/c_energies.in", Nc);
  if (bridge_on) {
   if (bridge_on && (Nb < 1)) {
    cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
    return -1;
   }
   Vbridge = new realtype [Nb+1];
-  Read_array_from_file(b_energies, "ins/b_energies.in", Nb);
-  Read_array_from_file(Vbridge, "ins/Vbridge.in", Nb + 1);
+  readArrayFromFile(b_energies, "ins/b_energies.in", Nb);
+  readArrayFromFile(Vbridge, "ins/Vbridge.in", Nb + 1);
  }
  else {
   Nb = 0;
   Vnobridge = new realtype [1];
-  Read_array_from_file(Vnobridge, "ins/Vnobridge.in", 1);
+  readArrayFromFile(Vnobridge, "ins/Vnobridge.in", 1);
  }
  // DONE READING //
 #ifdef DEBUG
@@ -1391,25 +1322,25 @@ int main (int argc, char * argv[]) {
  Ib_vib = Ic_vib + Nc*N_vib;
  Il_vib = Ib_vib + Nb*N_vib;
  // assign bulk conduction band energies
- Build_continuum(k_energies, Nk, k_bandedge, k_bandtop);
+ buildContinuum(k_energies, Nk, k_bandedge, k_bandtop);
  // assign bulk valence band energies
- Build_continuum(l_energies, Nl, k_bandedge - valenceBand - bulk_gap, k_bandedge - bulk_gap);
+ buildContinuum(l_energies, Nl, k_bandedge - valenceBand - bulk_gap, k_bandedge - bulk_gap);
 
  //// Build initial wavefunction
 
  // bridge states (empty to start)
- Initialize_array(b_pops, Nb, 0.0);
+ initializeArray(b_pops, Nb, 0.0);
 
  // coefficients in bulk and other states depend on input conditions in bulk
  if (bulk_constant) {
 #ifdef DEBUG
   cout << "\ninitializing k_pops\n";
 #endif
-  Initialize_array(k_pops, Nk, 0.0);
+  initializeArray(k_pops, Nk, 0.0);
 #ifdef DEBUG
   cout << "\ninitializing k_pops with constant probability in range of states\n";
 #endif
-  Initialize_array(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
+  initializeArray(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
 #ifdef DEBUG
   cout << "\nThis is k_pops:\n";
   for (i = 0; i < Nk; i++) {
@@ -1417,29 +1348,29 @@ int main (int argc, char * argv[]) {
   }
   cout << "\n";
 #endif
-  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
-  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
+  initializeArray(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  initializeArray(c_pops, Nc, 0.0);		// QD states empty to start
  }
  else if (bulk_Gauss) {
-  Build_k_pops_Gaussian(k_pops, k_energies, k_bandedge,
+  buildKPopsGaussian(k_pops, k_energies, k_bandedge,
                         bulkGaussSigma, bulkGaussMu, Nk);   // populate k states with FDD
-  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
-  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
+  initializeArray(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  initializeArray(c_pops, Nc, 0.0);		// QD states empty to start
  }
  else if (qd_pops) {
-  Read_array_from_file(c_pops, "ins/c_pops.in", Nc);	// QD populations from file
-  Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
-  Initialize_array(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
+  readArrayFromFile(c_pops, "ins/c_pops.in", Nc);	// QD populations from file
+  initializeArray(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
+  initializeArray(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
  }
  else {
-  Initialize_array(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
-  Initialize_array(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
-  Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
+  initializeArray(k_pops, Nk, 0.0);             // populate k states (all zero to start off)
+  initializeArray(l_pops, Nl, 1.0);		// populate l states (all populated to start off)
+  initializeArray(c_pops, Nc, 0.0);		// QD states empty to start
  }
 
  // create empty wavefunction
  wavefunction = new realtype [2*NEQ];
- Initialize_array(wavefunction, 2*NEQ, 0.0);
+ initializeArray(wavefunction, 2*NEQ, 0.0);
 
  // assign real parts of wavefunction coefficients (imaginary are zero)
  for (i = 0; i < Nk; i++)
@@ -1559,7 +1490,7 @@ int main (int argc, char * argv[]) {
 
  // Create the initial density matrix
  dm = new realtype [2*NEQ2];
- Initialize_array(dm, 2*NEQ2, 0.0);
+ initializeArray(dm, 2*NEQ2, 0.0);
  for (int ii = 0; ii < NEQ; ii++) {
   for (int jj = 0; jj < ii; jj++) {
    // real part of \rho_{ii,jj}
