@@ -33,6 +33,9 @@ void outputFFTWVectorShift(const char * fileName, fftw_complex * vec, double * x
  */
 void outputWavefunction(realtype * psi, int n);
 
+/* prints out the density matrix varying in time to files */
+void outputDMt(realtype * dmt, int NEQ, int numOutputSteps, std::map<std::string, bool> &outs);
+
 /* prints a vector W of length N */
 void outputVector(realtype * W, int N, char * fileName);
 

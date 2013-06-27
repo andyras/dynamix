@@ -20,7 +20,7 @@
 #include "numerical.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -963,6 +963,16 @@ void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
  return;
 }
 
+/* Updates \rho(t) at each time step. */
+void updateDM(N_Vector dm, realtype * dmt, int timeStep) {
+ for (int ii = 0; ii < NEQ2; ii++) {
+  dmt[NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
+  dmt[NEQ2*timeStep + ii + NEQ2] = NV_Ith_S(dm, ii + NEQ2);
+ }
+
+ return;
+}
+
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
@@ -975,6 +985,7 @@ int main (int argc, char * argv[]) {
  realtype * ydata;				// pointer to ydata (contains all populations)
  realtype * wavefunction;			// (initial) wavefunction
  realtype * dm;					// density matrix
+ realtype * dmt;				// density matrix in time
  realtype * k_energies;				// pointers to arrays of energies
  realtype * c_energies;
  realtype * b_energies;
@@ -1452,6 +1463,9 @@ int main (int argc, char * argv[]) {
  dm = new realtype [2*NEQ2];
  initializeArray(dm, 2*NEQ2, 0.0);
  for (int ii = 0; ii < NEQ; ii++) {
+  // diagonal part
+  dm[NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + NEQ],2);
+  // off-diagonal part
   for (int jj = 0; jj < ii; jj++) {
    // real part of \rho_{ii,jj}
    dm[NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+NEQ]*wavefunction[jj+NEQ];
@@ -1464,10 +1478,26 @@ int main (int argc, char * argv[]) {
   }
  }
 
+ // Create the array to store the density matrix in time
+ dmt = new realtype [2*NEQ2*numOutputSteps];
+ initializeArray(dmt, 2*NEQ2*numOutputSteps, 0.0);
+
+#ifdef DEBUG
+ // print out density matrix
+ cout << "\nDensity matrix before normalization:\n\n";
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < NEQ; jj++) {
+   fprintf(stdout, "(%+.1e,%+.1e) ", dm[NEQ*ii + jj], dm[NEQ*ii + jj + NEQ2]);
+  }
+  fprintf(stdout, "\n");
+ }
+#endif
+
  // Normalize the DM so that populations add up to 1.
  summ = 0.0;
  for (int ii = 0; ii < NEQ; ii++) {
-  summ += pow(dm[NEQ*ii + ii],2) + pow(dm[NEQ*ii + ii + NEQ2],2);
+  // assume here that diagonal elements are all real
+  summ += dm[NEQ*ii + ii];
  }
  if ( summ == 0.0 ) {
   cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
@@ -1487,7 +1517,7 @@ int main (int argc, char * argv[]) {
  // Error checking for total population; recount population first
  summ = 0.0;
  for (int ii = 0; ii < NEQ; ii++) {
-  summ += pow(dm[NEQ*ii + ii],2) + pow(dm[NEQ*ii + ii + NEQ2],2);
+  summ += dm[NEQ*ii + ii];
  }
  if ( fabs(summ-1.0) > 1e-12 ) {
   cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
@@ -1545,6 +1575,7 @@ int main (int argc, char * argv[]) {
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+   updateDM(yout, dmt, i*numOutputSteps/numsteps);
    /*
    Output_checkpoint(
 #ifdef DEBUG
@@ -1561,6 +1592,8 @@ int main (int argc, char * argv[]) {
  Compute_final_outputs(allprob, times, tkprob,
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
+
+ outputDMt(dmt, NEQ, numOutputSteps, outs);
 
  // compute time-independent outputs
  if (outs["energy.out"]) {

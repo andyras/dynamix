@@ -58,6 +58,36 @@ void outputWavefunction(realtype * psi, int n) {
  fclose(psi_start);
 }
 
+/* prints out the density matrix varying in time to files */
+void outputDMt(realtype * dmt, int NEQ, int numOutputSteps, std::map<std::string, bool> &outs) {
+fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
+ FILE * dmt_z;
+ if (outs["dmt_z.out"]) {
+  dmt_z = fopen("dmt_z.out", "w");
+  // loop over time steps
+  for (int ii = 0; ii < numOutputSteps; ii++) {
+   // loop over first index
+   for (int jj = 0; jj < NEQ; jj++) {
+    // first element in row
+    // loop over second index
+    fprintf(dmt_z, "%+.7e", dmt[2*NEQ*NEQ*ii + NEQ*jj]);
+    for (int kk = 1; kk < NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", dmt[2*NEQ*NEQ*ii + NEQ*jj+ kk]);
+    }
+    fprintf(dmt_z, "\n");
+   }
+   fprintf(dmt_z, "\n");
+  }
+ }
+ fclose(dmt_z);
+
+ if (outs["dmt_re.out"]) {
+ }
+
+ if (outs["dmt_im.out"]) {
+ }
+}
+
 /* prints a vector W of length N */
 void outputVector(realtype * W, int N, char * fileName) {
  int i;        // counter
