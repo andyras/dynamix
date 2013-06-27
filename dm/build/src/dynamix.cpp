@@ -205,9 +205,12 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  // variables for indices
  int IkRe, IkIm, IbRe, IbIm, IcRe, IcIm;
  int IkpRe, IbpRe, IcpRe;
+ int IijRe, IijIm, IjiRe, IjiIm;
  int IkkpRe, IkkpIm, IbbpRe, IbbpIm, IccpRe, IccpIm;
+ int IcpcRe, IcpcIm;
  int IkbRe, IkbIm, IkcRe, IkcIm;
  int IbkRe, IbkIm, IbcRe, IbcIm;
+ int IbkpRe, IbkpIm, IbcpRe, IbcpIm;
  int IckRe, IckIm, IcbRe, IcbIm;
 
  // accumulators
@@ -217,7 +220,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  realtype wij;
 
  // initialize ydot
- for (int ii = 0; ii < 2*NEQ_vib; ii++) {
+ for (int ii = 0; ii < 2*NEQ2; ii++) {
   NV_Ith_S(ydot, ii) = 0;
  }
 
@@ -228,8 +231,8 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype Vbc = V[Ib][Ic];
   // These indices won't change with only one bridge
   IbRe = Ib;
-  IbbRe = NEQ*IbRe + IbRe;
-  IbbIm = IbbRe + NEQ2;
+  IbbpRe = NEQ*IbRe + IbRe;
+  IbbpIm = IbbpRe + NEQ2;
 
   //// Contributions from energy gaps
   for (int ii = 0; ii < NEQ; ii++) {
@@ -238,7 +241,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IijRe = NEQ*ii + jj;
     IijIm = IijRe + NEQ2;
     IjiRe = NEQ*jj + ii;
-    IjiEm = IjiRe + NEQ2;
+    IjiIm = IjiRe + NEQ2;
     wij = energy[ii] - energy[jj];
 
     // real parts of complex conjugates are the same
@@ -294,9 +297,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
-  NV_Ith_S(ydot, IbbRe) += Vkb*sumRe;
+  NV_Ith_S(ydot, IbbpRe) += Vkb*sumRe;
   // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
-  NV_Ith_S(ydot, IbbIm) += Vkb*sumIm;
+  NV_Ith_S(ydot, IbbpIm) += Vkb*sumIm;
 
   /// contribution from \rho_{bc}, \rho_{cb}
   for (int ii = 0; ii < Nc; ii++) {
@@ -313,16 +316,16 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   // real part		V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
-  NV_Ith_S(ydot, IbbRe) += Vbc*sumRe;
+  NV_Ith_S(ydot, IbbpRe) += Vbc*sumRe;
   // imaginary part	V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
-  NV_Ith_S(ydot, IbbIm) += Vbc*sumIm;
+  NV_Ith_S(ydot, IbbpIm) += Vbc*sumIm;
 
   //// \dot{\rho_{cc'}}
   sumRe = 0.0;
   sumIm = 0.0;
-  for (ii = 0; ii < Nc; ii++) {
+  for (int ii = 0; ii < Nc; ii++) {
    IcRe = Ic + ii;
-   for (jj = 0; jj < Nc; jj++) {
+   for (int jj = 0; jj < Nc; jj++) {
     IcpRe = Ic + jj;
     IccpRe = NEQ*IcRe + IcpRe;
     IccpIm = IccpRe + NEQ2;
@@ -344,7 +347,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   NV_Ith_S(ydot, IccpIm) += Vbc*sumIm;
 
   //// \dot{\rho_{kb}} and \dot{\rho_{bk}}
-  for (ii = 0; ii < Nk; ii++) {
+  for (int ii = 0; ii < Nk; ii++) {
    IkRe = Ik + ii;
    IkbRe = NEQ*IkRe + IbRe;
    IkbIm = IkbRe + NEQ2;
@@ -352,11 +355,11 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    IbkIm = IbkRe + NEQ2;
 
    // real part		V_{kb}\rho_{bb} term
-   sumRe = NV_Ith_S(y, IbbIm);
+   sumRe = NV_Ith_S(y, IbbpIm);
    // imaginary part	V_{kb}\rho_{bb} term
-   sumIm = -1*NV_Ith_S(y, IbbRe);
+   sumIm = -1*NV_Ith_S(y, IbbpRe);
 
-   for (jj = 0; jj < Nk; jj++) {
+   for (int jj = 0; jj < Nk; jj++) {
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
     IkkpIm = IkkpRe + NEQ2;
@@ -374,23 +377,23 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
    sumRe = 0.0;
    sumIm = 0.0;
-   for (jj = 0; jj < Nc; jj++) {
+   for (int jj = 0; jj < Nc; jj++) {
     IcRe = Ic + jj;
     IkcRe = NEQ*IkRe + IcRe;
     IkcIm = IkcRe + NEQ2;
 
     // real part	V_{bc}\rho_{kc} term
-    sumRe -= NV_Ith_S(IkcIm);
+    sumRe -= NV_Ith_S(y, IkcIm);
     // imaginary part	V_{bc}\rho_{kc} term
-    sumIm += NV_Ith_S(IkcRe);
+    sumIm += NV_Ith_S(y, IkcRe);
    }
 
    // real part		V_{bc}\rho_{kc} term
-   NV_Ith_S(ydot, IkbRe) += Vbc*sumRe
-   NV_Ith_S(ydot, IbkRe) += Vbc*sumRe
+   NV_Ith_S(ydot, IkbRe) += Vbc*sumRe;
+   NV_Ith_S(ydot, IbkRe) += Vbc*sumRe;
    // imaginary part	V_{bc}\rho_{kc} term
-   NV_Ith_S(ydot, IkbIm) += Vbc*sumIm
-   NV_Ith_S(ydot, IbkIm) += Vbc*sumIm
+   NV_Ith_S(ydot, IkbIm) += Vbc*sumIm;
+   NV_Ith_S(ydot, IbkIm) += Vbc*sumIm;
   }
 
   //// \dot{\rho_{kc}} and \dot{\rho_{ck}}
@@ -424,9 +427,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    IcbIm = IcbRe + NEQ2;
 
    // real part		V_bc\rho_{bb} term
-   sumRe = -1*NV_Ith_S(y, IbbIm);
+   sumRe = -1*NV_Ith_S(y, IbbpIm);
    // imaginary part	V_bc\rho_{bb} term
-   sumIm = NV_Ith_S(y, IbbRe);
+   sumIm = NV_Ith_S(y, IbbpRe);
 
    for (int jj = 0; jj < Nc; jj++) {
     IcpRe = Ic + jj;
@@ -465,11 +468,13 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     NV_Ith_S(ydot, IbcIm) += Vkb*sumIm;
     NV_Ith_S(ydot, IcbIm) -= Vkb*sumIm;
   }
+ }
 
  return 0;
 }
 
 
+/*
 int Output_checkpoint(
 #ifdef DEBUG
   FILE * realImaginary, 
@@ -492,8 +497,8 @@ int Output_checkpoint(
  double temp;
 
 #ifdef DEBUG
- for (i = 0; i < NEQ_vib; i++) {
-  fprintf(realImaginary, "%-.9e %-.9e\n", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ_vib));
+ for (i = 0; i < NEQ2; i++) {
+  fprintf(realImaginary, "%-.9e %-.9e\n", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ2));
  }
  fprintf(realImaginary, "\n");
 #endif
@@ -575,9 +580,10 @@ int Output_checkpoint(
 
  return 0;
 }
+*/
 
 void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
-  realtype * tl, realtype * tc, realtype * tb, realtype ** vibProb, realtype * energies,
+  realtype * tl, realtype * tc, realtype * tb, realtype * energies,
   realtype * energy_expectation, int num, double * qd_est, double * qd_est_diag,
   std::map<std::string, bool> &outs) {
 // makes output files for time-dependent properties
@@ -585,7 +591,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  FILE * tkprob;
  FILE * tlprob;
  FILE * tcprob;
- FILE * vibprob;
  FILE * kprobs;
  FILE * kprobs_gnuplot;
  FILE * cprobs;
@@ -616,9 +621,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  }
  if (outs["tcprob.out"]) {
   tcprob = fopen("tcprob.out", "w");
- }
- if (outs["vibprob.out"]) {
-  vibprob = fopen("vibprob.out", "w");
  }
  if (outs["kprobs.out"]) {
   kprobs = fopen("kprobs.out", "w");
@@ -690,7 +692,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  if (outs["kprobs_gnuplot.out"]) {
   for (i = 0 ; i < num ; i++) {
    for (j = 0 ; j < Nk ; j++ )
-    fprintf(kprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ik_vib + j*N_vib], allprobs[i][Ik+j]);
+    fprintf(kprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ik + j], allprobs[i][Ik+j]);
    if (i < (num - 1))
     fprintf(kprobs_gnuplot, "\n");			// makes a blank line for gnuplot
   }
@@ -708,7 +710,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  if (outs["cprobs_gnuplot.out"]) {
   for (i = 0 ; i < num ; i++) {
    for (j = 0 ; j < Nc ; j++ )
-    fprintf(cprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ic_vib + j*N_vib], allprobs[i][Ic+j]);
+    fprintf(cprobs_gnuplot, "%-.7g %-.7g %-.7g\n", time[i], energies[Ic + j], allprobs[i][Ic+j]);
    if (i < (num - 1))
     fprintf(cprobs_gnuplot, "\n");			// makes a blank line for gnuplot
   }
@@ -777,15 +779,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   }
  }
 
- if (outs["vibprob.out"]) {
-  for (i = 0; i <= num; i++) {				// print vibrational populations
-   fprintf(vibprob, "%-.7g %-.7g", time[i], vibProb[i][0]);
-   for (j = 1; j < N_vib; j++)
-    fprintf(vibprob, " %-.7g", vibProb[i][j]);
-   fprintf(vibprob, "\n");
-  }
- }
-
  if (outs["Ikprob.out"]) {
   fprintf(Ikprob, "%-.7g", integrateArray(tk, time, num+1));
  }
@@ -814,7 +807,7 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
   // the movie maker.
   fprintf(energy, "%-.7g", energies[0]);
   for (i = 1; i < NEQ; i++)
-   fprintf(energy, " %-.7g", energies[i*N_vib]);
+   fprintf(energy, " %-.7g", energies[i]);
  }
 
  for (i = 0; i <= num; i++) {
@@ -843,9 +836,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
  }
  if (outs["tcprob.out"]) {
   fclose(tcprob);
- }
- if (outs["vibprob.out"]) {
-  fclose(vibprob);
  }
  if (outs["kprobs.out"]) {
   fclose(kprobs);
@@ -1010,7 +1000,6 @@ int main (int argc, char * argv[]) {
  realtype * tlprob;
  realtype * tcprob;
  realtype * tbprob;
- realtype ** vibprob;
  double ** allprob;				// populations in all states at all times
  realtype * times;
  realtype * qd_est;
@@ -1067,13 +1056,7 @@ int main (int argc, char * argv[]) {
  bulkGaussMu = 0.01;			// position of initial Gaussian above band edge
  // physical parameters //
  temperature = 3e2;			// temperature of the system
- // vibronic parameters //
- N_vib = 1;				// number of vibronic states
- E_vib = 0.001;				// vibrational energy
- gkc = 0.0;				// g factor between k and c states
- gkb = 0.0;				// g factor between k and b states
- gbc = 0.0;				// g factor between b and c states
- gbb = 0.0;				// g factor between b states
+ // laser parameters
  muLK = 1.0;				// transition dipole moment from l to k (energy a.u.)
  pumpFWHM = 1000;
  pumpPeak = 2000;
@@ -1142,12 +1125,6 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bulkGaussSigma" ) { bulkGaussSigma = atof(param_val.c_str()); }
   else if (input_param == "bulkGaussMu" ) { bulkGaussMu = atof(param_val.c_str()); }
   else if (input_param == "temperature" ) { temperature = atof(param_val.c_str()); }
-  else if (input_param == "N_vib" ) { N_vib = atoi(param_val.c_str()); }
-  else if (input_param == "E_vib" ) { E_vib = atof(param_val.c_str()); }
-  else if (input_param == "gkc" ) { gkc = atof(param_val.c_str()); }
-  else if (input_param == "gkb" ) { gkb = atof(param_val.c_str()); }
-  else if (input_param == "gbc" ) { gbc = atof(param_val.c_str()); }
-  else if (input_param == "gbb" ) { gbb = atof(param_val.c_str()); }
   else if (input_param == "muLK" ) { muLK = atof(param_val.c_str()); }
   else if (input_param == "pumpFWHM" ) { pumpFWHM = atof(param_val.c_str()); }
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
@@ -1190,12 +1167,6 @@ int main (int argc, char * argv[]) {
  cout << "bulkGaussSigma is " << bulkGaussSigma << endl;
  cout << "bulkGaussMu is " << bulkGaussMu << endl;
  cout << "temperature is " << temperature << endl;
- cout << "N_vib is " << N_vib << endl;
- cout << "E_vib is " << E_vib << endl;
- cout << "gkc is " << gkc << endl;
- cout << "gkb is " << gkb << endl;
- cout << "gbc is " << gbc << endl;
- cout << "gbb is " << gbb << endl;
  cout << "muLK is " << muLK << endl;
  cout << "pumpFWHM is " << pumpFWHM << endl;
  cout << "pumpPeak is " << pumpPeak << endl;
@@ -1303,9 +1274,6 @@ int main (int argc, char * argv[]) {
  tcprob = new realtype [numOutputSteps+1];
  tbprob = new realtype [numOutputSteps+1];
  tlprob = new realtype [numOutputSteps+1];
- vibprob = new realtype * [numOutputSteps+1];
- for (i = 0; i < numOutputSteps+1; i++)
-  vibprob[i] = new realtype [N_vib];
  allprob = new double * [numOutputSteps+1];
  for (i = 0; i < numOutputSteps+1; i++)
   allprob[i] = new double [NEQ];
@@ -1317,10 +1285,6 @@ int main (int argc, char * argv[]) {
  Ic = Nk;
  Ib = Ic+Nc;
  Il = Ib+Nb;
- Ik_vib = 0;
- Ic_vib = Nk*N_vib;
- Ib_vib = Ic_vib + Nc*N_vib;
- Il_vib = Ib_vib + Nb*N_vib;
  // assign bulk conduction band energies
  buildContinuum(k_energies, Nk, k_bandedge, k_bandtop);
  // assign bulk valence band energies
@@ -1374,16 +1338,16 @@ int main (int argc, char * argv[]) {
 
  // assign real parts of wavefunction coefficients (imaginary are zero)
  for (i = 0; i < Nk; i++)
-  wavefunction[Ik_vib + i*N_vib] = k_pops[i];
+  wavefunction[Ik + i] = k_pops[i];
  for (i = 0; i < Nc; i++)
-  wavefunction[Ic_vib + i*N_vib] = c_pops[i];
+  wavefunction[Ic + i] = c_pops[i];
  for (i = 0; i < Nb; i++)
-  wavefunction[Ib_vib + i*N_vib] = b_pops[i];
+  wavefunction[Ib + i] = b_pops[i];
  for (i = 0; i < Nl; i++)
-  wavefunction[Il_vib + i*N_vib] = l_pops[i];
+  wavefunction[Il + i] = l_pops[i];
 
  if (outs["psi_start.out"]) {
-  outputYData(wavefunction, NEQ);
+  outputWavefunction(wavefunction, NEQ);
  }
 
  // Give all coefficients a random phase
@@ -1427,31 +1391,27 @@ int main (int argc, char * argv[]) {
 #endif
 
  // Assemble array of energies
- energy = new realtype [NEQ_vib];
+ energy = new realtype [NEQ];
  for (i = 0; i < Nk; i++)
-  for (j = 0; j < N_vib; j++)
-   energy[Ik_vib + i*N_vib + j] = k_energies[i] + E_vib*j;
+  energy[Ik + i] = k_energies[i];
  for (i = 0; i < Nc; i++)
-  for (j = 0; j < N_vib; j++)
-   energy[Ic_vib + i*N_vib + j] = c_energies[i] + E_vib*j;
+  energy[Ic + i] = c_energies[i];
  for (i = 0; i < Nb; i++)
-  for (j = 0; j < N_vib; j++)
-   energy[Ib_vib + i*N_vib + j] = b_energies[i] + E_vib*j;
+  energy[Ib + i] = b_energies[i];
  for (i = 0; i < Nl; i++)
-  for (j = 0; j < N_vib; j++)
-   energy[Il_vib + i*N_vib + j] = l_energies[i] + E_vib*j;
+  energy[Il + i] = l_energies[i];
  user_data = energy;
 
 #ifdef DEBUG
  // output energies
  for (i = 0; i < Nk; i++)
-  cout << "energy[k(" << i << ")] = " << energy[Ik_vib + i] << endl;
+  cout << "energy[k(" << i << ")] = " << energy[Ik + i] << endl;
  for (i = 0; i < Nc; i++)
-  cout << "energy[c(" << i << ")] = " << energy[Ic_vib + i] << endl;
+  cout << "energy[c(" << i << ")] = " << energy[Ic + i] << endl;
  for (i = 0; i < Nb; i++)
-  cout << "energy[b(" << i << ")] = " << energy[Ib_vib + i] << endl;
+  cout << "energy[b(" << i << ")] = " << energy[Ib + i] << endl;
  for (i = 0; i < Nl; i++)
-  cout << "energy[l(" << i << ")] = " << energy[Il_vib + i] << endl;
+  cout << "energy[l(" << i << ")] = " << energy[Il + i] << endl;
  cout << endl;
 #endif
 
@@ -1545,18 +1505,20 @@ int main (int argc, char * argv[]) {
 
  // print t = 0 information //
  summ = 0;
- for (i = 0; i < 2*NEQ_vib; i++) {
+ for (i = 0; i < 2*NEQ2; i++) {
   summ += pow(NV_Ith_S(y, i),2);
  }
 #ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
 #endif
+ /*
  Output_checkpoint(
 #ifdef DEBUG
    realImaginary, 
 #endif
-   allprob, y, t0, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
+   allprob, y, t0, tkprob, tlprob, tcprob, tbprob, times, qd_est,
    qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
+   */
 
  // create CVode object
  // this is a stiff problem, I guess?
@@ -1583,25 +1545,27 @@ int main (int argc, char * argv[]) {
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+   /*
    Output_checkpoint(
 #ifdef DEBUG
      realImaginary, 
 #endif
-     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, vibprob, times, qd_est,
+     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, times, qd_est,
      qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
      k_bandedge, k_bandtop, k_pops);
+   */
   }
  }
 
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,
-   tlprob, tcprob, tbprob, vibprob, energy,
+   tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
 
  // compute time-independent outputs
  if (outs["energy.out"]) {
   FILE * energyFile = fopen("energy.out", "w");
-  for (i = 0; i < NEQ_vib; i++) {
+  for (i = 0; i < NEQ; i++) {
    fprintf(energyFile, "%-.9e\n", energy[i]);
   }
   fclose(energyFile);
@@ -1637,7 +1601,6 @@ int main (int argc, char * argv[]) {
  delete [] tlprob;
  delete [] tcprob;
  delete [] tbprob;
- delete [] vibprob;
  delete [] k_pops;
  delete [] c_pops;
  delete [] b_pops;
@@ -1649,11 +1612,6 @@ int main (int argc, char * argv[]) {
  delete [] c_energies;
  delete [] b_energies;
  delete [] l_energies;
- delete [] ydata;
- delete [] FCkc;
- delete [] FCkb;
- delete [] FCbc;
- delete [] FCbb;
  fprintf(stderr, "\nwhoo\n");
  return 0;
 }

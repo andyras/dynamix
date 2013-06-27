@@ -62,13 +62,13 @@ realtype findArrayMaximum(realtype * inputArray, int num);
 /* Finds the first maximum in an array (the first point where the next
  * point is smaller in value).
  */
-realtype Find_first_array_maximum (realtype * inputArray, int num);
+realtype findFirstArrayMaximum(realtype * inputArray, int num);
 
 /* This function returns the index of the first maximum in an array.
  * Warning: will return 0 as index of first maximum if the second array element
  * is less than the first.  This may not be what you want.
  */
-int Find_first_array_maximum_index (realtype * inputArray, int num);
+int findFirstArrayMaximumIndex(realtype * inputArray, int num);
 
 /* returns index of first maximum in an array. */
 int findArrayMaximumIndex(realtype * inputArray, int num);

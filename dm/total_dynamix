@@ -36,10 +36,10 @@ function compile {
  if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
  which icpc &> /dev/null
  if [ $? == 0 ] ; then CPP=icpc ; fi
- cd bin
- make -j 12 CPP=$CPP && echo "### $(date) done compiling!"
+ cd build
+ make -j 12 CPP=$CPP
  if [ $? == 0 ] ; then
-  echo "### $(date) done compiling!"
+  echo "### $(date) done compiling!" && make install
   cd ..
  else
   echo "### $(date) failed to compile :("
@@ -51,7 +51,7 @@ function compile_serial {
  export OMP_NUM_THREADS=1
  export MKL_NUM_THREADS=1
  export MKL_DOMAIN_NUM_THREADS=1
- cd bin
+ cd build
  make clean
  cd - &> /dev/null
  compile
@@ -61,7 +61,7 @@ function compile_parallel {
  export OMP_NUM_THREADS=
  export MKL_NUM_THREADS=
  export MKL_DOMAIN_NUM_THREADS=
- cd bin
+ cd build
  make clean
  cd - &> /dev/null
  compile

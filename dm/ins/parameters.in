@@ -1,5 +1,5 @@
 ## FLAGS FOR RUN ##
-do_compile=1
+do_compile=0
 do_compile_parallel=0
 do_compile_serial=0
 do_run=1
@@ -16,8 +16,8 @@ do_backup=0
 
 ## START INPUT PARAMETERS ##
 # method parameters #
-timedepH=0				# if H is TD, use CVODE, else diag H and propogate
-analytical=1				# turn on analytical propagation
+timedepH=1				# if H is TD, use CVODE, else diag H and propogate
+analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
@@ -27,7 +27,7 @@ numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.0735			# upper band edge of bulk conduction band (a.u.)
-Nk=1001					# number of k states to have
+Nk=11					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -37,13 +37,6 @@ bulkGaussSigma=0.008217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
-# vibronic parameters #
-N_vib=1					# number of vibronic states
-E_vib=0.0036749843813			# vibrational energy
-gkc=0.0					# g factor between k and c states
-gkb=0.0					# g factor between k and b states
-gbc=-0.0				# g factor between b and c states
-gbb=0.0					# g factor between b states
 # laser parameters #
 muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)

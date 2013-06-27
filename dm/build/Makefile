@@ -59,7 +59,7 @@ build:
 	make clean
 	make
 
-install: $(BIN) $(BINDIR)
+install: $(BIN) | $(BINDIR)
 	cp dynamix ../bin
 
 uninstall:
