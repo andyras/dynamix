@@ -339,12 +339,44 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   //// \dot{\rho_{kc}}
+  for (int ii = 0; ii < Nk; ii++) {
+   IkRe = Ik + ii;
+   for (int jj = 0; jj < Nc; jj++) {
+    IcRe = Ic + jj;
+    IkcRe = NEQ*IkRe + IcRe;
+    IkcIm = IkcRe + NEQ2;
+    IbcRe = NEQ*Ib + IcRe;
+    IbcIm = IbcRe + NEQ2;
+    IkbRe = NEQ*IkRe + Ib;
+    IkbIm = IkbRe + NEQ2;
+    // real part	V_{kb}\rho_{bc} term
+    NV_Ith_S(yout, IkcRe) += Vkb*NV_Ith_S(y, IbcIm) - Vbc*NV_Ith_S(y, IkbIm);
+    // imaginary part	V_{kb}\rho_{bc} term
+    NV_Ith_S(yout, IkcIm) -= Vkb*NV_Ith_S(y, IbcRe) - Vbc*NV_Ith_S(y, IkbRe);
+   }
+  }
 
   //// \dot{\rho_{bk}}
 
   //// \dot{\rho_{bc}}
 
   //// \dot{\rho_{ck}}
+  for (int ii = 0; ii < Nc; ii++) {
+   IcRe = Ic + ii;
+   for (int jj = 0; jj < Nk; jj++) {
+    IkRe = Ik + jj;
+    IckRe = NEQ*IcRe + IkRe;
+    IckIm = IckRe + NEQ2;
+    IcbRe = NEQ*IcRe + Ib;
+    IcbIm = IcbRe + NEQ2;
+    IbkRe = NEQ*Ib + IkRe;
+    IbkIm = IbkRe + NEQ2;
+    // real part	V_{kb}\rho_{bc} term
+    NV_Ith_S(yout, IckRe) += Vbc*NV_Ith_S(y, IbkIm) - Vkb*NV_Ith_S(y, IcbIm);
+    // imaginary part	V_{kb}\rho_{bc} term
+    NV_Ith_S(yout, IckIm) -= Vbc*NV_Ith_S(y, IbkRe) - Vkb*NV_Ith_S(y, IcbRe);
+   }
+  }
 
   //// \dot{\rho_{cb}}
 
