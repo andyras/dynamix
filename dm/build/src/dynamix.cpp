@@ -206,6 +206,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // couplings
   realtype Vkb = V[Ik][Ib];
   realtype Vbc = V[Ib][Ic];
+  // These indices won't change for only one bridge
+  IbbRe = NEQ*Ib + Ib;
+  IbbIm = IbbRe + NEQ2;
 
   //// Contributions from energy gaps
   for (int ii = 0; ii < NEQ; ii++) {
@@ -243,8 +246,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   //// \dot{\rho_{bb}}
-  IbbRe = NEQ*Ib + Ib;
-  IbbIm = IbbRe + NEQ2;
   sum1 = 0.0;
   sum2 = 0.0;
   /// contribution from \rho_{bk}, \rho_{kb}
@@ -306,9 +307,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    IbkRe = NEQ*Ib + IkRe;
    IbkIm = IbkRe + NEQ2;
    // real part		V_{kb}\rho_{bb} term
-   sum1 = NV_Ith_S(y, NEQ*Ib + Ib + NEQ2);
+   sum1 = NV_Ith_S(y, IbbIm);
    // imaginary part	V_{kb}\rho_{bb} term
-   sum2 = -1*NV_Ith_S(y, NEQ*Ib + Ib);
+   sum2 = -1*NV_Ith_S(y, IbbRe);
    for (jj = 0; jj < Nk; jj++) {
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
@@ -366,6 +367,49 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   //// \dot{\rho_{bc}} and \dot{\rho_{cb}}
   for (int ii = 0; ii < Nc; ii++) {
+   IcRe = Ic + ii;
+   IcIm = IcRe + NEQ;
+   IbcRe = NEQ*Ib + IcRe;
+   IbcIm = IbcRe + NEQ2;
+   IcbRe = NEQ*IcRe + Ib;
+   IcbIm = IcbRe + NEQ2;
+   // real part		V_bc\rho_{bb} term
+   sum1 = -1*NV_Ith_S(y, IbbIm);
+   // imaginary part	V_bc\rho_{bb} term
+   sum2 = NV_Ith_S(y, IbbRe);
+   for (int jj = 0; jj < Nc; jj++) {
+    IcpRe = Ic + jj;
+    IcpcRe = NEQ*IcpRe + IcRe;
+    IcpcIm = IcpcRe + NEQ2;
+    // real part	V_bc\rho_{c'c} term
+    sum1 += NV_Ith_S(y, IcpcIm);
+    // imaginary part	V_bc\rho_{c'c} term
+    sum2 -= NV_Ith_S(y, IcpcRe);
+   }
+   // real part		V_bc\rho_{c'c} term
+   NV_Ith_S(yout, IbcRe) += Vbc*sum1;
+   NV_Ith_S(yout, IcbRe) += Vbc*sum1;
+   // imaginary part	V_bc\rho_{c'c} term
+   NV_Ith_S(yout, IbcIm) += Vbc*sum2;
+   NV_Ith_S(yout, IcbIm) -= Vbc*sum2;
+
+   sum1 = 0.0;
+   sum2 = 0.0;
+   for (int jj = 0; jj < Nk; jj++) {
+    IkRe = Ik + jj;
+    IkcRe = NEQ*IkRe + IcRe;
+    IkcIm = IkcRe + NEQ2;
+    // real part	V_kb\rho_{kc} term
+    sum1 += NV_Ith_S(y, IkcIm);
+    // imaginary part	V_kb\rho_{kc} term
+    sum2 -= NV_Ith_S(y, IkcRe);
+   }
+    // real part	V_kb\rho_{kc} term
+    NV_Ith_S(yout, IbcRe) += Vkb*sum1;
+    NV_Ith_S(yout, IcbRe) += Vkb*sum1;
+    // imaginary part	V_kb\rho_{kc} term
+    NV_Ith_S(yout, IbcIm) += Vkb*sum2;
+    NV_Ith_S(yout, IcbIm) -= Vkb*sum2;
   }
 
 
