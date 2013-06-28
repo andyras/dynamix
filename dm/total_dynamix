@@ -69,6 +69,8 @@ function compile_parallel {
 
 function run {
 ## RUN THE PROGRAM! ##
+ module load intel
+ module load cvode/debug-2.7.0
  echo "### $(date) running dynamix..."
  ./bin/dynamix
  if [ $? == 0 ] ; then

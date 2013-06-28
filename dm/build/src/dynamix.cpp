@@ -18,6 +18,7 @@
 #include "libdynamix_outputs.h"
 #include "output.h"
 #include "numerical.h"
+#include "params.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
 #define DEBUG
@@ -29,6 +30,9 @@
 //#define DEBUGf
 
 using namespace std;
+
+// Struct of parameters
+PARAMETERS params;
 
 // GLOBAL VARIABLES GO HERE //
 void * cvode_mem;			// pointer to block of CVode memory
@@ -403,6 +407,8 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IcRe = Ic + jj;
     IkcRe = NEQ*IkRe + IcRe;
     IkcIm = IkcRe + NEQ2;
+    IckRe = NEQ*IcRe + IkRe;
+    IckIm = IckRe + NEQ2;
     IbcRe = NEQ*IbRe + IcRe;
     IbcIm = IbcRe + NEQ2;
     IkbRe = NEQ*IkRe + IbRe;
@@ -966,8 +972,8 @@ void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
 /* Updates \rho(t) at each time step. */
 void updateDM(N_Vector dm, realtype * dmt, int timeStep) {
  for (int ii = 0; ii < NEQ2; ii++) {
-  dmt[NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
-  dmt[NEQ2*timeStep + ii + NEQ2] = NV_Ith_S(dm, ii + NEQ2);
+  dmt[2*NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
+  dmt[2*NEQ2*timeStep + ii + NEQ2] = NV_Ith_S(dm, ii + NEQ2);
  }
 
  return;
@@ -1220,8 +1226,8 @@ int main (int argc, char * argv[]) {
   fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
   return -1;
  }
- if (Nl < 1) {
-  fprintf(stderr, "ERROR [Inputs]: Nl less than 1.\n");
+ if (Nl < 0) {
+  fprintf(stderr, "ERROR [Inputs]: Nl less than 0.\n");
   return -1;
  }
  if ((bulk_FDD && bulk_constant) || (bulk_FDD && bulk_Gauss) || (bulk_constant && bulk_Gauss)) {
@@ -1470,7 +1476,7 @@ int main (int argc, char * argv[]) {
    // real part of \rho_{ii,jj}
    dm[NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+NEQ]*wavefunction[jj+NEQ];
    // imaginary part of \rho_{ii,jj}
-   dm[NEQ*ii + jj + NEQ2] = wavefunction[ii]*wavefunction[jj+NEQ] - wavefunction[jj]*wavefunction[ii*NEQ];
+   dm[NEQ*ii + jj + NEQ2] = wavefunction[ii]*wavefunction[jj+NEQ] - wavefunction[jj]*wavefunction[ii+NEQ];
    // real part of \rho_{jj,ii}
    dm[NEQ*jj + ii] = dm[NEQ*ii + jj];
    // imaginary part of \rho_{jj,ii}
@@ -1527,6 +1533,16 @@ int main (int argc, char * argv[]) {
 #endif
 
  // DONE PREPROCESSING //
+ 
+ //// feed parameters to struct
+ params.Nk = Nk;
+ params.Nc = Nc;
+ params.Nb = Nb;
+ params.Ik = Ik;
+ params.Ic = Ic;
+ params.Ib = Ib;
+ params.NEQ = NEQ;
+ params.NEQ2 = NEQ2;
 
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
@@ -1591,10 +1607,12 @@ int main (int argc, char * argv[]) {
  }
 
  // compute final outputs //
+ /*
  Compute_final_outputs(allprob, times, tkprob,
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
- computeDMOutput(dmt, NEQ, V, energy, times, numOutputSteps, outs);
+   */
+ computeDMOutput(dmt, NEQ, V, energy, times, numOutputSteps, outs, params);
 
  outputDMt(dmt, NEQ, numOutputSteps, outs);
 
@@ -1625,13 +1643,22 @@ int main (int argc, char * argv[]) {
  }
  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
+#ifdef DEBUG
+ fprintf(stdout, "Deallocating N_Vectors.\n");
+#endif
  // deallocate memory for N_Vectors //
  N_VDestroy_Serial(y);
  N_VDestroy_Serial(yout);
 
+#ifdef DEBUG
+ fprintf(stdout, "Freeing CVode memory.\n");
+#endif
  // free solver memory //
  CVodeFree(&cvode_mem);
 
+#ifdef DEBUG
+ fprintf(stdout, "Freeing memory in main.\n");
+#endif
  // delete all these guys
  delete [] tkprob;
  delete [] tlprob;

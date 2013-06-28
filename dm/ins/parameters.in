@@ -22,7 +22,7 @@ analytical=0				# turn on analytical propagation
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
 tout=1000				# final time reached by solver (a.u.)
-numsteps=6000				# number of timesteps
+numsteps=12000				# number of timesteps
 numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
@@ -33,7 +33,7 @@ Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
-Nl=1					# number of bulk valence band states
+Nl=0					# number of bulk valence band states
 bulkGaussSigma=0.008217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
@@ -76,7 +76,6 @@ return
 #c_offdiag.out
 #couplings.out
 #cprobs.out
-dmt_z.out
 #energy.out
 #energy_exp.out
 #FTtcprob.out
@@ -98,10 +97,11 @@ dmt_z.out
 #pump_intensity.out
 #tbprob.out
 #tcderiv.out
-tcprob.out
 #tcrate.out
 #times.out
 #tkderiv.out
+#tbprob.out
+#tcprob.out
 #tkprob.out
 #tkrate.out
 #tlprob.out

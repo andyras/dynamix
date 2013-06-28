@@ -1,4 +1,5 @@
 #include "output.h"
+#include "params.h"
 #include <iostream>
 
 /* prints out array of fftw_complex values.  The 'x' array is
@@ -78,8 +79,8 @@ fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
    }
    fprintf(dmt_z, "\n");
   }
+  fclose(dmt_z);
  }
- fclose(dmt_z);
 
  if (outs["dmt_re.out"]) {
  }
@@ -190,7 +191,7 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
-                     std::map<std::string, bool> &outs) {
+                     std::map<std::string, bool> &outs, PARAMETERS p) {
  // accumulator
  realtype summ;
 
@@ -210,10 +211,46 @@ void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies
  }
 
  //// Population in k states
+ FILE * tkprob;
+ if (outs["tkprob.out"]) {
+  tkprob = fopen("tkprob.out", "w");
+  for (int ii = 0; ii < numTimeSteps; ii++) {
+   summ = 0.0;
+   for (int jj = 0; jj < p.Nk; jj++) {
+    summ += dmt[2*NEQ*NEQ*ii + NEQ*(p.Ik + jj) + p.Ik + jj];
+   }
+   fprintf(tkprob, "%-.7g %-.7g\n", t[ii], summ);
+  }
+  fclose(tkprob);
+ }
 
  //// Population in b states
+ FILE * tbprob;
+ if (outs["tbprob.out"]) {
+  tbprob = fopen("tbprob.out", "w");
+  for (int ii = 0; ii < numTimeSteps; ii++) {
+   summ = 0.0;
+   for (int jj = 0; jj < p.Nb; jj++) {
+    summ += dmt[2*NEQ*NEQ*ii + NEQ*(p.Ib + jj) + p.Ib + jj];
+   }
+   fprintf(tbprob, "%-.7g %-.7g\n", t[ii], summ);
+  }
+  fclose(tbprob);
+ }
 
  //// Population in c states
+ FILE * tcprob;
+ if (outs["tcprob.out"]) {
+  tcprob = fopen("tcprob.out", "w");
+  for (int ii = 0; ii < numTimeSteps; ii++) {
+   summ = 0.0;
+   for (int jj = 0; jj < p.Nc; jj++) {
+    summ += dmt[2*NEQ*NEQ*ii + NEQ*(p.Ic + jj) + p.Ic + jj];
+   }
+   fprintf(tcprob, "%-.7g %-.7g\n", t[ii], summ);
+  }
+  fclose(tcprob);
+ }
 
  return;
 }

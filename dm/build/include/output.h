@@ -8,6 +8,7 @@
 #include <nvector/nvector_serial.h>
 
 #include "fftmanip.h"
+#include "params.h"
 
 /* TYPE DEFINITIONS */
 
@@ -56,5 +57,5 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
-                     std::map<std::string, bool> &outs);
+                     std::map<std::string, bool> &outs, PARAMETERS p);
 #endif
