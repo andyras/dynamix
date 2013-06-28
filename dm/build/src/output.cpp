@@ -187,3 +187,33 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
 
  return;
 }
+
+/* Computes outputs from \rho(t) */
+void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
+                     std::map<std::string, bool> &outs) {
+ // accumulator
+ realtype summ;
+
+ //// Population over time
+ FILE * totprob;
+ if (outs["totprob.out"]) {
+  totprob = fopen("totprob.out", "w");
+  for (int ii = 0; ii < numTimeSteps; ii++) {
+   summ = 0.0;
+   for (int jj = 0; jj < NEQ; jj++) {
+//fprintf(stdout, "Population at time %d in state %d\n", ii, jj);
+    summ += dmt[2*NEQ*NEQ*ii + NEQ*jj + jj];
+   }
+   fprintf(totprob, "%-.7g %-.7g\n", t[ii], summ);
+  }
+  fclose(totprob);
+ }
+
+ //// Population in k states
+
+ //// Population in b states
+
+ //// Population in c states
+
+ return;
+}

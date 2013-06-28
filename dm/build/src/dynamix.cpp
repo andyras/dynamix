@@ -1530,6 +1530,8 @@ int main (int argc, char * argv[]) {
 
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
+ // put in t = 0 information
+ updateDM(y, dmt, 0);
  // the vector yout has the same dimensions as y
  yout = N_VClone(y);
 
@@ -1592,6 +1594,7 @@ int main (int argc, char * argv[]) {
  Compute_final_outputs(allprob, times, tkprob,
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
+ computeDMOutput(dmt, NEQ, V, energy, times, numOutputSteps, outs);
 
  outputDMt(dmt, NEQ, numOutputSteps, outs);
 
