@@ -220,8 +220,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  // accumulators
  realtype sumRe, sumIm;
 
- // energy gap
+ // energy gaps
  realtype wij;
+ realtype wji;
 
  // initialize ydot
  for (int ii = 0; ii < 2*NEQ2; ii++) {
@@ -247,13 +248,21 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IjiRe = NEQ*jj + ii;
     IjiIm = IjiRe + NEQ2;
     wij = energy[ii] - energy[jj];
+    wji = -1*wij;
 
     // real parts of complex conjugates are the same
     NV_Ith_S(ydot, IijRe) += wij*NV_Ith_S(y, IijIm);
-    NV_Ith_S(ydot, IjiRe) += wij*NV_Ith_S(y, IijIm);
-    // imaginary parts of complex conjugates have opposite sign
+    NV_Ith_S(ydot, IjiRe) += wji*NV_Ith_S(y, IjiIm);
+    // imaginary parts of complex conjugates have opposite sign (use opposite of wij)
     NV_Ith_S(ydot, IijIm) += wij*NV_Ith_S(y, IijRe);
-    NV_Ith_S(ydot, IjiIm) -= wij*NV_Ith_S(y, IijRe);
+    NV_Ith_S(ydot, IjiIm) -= wji*NV_Ith_S(y, IjiRe);
+#ifdef DEBUGf
+    fprintf(stdout, "\nIn f, energy gaps\n");
+    fprintf(stdout, "w(%.2d, %.2d) = %.7e\n", ii, jj, wij);
+    fprintf(stdout, "IijRe: %.2d; IijIm: %.2d\n", IijRe, IijIm);
+    fprintf(stdout, "IjiRe: %.2d; IjiIm: %.2d\n", IjiRe, IjiIm);
+    fprintf(stdout, "Re(\\dot{p_{ij}}) = %.7e*%.7e\n", wij, NV_Ith_S(y, IijIm));
+#endif
    }
   }
 
@@ -275,6 +284,13 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     NV_Ith_S(ydot, IkkpRe) += Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
     // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
     NV_Ith_S(ydot, IkkpIm) -= Vbc*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
+#ifdef DEBUGf
+    fprintf(stdout, "\nIn f, \\rho_{kk'}\n");
+    fprintf(stdout, "IkRe: %.2d; IkpRe: %.2d\n", IkRe, IkpRe);
+    fprintf(stdout, "IkkpRe: %.2d; IkkpIm: %.2d\n", IkkpRe, IkkpIm);
+    fprintf(stdout, "IbkpRe: %.2d; IbkpIm: %.2d\n", IbkpRe, IbkpIm);
+    fprintf(stdout, "IkbRe: %.2d; IkbIm: %.2d\n", IkbRe, IkbIm);
+#endif
    }
   }
 
@@ -293,6 +309,12 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    sumRe += NV_Ith_S(y, IkbIm) - NV_Ith_S(y, IbkIm);
    // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
    sumIm -= NV_Ith_S(y, IkbRe) - NV_Ith_S(y, IbkRe);
+#ifdef DEBUGf
+    fprintf(stdout, "\nIn f, \\rho_{bb}\n");
+    fprintf(stdout, "IbRe: %.2d; IkRe: %.2d\n", IbRe, IkRe);
+    fprintf(stdout, "IkbRe: %.2d; IkbIm: %.2d\n", IkbRe, IkbIm);
+    fprintf(stdout, "IbkRe: %.2d; IbkIm: %.2d\n", IbkRe, IbkIm);
+#endif
   }
 
   // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
@@ -334,9 +356,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IcbIm = IcbRe + NEQ2;
 
     // real part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
-    NV_Ith_S(ydot, IccpRe) += NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm);
+    NV_Ith_S(ydot, IccpRe) += Vbc*(NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm));
     // imaginary part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
-    NV_Ith_S(ydot, IccpIm) -= NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe);
+    NV_Ith_S(ydot, IccpIm) -= Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe));
    }
   }
 
@@ -465,6 +487,16 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     NV_Ith_S(ydot, IcbIm) -= Vkb*sumIm;
   }
  }
+
+#ifdef DEBUGf
+ // print out entire \dot{\rho}
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < NEQ; jj++) {
+   fprintf(stdout, "Re(\\dot{\\rho_{%.2d,%.2d}}) = %.7e\n", ii, jj, NV_Ith_S(ydot, ii*NEQ + jj));
+   fprintf(stdout, "Im(\\dot{\\rho_{%.2d,%.2d}}) = %.7e\n", ii, jj, NV_Ith_S(ydot, ii*NEQ + jj + NEQ2));
+  }
+ }
+#endif
 
  return 0;
 }
@@ -1533,6 +1565,7 @@ int main (int argc, char * argv[]) {
  params.Ib = Ib;
  params.NEQ = NEQ;
  params.NEQ2 = NEQ2;
+ params.numOutputSteps = numOutputSteps;
 
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
@@ -1579,10 +1612,10 @@ int main (int argc, char * argv[]) {
   t = (tout*((double) i)/((double) numsteps));
   flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
-  cout << endl << "CVode flag at step " << i << ": " << flag << endl;
+  //cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
-   fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+   //fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
    updateDM(yout, dmt, i*numOutputSteps/numsteps);
    /*
    Output_checkpoint(
@@ -1602,9 +1635,7 @@ int main (int argc, char * argv[]) {
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
    */
- computeDMOutput(dmt, NEQ, V, energy, times, numOutputSteps, outs, params);
-
- outputDMt(dmt, NEQ, numOutputSteps, outs);
+ computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, params);
 
  // compute time-independent outputs
  FILE * energyFile;

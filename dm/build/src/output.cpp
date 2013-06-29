@@ -59,36 +59,6 @@ void outputWavefunction(realtype * psi, int n) {
  fclose(psi_start);
 }
 
-/* prints out the density matrix varying in time to files */
-void outputDMt(realtype * dmt, int NEQ, int numOutputSteps, std::map<std::string, bool> &outs) {
-fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
- FILE * dmt_z;
- if (outs["dmt_z.out"]) {
-  dmt_z = fopen("dmt_z.out", "w");
-  // loop over time steps
-  for (int ii = 0; ii < numOutputSteps; ii++) {
-   // loop over first index
-   for (int jj = 0; jj < NEQ; jj++) {
-    // first element in row
-    // loop over second index
-    fprintf(dmt_z, "%+.7e", dmt[2*NEQ*NEQ*ii + NEQ*jj]);
-    for (int kk = 1; kk < NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*NEQ*NEQ*ii + NEQ*jj+ kk]);
-    }
-    fprintf(dmt_z, "\n");
-   }
-   fprintf(dmt_z, "\n");
-  }
-  fclose(dmt_z);
- }
-
- if (outs["dmt_re.out"]) {
- }
-
- if (outs["dmt_im.out"]) {
- }
-}
-
 /* prints a vector W of length N */
 void outputVector(realtype * W, int N, char * fileName) {
  int i;        // counter
@@ -190,7 +160,7 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
 }
 
 /* Computes outputs from \rho(t) */
-void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
+void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, PARAMETERS p) {
  // accumulator
  realtype summ;
@@ -201,9 +171,9 @@ void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies
   totprob = fopen("totprob.out", "w");
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
-   for (int jj = 0; jj < NEQ; jj++) {
+   for (int jj = 0; jj < p.NEQ; jj++) {
 //fprintf(stdout, "Population at time %d in state %d\n", ii, jj);
-    summ += dmt[2*NEQ*NEQ*ii + NEQ*jj + jj];
+    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*jj + jj];
    }
    fprintf(totprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -217,7 +187,7 @@ void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
    for (int jj = 0; jj < p.Nk; jj++) {
-    summ += dmt[2*NEQ*NEQ*ii + NEQ*(p.Ik + jj) + p.Ik + jj];
+    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*(p.Ik + jj) + p.Ik + jj];
    }
    fprintf(tkprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -231,7 +201,7 @@ void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
    for (int jj = 0; jj < p.Nb; jj++) {
-    summ += dmt[2*NEQ*NEQ*ii + NEQ*(p.Ib + jj) + p.Ib + jj];
+    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*(p.Ib + jj) + p.Ib + jj];
    }
    fprintf(tbprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -245,11 +215,80 @@ void computeDMOutput(realtype * dmt, int NEQ, realtype ** V, realtype * energies
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
    for (int jj = 0; jj < p.Nc; jj++) {
-    summ += dmt[2*NEQ*NEQ*ii + NEQ*(p.Ic + jj) + p.Ic + jj];
+    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*(p.Ic + jj) + p.Ic + jj];
    }
    fprintf(tcprob, "%-.7g %-.7g\n", t[ii], summ);
   }
   fclose(tcprob);
+ }
+
+#ifdef DEBUG
+ fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
+#endif
+
+ // norm of DM elements
+ FILE * dmt_z;
+ if (outs["dmt_z.out"]) {
+  dmt_z = fopen("dmt_z.out", "w");
+  // loop over time steps
+  for (int ii = 0; ii < p.numOutputSteps; ii++) {
+   // loop over first index
+   for (int jj = 0; jj < p.NEQ; jj++) {
+    // first element in row
+    // loop over second index
+    fprintf(dmt_z, "%+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj],2)
+                               + pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2],2)));
+    for (int kk = 1; kk < p.NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj],2)
+				+ pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2],2)));
+    }
+    fprintf(dmt_z, "\n");
+   }
+   fprintf(dmt_z, "\n");
+  }
+  fclose(dmt_z);
+ }
+
+ // real part of DM
+ FILE * dmt_re;
+ if (outs["dmt_re.out"]) {
+  dmt_re = fopen("dmt_re.out", "w");
+  // loop over time steps
+  for (int ii = 0; ii < p.numOutputSteps; ii++) {
+   // loop over first index
+   for (int jj = 0; jj < p.NEQ; jj++) {
+    // first element in row
+    // loop over second index
+    fprintf(dmt_z, "%+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj]);
+    for (int kk = 1; kk < p.NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj+ kk]);
+    }
+    fprintf(dmt_z, "\n");
+   }
+   fprintf(dmt_z, "\n");
+  }
+  fclose(dmt_re);
+ }
+
+ // imaginary part of DM
+ FILE * dmt_im;
+ if (outs["dmt_im.out"]) {
+  dmt_im = fopen("dmt_im.out", "w");
+  // loop over time steps
+  for (int ii = 0; ii < p.numOutputSteps; ii++) {
+   // loop over first index
+   for (int jj = 0; jj < p.NEQ; jj++) {
+    // first element in row
+    // loop over second index
+    fprintf(dmt_z, "%+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2]);
+    for (int kk = 1; kk < p.NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj+ kk + p.NEQ2]);
+    }
+    fprintf(dmt_z, "\n");
+   }
+   fprintf(dmt_z, "\n");
+  }
+  fclose(dmt_im);
  }
 
  return;
