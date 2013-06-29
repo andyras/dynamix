@@ -172,8 +172,8 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
  }
 #endif
 
+ FILE * couplings;
  if (outs["couplings.out"]) {
-  FILE * couplings;
   couplings = fopen("couplings.out","w");
   for (i = 0; i < dim; i++) {
    for (j = 0; j < dim; j++) {
@@ -225,7 +225,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
  // initialize ydot
  for (int ii = 0; ii < 2*NEQ2; ii++) {
-  NV_Ith_S(ydot, ii) = 0;
+  NV_Ith_S(ydot, ii) = 0.0;
  }
 
  // equations of motion for system with bridge
@@ -272,16 +272,11 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IkbIm = IkbRe + NEQ2;
 
     // real part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
-    sumRe += NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm);
+    NV_Ith_S(ydot, IkkpRe) += Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
     // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
-    sumIm -= NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe);
+    NV_Ith_S(ydot, IkkpIm) -= Vbc*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
    }
   }
-
-  // real part		V_{kb}(\rho_{bk'} - \rho_{kb}) term
-  NV_Ith_S(ydot, IkkpRe) += Vkb*sumRe;
-  // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
-  NV_Ith_S(ydot, IkkpIm) += Vkb*sumIm;
 
   //// \dot{\rho_{bb}}
   sumRe = 0.0;
@@ -339,16 +334,11 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IcbIm = IcbRe + NEQ2;
 
     // real part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
-    sumRe += NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm);
+    NV_Ith_S(ydot, IccpRe) += NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm);
     // imaginary part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
-    sumIm -= NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe);
+    NV_Ith_S(ydot, IccpIm) -= NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe);
    }
   }
-
-  // real part		V_{bc}(\rho_{bc'} - \rho_{cb}) term
-  NV_Ith_S(ydot, IccpRe) += Vbc*sumRe;
-  // imaginary part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
-  NV_Ith_S(ydot, IccpIm) += Vbc*sumIm;
 
   //// \dot{\rho_{kb}} and \dot{\rho_{bk}}
   for (int ii = 0; ii < Nk; ii++) {
@@ -1617,8 +1607,9 @@ int main (int argc, char * argv[]) {
  outputDMt(dmt, NEQ, numOutputSteps, outs);
 
  // compute time-independent outputs
+ FILE * energyFile;
  if (outs["energy.out"]) {
-  FILE * energyFile = fopen("energy.out", "w");
+  energyFile = fopen("energy.out", "w");
   for (i = 0; i < NEQ; i++) {
    fprintf(energyFile, "%-.9e\n", energy[i]);
   }
