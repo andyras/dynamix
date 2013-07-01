@@ -22,8 +22,8 @@ analytical=0				# turn on analytical propagation
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
 tout=10000				# final time reached by solver (a.u.)
-numsteps=100000				# number of timesteps
-numOutputSteps=100			# number of output timesteps
+numsteps=1000				# number of timesteps
+numOutputSteps=1000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 #k_bandtop=0.0735			# upper band edge of bulk conduction band (a.u.)

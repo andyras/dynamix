@@ -27,7 +27,7 @@
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
-//#define DEBUGf
+#define DEBUGf
 
 using namespace std;
 
@@ -231,6 +231,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
  // equations of motion for system with bridge
  if (bridge_on) {
+#ifdef DEBUGf
+  cout << "\nUsing EOM for system with bridge.\n";
+#endif
   // couplings
   realtype Vkb = V[Ik][Ib];
   realtype Vbc = V[Ib][Ic];
@@ -239,6 +242,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   IbbpRe = NEQ*IbRe + IbRe;
   IbbpIm = IbbpRe + NEQ2;
 
+#ifdef DEBUGf
+  cout << "\nCalculating contributions from energy gaps.\n";
+#endif
   //// Contributions from energy gaps
   for (int ii = 0; ii < NEQ; ii++) {
    // only need off-diagonal terms (would be 0 if ii == jj)
@@ -254,10 +260,10 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     NV_Ith_S(ydot, IijRe) += wij*NV_Ith_S(y, IijIm);
     NV_Ith_S(ydot, IjiRe) += wji*NV_Ith_S(y, IjiIm);
     // imaginary parts of complex conjugates have opposite sign (use opposite of wij)
-    NV_Ith_S(ydot, IijIm) += wij*NV_Ith_S(y, IijRe);
+    NV_Ith_S(ydot, IijIm) -= wij*NV_Ith_S(y, IijRe);
     NV_Ith_S(ydot, IjiIm) -= wji*NV_Ith_S(y, IjiRe);
 #ifdef DEBUGf
-    fprintf(stdout, "\nIn f, energy gaps\n");
+    fprintf(stdout, "In f, energy gaps\n");
     fprintf(stdout, "w(%.2d, %.2d) = %.7e\n", ii, jj, wij);
     fprintf(stdout, "IijRe: %.2d; IijIm: %.2d\n", IijRe, IijIm);
     fprintf(stdout, "IjiRe: %.2d; IjiIm: %.2d\n", IjiRe, IjiIm);
@@ -266,6 +272,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    }
   }
 
+#ifdef DEBUGf
+  cout << "\nCalculating contributions to \\dot{\\rho_{kk'}}.\n";
+#endif
   // \dot{\rho_{kk'}}
   sumRe = 0.0;
   sumIm = 0.0;
@@ -285,7 +294,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
     NV_Ith_S(ydot, IkkpIm) -= Vbc*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
 #ifdef DEBUGf
-    fprintf(stdout, "\nIn f, \\rho_{kk'}\n");
+    fprintf(stdout, "In f, \\rho_{kk'}\n");
     fprintf(stdout, "IkRe: %.2d; IkpRe: %.2d\n", IkRe, IkpRe);
     fprintf(stdout, "IkkpRe: %.2d; IkkpIm: %.2d\n", IkkpRe, IkkpIm);
     fprintf(stdout, "IbkpRe: %.2d; IbkpIm: %.2d\n", IbkpRe, IbkpIm);
@@ -308,9 +317,10 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
    sumRe += NV_Ith_S(y, IkbIm) - NV_Ith_S(y, IbkIm);
    // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
-   sumIm -= NV_Ith_S(y, IkbRe) - NV_Ith_S(y, IbkRe);
+   // can assume this will be 0 as long as there is only one bridge
+   // sumIm -= NV_Ith_S(y, IkbRe) - NV_Ith_S(y, IbkRe);
 #ifdef DEBUGf
-    fprintf(stdout, "\nIn f, \\rho_{bb}\n");
+    fprintf(stdout, "In f, \\rho_{bb}\n");
     fprintf(stdout, "IbRe: %.2d; IkRe: %.2d\n", IbRe, IkRe);
     fprintf(stdout, "IkbRe: %.2d; IkbIm: %.2d\n", IkbRe, IkbIm);
     fprintf(stdout, "IbkRe: %.2d; IbkIm: %.2d\n", IbkRe, IbkIm);
@@ -320,7 +330,8 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
   NV_Ith_S(ydot, IbbpRe) += Vkb*sumRe;
   // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
-  NV_Ith_S(ydot, IbbpIm) += Vkb*sumIm;
+  // can assume this will be 0 as long as there is only one bridge
+  // NV_Ith_S(ydot, IbbpIm) += Vkb*sumIm;
 
   /// contribution from \rho_{bc}, \rho_{cb}
   for (int ii = 0; ii < Nc; ii++) {
@@ -333,13 +344,15 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    // real part		V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
    sumRe += NV_Ith_S(y, IbcIm) - NV_Ith_S(y, IcbIm);
    // imaginary part	V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
-   sumIm -= NV_Ith_S(y, IbcRe) - NV_Ith_S(y, IcbRe);
+   // can assume this will be 0 as long as there is only one bridge
+   // sumIm -= NV_Ith_S(y, IbcRe) - NV_Ith_S(y, IcbRe);
   }
 
   // real part		V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
   NV_Ith_S(ydot, IbbpRe) += Vbc*sumRe;
   // imaginary part	V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
-  NV_Ith_S(ydot, IbbpIm) += Vbc*sumIm;
+  // can assume this will be 0 as long as there is only one bridge
+  // NV_Ith_S(ydot, IbbpIm) += Vbc*sumIm;
 
   //// \dot{\rho_{cc'}}
   sumRe = 0.0;
@@ -358,7 +371,10 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     // real part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
     NV_Ith_S(ydot, IccpRe) += Vbc*(NV_Ith_S(y, IbcpIm) - NV_Ith_S(y, IcbIm));
     // imaginary part	V_{bc}(\rho_{bc'} - \rho_{cb}) term
-    NV_Ith_S(ydot, IccpIm) -= Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe));
+    // is non-zero only if c != c'
+    if (IcRe != IcpRe) {
+     NV_Ith_S(ydot, IccpIm) -= Vbc*(NV_Ith_S(y, IbcpRe) - NV_Ith_S(y, IcbRe));
+    }
    }
   }
 
@@ -490,6 +506,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
 #ifdef DEBUGf
  // print out entire \dot{\rho}
+ fprintf(stdout, "\n");
  for (int ii = 0; ii < NEQ; ii++) {
   for (int jj = 0; jj < NEQ; jj++) {
    fprintf(stdout, "Re(\\dot{\\rho_{%.2d,%.2d}}) = %.7e\n", ii, jj, NV_Ith_S(ydot, ii*NEQ + jj));
@@ -1314,9 +1331,14 @@ int main (int argc, char * argv[]) {
  tbprob = new realtype [numOutputSteps+1];
  tlprob = new realtype [numOutputSteps+1];
  allprob = new double * [numOutputSteps+1];
- for (i = 0; i < numOutputSteps+1; i++)
+ for (i = 0; i <= numOutputSteps; i++) {
   allprob[i] = new double [NEQ];
+ }
+ // assign times.
  times = new realtype [numOutputSteps+1];
+ for (int ii = 0; ii <= numOutputSteps; ii++) {
+  times[ii] = float(ii)/numOutputSteps*tout;
+ }
  qd_est = new realtype [numOutputSteps+1];
  qd_est_diag = new realtype [numOutputSteps+1];
  energy_expectation = new realtype [numOutputSteps+1];	// expectation value of energy; for sanity checking
@@ -1567,6 +1589,10 @@ int main (int argc, char * argv[]) {
  params.NEQ2 = NEQ2;
  params.numOutputSteps = numOutputSteps;
 
+#ifdef DEBUG
+ cout << "\nCreating N_Vectors.\n";
+ cout << "\nProblem size is " << 2*NEQ2 << " elements.\n";
+#endif
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
  // put in t = 0 information
@@ -1593,21 +1619,36 @@ int main (int argc, char * argv[]) {
 
  // create CVode object
  // this is a stiff problem, I guess?
+#ifdef DEBUG
+ cout << "\nCreating cvode_mem object.\n";
+#endif
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
  // make 'energy' array available to CVode via 'user_data'
  flag = CVodeSetUserData(cvode_mem, (void *) user_data);
 
+#ifdef DEBUG
+ cout << "\nInitializing CVode solver.\n";
+#endif
  // initialize CVode solver //
  flag = CVodeInit(cvode_mem, &f, t0, y);
 
+#ifdef DEBUG
+ cout << "\nSpecifying integration tolerances.\n";
+#endif
  // specify integration tolerances //
  flag = CVodeSStolerances(cvode_mem, reltol, abstol);
 
+#ifdef DEBUG
+ cout << "\nAttaching linear solver module.\n";
+#endif
  // attach linear solver module //
  flag = CVDense(cvode_mem, 2*NEQ2);
 
  // advance the solution in time! //
  // use CVODE for time-dependent H
+#ifdef DEBUG
+ cout << "\nAdvancing the solution in time.\n";
+#endif
  for (i = 1; i <= numsteps; ++i) {
   t = (tout*((double) i)/((double) numsteps));
   flag = CVode(cvode_mem, t, yout, &tret, 1);
@@ -1698,5 +1739,6 @@ int main (int argc, char * argv[]) {
  delete [] b_energies;
  delete [] l_energies;
  fprintf(stderr, "\nwhoo\n");
+
  return 0;
 }
