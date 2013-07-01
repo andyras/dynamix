@@ -16,8 +16,8 @@ do_backup=0
 
 ## START INPUT PARAMETERS ##
 # method parameters #
-timedepH=0				# if H is TD, use CVODE, else diag H and propogate
-analytical=1				# turn on analytical propagation
+timedepH=1				# if H is TD, use CVODE, else diag H and propogate
+analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
@@ -26,8 +26,9 @@ numsteps=60000				# number of timesteps
 numOutputSteps=6000			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
-k_bandtop=0.0735			# upper band edge of bulk conduction band (a.u.)
-Nk=1001					# number of k states to have
+#k_bandtop=0.0735			# upper band edge of bulk conduction band (a.u.)
+k_bandtop=0.0				# upper band edge of bulk conduction band (a.u.)
+Nk=1					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -62,7 +63,7 @@ scale_bubr=0
 scale_brqd=0
 scale_buqd=0
 scale_laser=1
-bridge_on=0
+bridge_on=1
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 ## END INPUT PARAMETERS ##
@@ -114,9 +115,9 @@ ms_est_tot.out
 #qd_est.out
 #qd_est_diag.out
 #ss_breakdown.out
-#tbprob.out
+tbprob.out
 #tcderiv.out
-tcprob.out
+#tcprob.out
 #tcrate.out
 #times.out
 #tkderiv.out
