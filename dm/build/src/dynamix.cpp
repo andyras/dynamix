@@ -924,32 +924,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
 }
 
 
-/* Makes a gnuplot file to plot the QD populations over time */
-void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
- std::ofstream output("cprobs.plt");
- output << "#!/usr/bin/env gnuplot\n\n"
- << "reset\n"
- << "set terminal pdfcairo enhanced size 4in,3in font 'Arial-Bold,14'\n"
- << "set output '/dev/null'\n"
- << "!transpose -o _transpose ../outs/cprobs.out\n"
- << "plot '../outs/cprobs_transpose.out' every :::1 u ($1*" << t << "/" << n << "):(-$2):3 matrix with image\n"
- << "set output 'cprobs.pdf'\n"
- << "set title 'Electron probability density in QD'\n"
- << "set border 0\n"
- << "unset ytics\n"
- << "set xtics scale 0\n"
- << "set ylabel 'States above band edge'\n"
- << "set xlabel 'Time (a.u.)'\n"
- << "set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]\n"
- << "set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]\n"
- << "unset key\n"
- << "unset colorbox\n"
- << "set palette defined ( 0 '#000090', 1 '#000fff', 2 '#0090ff', 3 '#0fffee', 4 '#90ff70', 5 '#ffee00', 6 '#ff7000', 7 '#ee0000', 8 '#7f0000')\n"
- << "repl\n";
-
- return;
-}
-
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
@@ -1311,6 +1285,7 @@ int main (int argc, char * argv[]) {
  params.NEQ2 = NEQ2;
  params.numOutputSteps = numOutputSteps;
  params.bridge_on = bridge_on;
+ params.tout = tout;
  params.kBandEdge = k_bandedge;
  params.kBandTop = k_bandtop;
  params.scale_bubr = scale_bubr;
@@ -1678,7 +1653,7 @@ int main (int argc, char * argv[]) {
 #endif
 
  if (outs["cprobs.plt"] && (Nc > 1)) {
-  plot_cprobs(numOutputSteps, tout, k_bandtop, k_bandedge, Nk);
+  plot_cprobs(params);
  }
  
  // finalize log file //
