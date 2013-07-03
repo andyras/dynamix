@@ -1292,12 +1292,10 @@ int main (int argc, char * argv[]) {
  params.scale_brqd = scale_brqd;
  params.scale_buqd = scale_buqd;
  params.parabolicCoupling = parabolicCoupling;
- /*
  params.times.resize(numOutputSteps);
- for (int ii = 0; ii < numOutputSteps; ii++) {
+ for (int ii = 0; ii <= numOutputSteps; ii++) {
   params.times[ii] = times[ii];
  }
- */
 
  //// Build initial wavefunction
 

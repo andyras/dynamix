@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <iostream>
 #include <nvector/nvector_serial.h>
 
 #include "params.h"

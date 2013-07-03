@@ -1,6 +1,8 @@
 #ifndef __OUTPUT_H__
 #define __OUTPUT_H__
 
+#define DEBUG
+
 #include <map>
 #include <cmath>
 #include <string>

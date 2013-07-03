@@ -273,6 +273,11 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
   }
  }
 
+ for (int ii = 0; ii < p->Nb + 1; ii++) {
+  std::cout << "p->Vbridge[" << ii << "] is ";
+  std::cout << p->Vbridge[ii] << "\n";
+ }
+
  // bridge
  if (p->bridge_on) {
   // coupling between k and b1

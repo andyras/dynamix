@@ -190,13 +190,13 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
                   struct PARAMETERS * p) {
  std::ofstream output(fileName);
 
- for (int ii = 0; ii < p->numOutputSteps; ii++) {
+ for (int ii = 0; ii <= p->numOutputSteps; ii++) {
   output << std::setw(8) << std::scientific << p->times[ii];
   for (int jj = start; jj < end; jj++) {
    output << " "
-          << std::setw(8) << std::scientific << dmt[ii*p->NEQ2*2 + jj*p->NEQ + jj]
-          << "\n";
+          << std::setw(8) << std::scientific << dmt[ii*p->NEQ2*2 + jj*p->NEQ + jj];
   }
+  output << "\n";
  }
 
  return;
@@ -268,6 +268,14 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
 #ifdef DEBUG
  fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
 #endif
+
+ // populations in k states
+ if (outs["kprobs.out"]) {
+  std::cout << "\nmaking kprobs.out\n";
+#ifdef DEBUG
+#endif
+  outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
+ }
 
  // norm of DM elements
  FILE * dmt_z;
