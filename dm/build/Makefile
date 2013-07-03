@@ -15,7 +15,7 @@ CPP = $(CXX)
 # optimized CPPFLAGS
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
 # non-optimized CPPFLAGS
-CPPFLAGS = -Wall -g -O0
+CPPFLAGS = -Wall -g -O0 -openmp
 INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw
 # addition for radon
 INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib

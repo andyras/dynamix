@@ -239,8 +239,8 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
     fprintf(dmt_z, "%+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj],2)
                                + pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2],2)));
     for (int kk = 1; kk < p.NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj],2)
-				+ pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2],2)));
+     fprintf(dmt_z, " %+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + kk],2)
+				+ pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + kk + p.NEQ2],2)));
     }
     fprintf(dmt_z, "\n");
    }
@@ -261,7 +261,7 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
     // loop over second index
     fprintf(dmt_z, "%+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj]);
     for (int kk = 1; kk < p.NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj+ kk]);
+     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + kk]);
     }
     fprintf(dmt_z, "\n");
    }
@@ -282,7 +282,7 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
     // loop over second index
     fprintf(dmt_z, "%+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2]);
     for (int kk = 1; kk < p.NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj+ kk + p.NEQ2]);
+     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + kk + p.NEQ2]);
     }
     fprintf(dmt_z, "\n");
    }

@@ -13,27 +13,32 @@
 #include <mkl.h>
 #include <map>
 #include <fftw/fftw3.h>
+#include <omp.h>
 
 #include "libdynamix_input_parser.h"
 #include "libdynamix_outputs.h"
 #include "output.h"
 #include "numerical.h"
 #include "params.h"
+#include "userdata.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-#define DEBUG
+//#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
 // #define DEBUGf
-#define DEBUG_DMf
+//#define DEBUG_DMf
 
 using namespace std;
 
 // Struct of parameters
 PARAMETERS params;
+
+// Hamiltonian
+realtype * Ham;
 
 // GLOBAL VARIABLES GO HERE //
 #ifdef DEBUG_DMf
@@ -191,11 +196,25 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
 }
 
 
-int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
+int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 // gives f(y,t) for CVODE
 
- fprintf(stdout, "%f", data[0]);
+ // initialize ydot
+ for (int ii = 0; ii < 2*NEQ2; ii++) {
+  NV_Ith_S(ydot, ii) = 0.0;
+ }
 
+#pragma omp parallel for
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < NEQ; jj++) {
+   for (int kk = 0; kk < NEQ; kk++) {
+    NV_Ith_S(ydot, ii*NEQ + jj)        += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
+    NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) -= Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj);
+    NV_Ith_S(ydot, ii*NEQ + jj)        -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
+    NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) += NV_Ith_S(y, ii*NEQ + kk)*Ham[kk*NEQ + jj];
+   }
+  }
+ }
  /*
  // TODO: decompose 'data' variable into energies
  // TODO: only calculate upper/lower triangle of diagonal blocks in DM
@@ -231,10 +250,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  realtype wij;
  realtype wji;
 
- // initialize ydot
- for (int ii = 0; ii < 2*NEQ2; ii++) {
-  NV_Ith_S(ydot, ii) = 0.0;
- }
 
  // equations of motion for system with bridge
  if (bridge_on) {
@@ -540,6 +555,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
  }
 #endif
+ */
 
 #ifdef DEBUG_DMf
  fprintf(dmf, "%+.7e", t);
@@ -550,7 +566,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  }
  fprintf(dmf, "\n");
 #endif
- */
 
  return 0;
 }
@@ -1058,6 +1073,9 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep) {
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
+ // number of processors
+ int nproc;
+
  int i, j;					// counter!
  int flag;
  realtype * k_pops;				// pointers to arrays of populations
@@ -1129,6 +1147,7 @@ int main (int argc, char * argv[]) {
 
  // ASSIGN VARIABLE DEFAULTS //
  i = 0;
+ nproc = 0;
  double summ = 0;			// sum variable
  bool timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
  bool analytical = 0;			// turn on analytical propagation
@@ -1201,6 +1220,7 @@ int main (int argc, char * argv[]) {
   cout << "Parameter: " << input_param << endl << "New value: " << atof(param_val.c_str()) << endl;
 #endif
   if (input_param == "timedepH") { timedepH = atoi(param_val.c_str()); }
+  else if (input_param == "nproc") { nproc = atof(param_val.c_str()); }
   else if (input_param == "analytical") { analytical = atof(param_val.c_str()); }
   else if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
@@ -1244,6 +1264,7 @@ int main (int argc, char * argv[]) {
  cout << endl;
  cout << "timedepH is " << timedepH << endl;
  cout << "analytical is " << analytical << endl;
+ cout << "nproc is " << nproc << endl;
  cout << "abstol is " << abstol << endl;
  cout << "reltol is " << reltol << endl;
  cout << "tout is " << tout << endl;
@@ -1357,6 +1378,9 @@ int main (int argc, char * argv[]) {
 #endif
 
  // PREPROCESS DATA FROM INPUTS //
+ // set number of processors for OpenMP
+ omp_set_num_threads(nproc);
+
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
  NEQ2 = NEQ*NEQ;				// number of elements in DM
 #ifdef DEBUG
@@ -1498,7 +1522,7 @@ int main (int argc, char * argv[]) {
   energy[Ib + i] = b_energies[i];
  for (i = 0; i < Nl; i++)
   energy[Il + i] = l_energies[i];
- //user_data = energy;
+ user_data = energy;
 
 #ifdef DEBUG
  // output energies
@@ -1634,7 +1658,10 @@ int main (int argc, char * argv[]) {
   if (outs["ham.out"]) {
    outputSquareMatrix(H, NEQ, "ham.out");
   }
-  user_data = H;
+  Ham = new realtype [NEQ2];
+  for (int ii = 0; ii < NEQ2; ii++) {
+   Ham[ii] = H[ii];
+  }
 
  // DONE PREPROCESSING //
  
@@ -1672,7 +1699,6 @@ int main (int argc, char * argv[]) {
  cout << "\nCreating cvode_mem object.\n";
 #endif
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
- // make 'energy' array available to CVode via 'user_data'
  flag = CVodeSetUserData(cvode_mem, (void *) user_data);
 
 #ifdef DEBUG
@@ -1766,6 +1792,8 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  fprintf(stdout, "Deallocating N_Vectors.\n");
 #endif
+ /*
+ //  TODO why does this block break?
  // deallocate memory for N_Vectors //
  N_VDestroy_Serial(y);
  N_VDestroy_Serial(yout);
@@ -1775,6 +1803,7 @@ int main (int argc, char * argv[]) {
 #endif
  // free solver memory //
  CVodeFree(&cvode_mem);
+ */
 
 #ifdef DEBUG
  fprintf(stdout, "Freeing memory in main.\n");
