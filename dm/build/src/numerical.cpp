@@ -366,10 +366,10 @@ void buildCoupling (realtype ** vArray, PARAMETERS p,
 }
 
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p) {
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PARAMETERS * p) {
  // indices
  int idx1, idx2;
- int N = p.NEQ;
+ int N = p->NEQ;
  
 #ifdef DEBUG
   fprintf(stderr, "Assigning diagonal elements of Hamiltonian.\n");
@@ -382,14 +382,14 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #endif
   }
 
- if (p.bridge_on) {
+ if (p->bridge_on) {
   // assign bulk-bridge coupling
 #ifdef DEBUG
   fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
 #endif
-  idx2 = p.Ib;
-  for (int ii = 0; ii < p.Nk; ii++) {
-   idx1 = p.Ik + ii;
+  idx2 = p->Ib;
+  for (int ii = 0; ii < p->Nk; ii++) {
+   idx1 = p->Ik + ii;
 #ifdef DEBUG2
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -402,9 +402,9 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #ifdef DEBUG
   fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
 #endif
-  for (int ii = 1; ii < p.Nb; ii++) {
-   idx1 = p.Ib + ii;
-   idx2 = p.Ib+ ii + 1;
+  for (int ii = 1; ii < p->Nb; ii++) {
+   idx1 = p->Ib + ii;
+   idx2 = p->Ib+ ii + 1;
 #ifdef DEBUG2
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -417,9 +417,9 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #ifdef DEBUG
   fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
 #endif
-  idx2 = p.Ib + p.Nb - 1;
-  for (int ii = 0; ii < p.Nc; ii++) {
-   idx1 = p.Ic + ii;
+  idx2 = p->Ib + p->Nb - 1;
+  for (int ii = 0; ii < p->Nc; ii++) {
+   idx1 = p->Ic + ii;
 #ifdef DEBUG2
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -435,10 +435,10 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #ifdef DEBUG
   fprintf(stderr, "Assigning bulk-QD coupling elements in Hamiltonian.\n");
 #endif
-  for (int ii = 0; ii < p.Nk; ii++) {
-   idx1 = p.Ik + ii;
-   for (int jj = 0; jj < p.Nc; jj++) {
-    idx2 = p.Ic + jj;
+  for (int ii = 0; ii < p->Nk; ii++) {
+   idx1 = p->Ik + ii;
+   for (int jj = 0; jj < p->Nc; jj++) {
+    idx2 = p->Ic + jj;
 #ifdef DEBUG2
     fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
     fprintf(stderr, "V[%d][%d] = ", idx1, idx2);

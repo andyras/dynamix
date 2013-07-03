@@ -1538,7 +1538,7 @@ int main (int argc, char * argv[]) {
   fprintf(stderr, "Building Hamiltonian.\n");
 #endif
   realtype * H = new realtype [NEQ2];
-  buildHamiltonian(H, energy, V, params);
+  buildHamiltonian(H, energy, V, &params);
   if (outs["ham.out"]) {
    outputSquareMatrix(H, NEQ, "ham.out");
   }

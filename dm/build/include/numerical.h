@@ -81,7 +81,7 @@ void buildCoupling (realtype ** vArray, PARAMETERS p,
                     std::map<std::string, bool> &outs);
 
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p);
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PARAMETERS * p);
 #endif
 
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
