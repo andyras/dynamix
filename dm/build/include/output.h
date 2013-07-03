@@ -54,9 +54,6 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 /* prints a square matrix stored as a 2D array */
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
-void buildCoupling (realtype ** vArray, PARAMETERS p,
-                    std::map<std::string, bool> &outs);
-
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, PARAMETERS p);
