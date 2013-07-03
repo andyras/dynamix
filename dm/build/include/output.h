@@ -7,6 +7,8 @@
 #include <fftw3.h>
 #include <nvector/nvector_serial.h>
 #include <iostream>
+#include <iomanip>
+#include <fstream>
 
 #include "numerical.h"
 #include "fftmanip.h"
@@ -53,6 +55,10 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 
 /* prints a square matrix stored as a 2D array */
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
+
+void plot_cprobs(PARAMETERS p);
+
+void outputXProbs(int start, int end, realtype * dmt, PARAMETERS p);
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
