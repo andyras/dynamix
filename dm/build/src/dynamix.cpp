@@ -1643,7 +1643,6 @@ int main (int argc, char * argv[]) {
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
    */
- computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
 
  // compute time-independent outputs
  FILE * energyFile;
@@ -1672,6 +1671,9 @@ int main (int argc, char * argv[]) {
   fclose(log);					// note that the log file is opened after variable declaration
  }
  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
+
+ // Compute density matrix outputs.
+ computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
 
 #ifdef DEBUG
  fprintf(stdout, "Deallocating N_Vectors.\n");

@@ -29,7 +29,7 @@
 //#define DEBUGf
 /* This flag is debuggery related to checking against Sai's code.             */
 //#define DEBUG_SAI
-#define DEBUG_DMf
+//#define DEBUG_DMf
 
 using namespace std;
 

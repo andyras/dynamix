@@ -16,7 +16,7 @@ do_backup=0
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
-nproc=1
+nproc=4
 # method parameters #
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
@@ -30,7 +30,7 @@ numOutputSteps=6000			# number of output timesteps
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
 #k_bandtop=0.0				# upper band edge of bulk conduction band (a.u.)
-Nk=2					# number of k states to have
+Nk=13					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
