@@ -365,7 +365,6 @@ void buildCoupling (realtype ** vArray, PARAMETERS p,
  
 }
 
-
 /* builds a Hamiltonian from site energies and couplings. */
 void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p) {
  // indices
@@ -451,3 +450,14 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
   }
  }
 }
+
+/* Updates \rho(t) at each time step. */
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, PARAMETERS p) {
+ for (int ii = 0; ii < p.NEQ2; ii++) {
+  dmt[2*p.NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
+  dmt[2*p.NEQ2*timeStep + ii + p.NEQ2] = NV_Ith_S(dm, ii + p.NEQ2);
+ }
+
+ return;
+}
+

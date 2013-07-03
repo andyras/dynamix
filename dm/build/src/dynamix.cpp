@@ -950,16 +950,6 @@ void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
  return;
 }
 
-/* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, realtype * dmt, int timeStep) {
- for (int ii = 0; ii < NEQ2; ii++) {
-  dmt[2*NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
-  dmt[2*NEQ2*timeStep + ii + NEQ2] = NV_Ith_S(dm, ii + NEQ2);
- }
-
- return;
-}
-
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
@@ -1585,7 +1575,7 @@ int main (int argc, char * argv[]) {
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
  // put in t = 0 information
- updateDM(y, dmt, 0);
+ updateDM(y, dmt, 0, params);
  // the vector yout has the same dimensions as y
  yout = N_VClone(y);
 
@@ -1649,7 +1639,7 @@ int main (int argc, char * argv[]) {
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
-   updateDM(yout, dmt, i*numOutputSteps/numsteps);
+   updateDM(yout, dmt, i*numOutputSteps/numsteps, params);
    /*
    Output_checkpoint(
 #ifdef DEBUG
