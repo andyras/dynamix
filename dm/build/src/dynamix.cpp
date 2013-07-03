@@ -86,116 +86,6 @@ bool random_phase = 0;
 int random_seed = 0;
 // END GLOBAL VARIABLES
 
-void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
-                    realtype kBandTop, realtype * energy,
-		    std::map<std::string, bool> &outs) {
-// assign coupling constants to global array V
- 
- int i, j;	// counters
- double Vkc;	// coupling between bulk and QD
- double Vkb1;	// coupling between bulk and first bridge
- double VbNc;	// coupling between last bridge and QD
-
- // initialize the coupling array
- for (i = 0; i < dim; i++) {
-  for (j = 0; j < dim; j++) {
-   vArray[i][j] = 0.0;
-  }
- }
-
- // bridge
- if (bridge_on) {
-  // coupling between k and b1
-  if ((scale_bubr) && (Nk > 1)) {
-   Vkb1 = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
-  }
-  else {
-   Vkb1 = Vbridge[0];
-  }
-  if (parabolicCoupling) {
-   for (i = 0; i < Nk; i++) {
-    vArray[Ik+i][Ib] = parabolicV(Vkb1, energy[Ik+i], kBandEdge, kBandTop);
-    vArray[Ib][Ik+i] = parabolicV(Vkb1, energy[Ik+i], kBandEdge, kBandTop);
-   }
-  }
-  else {
-   for (i = 0; i < Nk; i++) {
-    vArray[Ik+i][Ib] = Vkb1;
-    vArray[Ib][Ik+i] = Vkb1;
-   }
-  }
-   
-  // coupling between bN and c
-  if ((scale_brqd) && (Nc > 1)) {
-   VbNc = Vbridge[Nb]/sqrt(Nc-1);
-  }
-  else {
-   VbNc = Vbridge[Nb];
-  }
-  for (i = 0; i < Nc; i++) {
-   vArray[Ic+i][Ib+Nb-1] = VbNc;
-   vArray[Ib+Nb-1][Ic+i] = VbNc;
-  }
-  
-  // coupling between bridge states
-  for (i = 0; i < Nb - 1; i++) {
-   vArray[Ib+i][Ib+i+1] = Vbridge[i+1];
-   vArray[Ib+i+1][Ib+i] = Vbridge[i+1];
-  }
- }
- // no bridge
- else {				
-  // scaling
-  if ((scale_buqd) && (Nk > 1)) {
-   Vkc = sqrt(Vnobridge[0]*(kBandTop-kBandEdge)/(Nk-1));
-  }
-  else {
-   Vkc = Vnobridge[0];
-  }
-
-  // parabolic coupling of bulk band to QD
-  if (parabolicCoupling) {
-   for (i = 0; i < Nk; i++) {
-    for (j = 0; j < Nc; j++) {
-     vArray[Ik+i][Ic+j] = parabolicV(Vkc, energy[Ik+i], kBandEdge, kBandTop);
-     vArray[Ic+j][Ik+i] = parabolicV(Vkc, energy[Ik+i], kBandEdge, kBandTop);
-    }
-   }
-  }
-  else {
-   for (i = 0; i < Nk; i++) {
-    for (j = 0; j < Nc; j++) {
-     vArray[Ik+i][Ic+j] = Vkc;
-     vArray[Ic+j][Ik+i] = Vkc;
-    }
-   }
-  }
- }
-
-#ifdef DEBUG
- cout << "\nCoupling matrix:\n";
- for (i = 0; i < dim; i++) {
-  for (j = 0; j < dim; j++)
-   cout << scientific << vArray[i][j] << " ";
-  cout << endl;
- }
-#endif
-
- FILE * couplings;
- if (outs["couplings.out"]) {
-  couplings = fopen("couplings.out","w");
-  for (i = 0; i < dim; i++) {
-   for (j = 0; j < dim; j++) {
-    fprintf(couplings,"%.7g ",vArray[i][j]);
-   }
-   fprintf(couplings,"\n");
-  }
-  fclose(couplings);
- }
- 
-}
-
-
 int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 // gives f(y,t) for CVODE
 
@@ -1034,42 +924,6 @@ void Compute_final_outputs (double ** allprobs, realtype * time, realtype * tk,
 }
 
 
-/* Makes a gnuplot file to plot the QD populations over time */
-void plot_cprobs(int n, double t, double k_bandtop, double k_bandedge, int Nk) {
- std::ofstream output("cprobs.plt");
- output << "#!/usr/bin/env gnuplot\n\n"
- << "reset\n"
- << "set terminal pdfcairo enhanced size 4in,3in font 'Arial-Bold,14'\n"
- << "set output '/dev/null'\n"
- << "!transpose -o _transpose ../outs/cprobs.out\n"
- << "plot '../outs/cprobs_transpose.out' every :::1 u ($1*" << t << "/" << n << "):(-$2):3 matrix with image\n"
- << "set output 'cprobs.pdf'\n"
- << "set title 'Electron probability density in QD'\n"
- << "set border 0\n"
- << "unset ytics\n"
- << "set xtics scale 0\n"
- << "set ylabel 'States above band edge'\n"
- << "set xlabel 'Time (a.u.)'\n"
- << "set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]\n"
- << "set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]\n"
- << "unset key\n"
- << "unset colorbox\n"
- << "set palette defined ( 0 '#000090', 1 '#000fff', 2 '#0090ff', 3 '#0fffee', 4 '#90ff70', 5 '#ffee00', 6 '#ff7000', 7 '#ee0000', 8 '#7f0000')\n"
- << "repl\n";
-
- return;
-}
-
-/* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, realtype * dmt, int timeStep) {
- for (int ii = 0; ii < NEQ2; ii++) {
-  dmt[2*NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
-  dmt[2*NEQ2*timeStep + ii + NEQ2] = NV_Ith_S(dm, ii + NEQ2);
- }
-
- return;
-}
-
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
@@ -1366,11 +1220,19 @@ int main (int argc, char * argv[]) {
   Vbridge = new realtype [Nb+1];
   readArrayFromFile(b_energies, "ins/b_energies.in", Nb);
   readArrayFromFile(Vbridge, "ins/Vbridge.in", Nb + 1);
+  // feed coupling array to params
+  params.Vbridge.resize(Nb+1);
+  for (int ii = 0; ii < Nb + 1; ii++) {
+   params.Vbridge[ii] = Vbridge[ii];
+  }
  }
  else {
   Nb = 0;
   Vnobridge = new realtype [1];
   readArrayFromFile(Vnobridge, "ins/Vnobridge.in", 1);
+  // feed coupling array to params
+  params.Vnobridge.resize(1);
+  params.Vnobridge[0] = Vbridge[0];
  }
  // DONE READING //
 #ifdef DEBUG
@@ -1411,6 +1273,31 @@ int main (int argc, char * argv[]) {
  buildContinuum(k_energies, Nk, k_bandedge, k_bandtop);
  // assign bulk valence band energies
  buildContinuum(l_energies, Nl, k_bandedge - valenceBand - bulk_gap, k_bandedge - bulk_gap);
+
+ //// feed parameters to struct
+ params.Nk = Nk;
+ params.Nc = Nc;
+ params.Nb = Nb;
+ params.Nl = Nl;
+ params.Ik = Ik;
+ params.Ic = Ic;
+ params.Ib = Ib;
+ params.Il = Il;
+ params.NEQ = NEQ;
+ params.NEQ2 = NEQ2;
+ params.numOutputSteps = numOutputSteps;
+ params.bridge_on = bridge_on;
+ params.tout = tout;
+ params.kBandEdge = k_bandedge;
+ params.kBandTop = k_bandtop;
+ params.scale_bubr = scale_bubr;
+ params.scale_brqd = scale_brqd;
+ params.scale_buqd = scale_buqd;
+ params.parabolicCoupling = parabolicCoupling;
+ params.times.resize(numOutputSteps);
+ for (int ii = 0; ii <= numOutputSteps; ii++) {
+  params.times[ii] = times[ii];
+ }
 
  //// Build initial wavefunction
 
@@ -1537,11 +1424,20 @@ int main (int argc, char * argv[]) {
  cout << endl;
 #endif
 
+ // feed energies to params
+ params.energies.resize(NEQ);
+ for (int ii = 0; ii < NEQ; ii++) {
+  params.energies[ii] = energy[ii];
+#ifdef DEBUG
+  std::cout << "params.energies[" << ii << "] is " << params.energies[ii] << "\n";
+#endif
+ }
+
  // assign coupling constants
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
- buildCoupling(V, NEQ, k_bandedge, k_bandtop, energy, outs);
+ buildCoupling(V, &params, outs);
 
  if (outs["log.out"]) {
   // make a note in the log about system timescales
@@ -1637,24 +1533,12 @@ int main (int argc, char * argv[]) {
  cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
 #endif
 
- //// feed parameters to struct
- params.Nk = Nk;
- params.Nc = Nc;
- params.Nb = Nb;
- params.Ik = Ik;
- params.Ic = Ic;
- params.Ib = Ib;
- params.NEQ = NEQ;
- params.NEQ2 = NEQ2;
- params.numOutputSteps = numOutputSteps;
- params.bridge_on = bridge_on;
-
   // build Hamiltonian
 #ifdef DEBUG
   fprintf(stderr, "Building Hamiltonian.\n");
 #endif
   realtype * H = new realtype [NEQ2];
-  buildHamiltonian(H, energy, V, params);
+  buildHamiltonian(H, energy, V, &params);
   if (outs["ham.out"]) {
    outputSquareMatrix(H, NEQ, "ham.out");
   }
@@ -1672,7 +1556,7 @@ int main (int argc, char * argv[]) {
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
  // put in t = 0 information
- updateDM(y, dmt, 0);
+ updateDM(y, dmt, 0, &params);
  // the vector yout has the same dimensions as y
  yout = N_VClone(y);
 
@@ -1736,7 +1620,7 @@ int main (int argc, char * argv[]) {
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
-   updateDM(yout, dmt, i*numOutputSteps/numsteps);
+   updateDM(yout, dmt, i*numOutputSteps/numsteps, &params);
    /*
    Output_checkpoint(
 #ifdef DEBUG
@@ -1759,7 +1643,7 @@ int main (int argc, char * argv[]) {
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
    */
- computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, params);
+ computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
 
  // compute time-independent outputs
  FILE * energyFile;
@@ -1775,7 +1659,7 @@ int main (int argc, char * argv[]) {
 #endif
 
  if (outs["cprobs.plt"] && (Nc > 1)) {
-  plot_cprobs(numOutputSteps, tout, k_bandtop, k_bandedge, Nk);
+  plot_cprobs(params);
  }
  
  // finalize log file //
@@ -1803,7 +1687,6 @@ int main (int argc, char * argv[]) {
 #endif
  // free solver memory //
  CVodeFree(&cvode_mem);
- */
 
 #ifdef DEBUG
  fprintf(stdout, "Freeing memory in main.\n");
@@ -1824,6 +1707,7 @@ int main (int argc, char * argv[]) {
  delete [] c_energies;
  delete [] b_energies;
  delete [] l_energies;
+ */
  fprintf(stderr, "\nwhoo\n");
 
  return 0;

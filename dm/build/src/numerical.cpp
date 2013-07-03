@@ -1,5 +1,4 @@
 #include "numerical.h"
-#include "params.h"
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
@@ -258,11 +257,123 @@ int findArrayMaximumIndex(realtype * inputArray, int num) {
  return currentMax_index;
 }
 
+/* assign coupling constants to global array V */
+void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
+                    std::map<std::string, bool> &outs) {
+ 
+ int i, j;	// counters
+ double Vkc;	// coupling between bulk and QD
+ double Vkb1;	// coupling between bulk and first bridge
+ double VbNc;	// coupling between last bridge and QD
+
+ // initialize the coupling array
+ for (i = 0; i < p->NEQ; i++) {
+  for (j = 0; j < p->NEQ; j++) {
+   vArray[i][j] = 0.0;
+  }
+ }
+
+ for (int ii = 0; ii < p->Nb + 1; ii++) {
+  std::cout << "p->Vbridge[" << ii << "] is ";
+  std::cout << p->Vbridge[ii] << "\n";
+ }
+
+ // bridge
+ if (p->bridge_on) {
+  // coupling between k and b1
+  if ((p->scale_bubr) && (p->Nk > 1)) {
+   Vkb1 = sqrt(p->Vbridge[0]*(p->kBandTop-p->kBandEdge)/(p->Nk-1));
+  }
+  else {
+   Vkb1 = p->Vbridge[0];
+  }
+  if (p->parabolicCoupling) {
+   for (i = 0; i < p->Nk; i++) {
+    vArray[p->Ik+i][p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
+    vArray[p->Ib][p->Ik+i] = parabolicV(Vkb1, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
+   }
+  }
+  else {
+   for (i = 0; i < p->Nk; i++) {
+    vArray[p->Ik+i][p->Ib] = Vkb1;
+    vArray[p->Ib][p->Ik+i] = Vkb1;
+   }
+  }
+   
+  // coupling between bN and c
+  if ((p->scale_brqd) && (p->Nc > 1)) {
+   VbNc = p->Vbridge[p->Nb]/sqrt(p->Nc-1);
+  }
+  else {
+   VbNc = p->Vbridge[p->Nb];
+  }
+  for (i = 0; i < p->Nc; i++) {
+   vArray[p->Ic+i][p->Ib+p->Nb-1] = VbNc;
+   vArray[p->Ib+p->Nb-1][p->Ic+i] = VbNc;
+  }
+  
+  // coupling between bridge states
+  for (i = 0; i < p->Nb - 1; i++) {
+   vArray[p->Ib+i][p->Ib+i+1] = p->Vbridge[i+1];
+   vArray[p->Ib+i+1][p->Ib+i] = p->Vbridge[i+1];
+  }
+ }
+ // no bridge
+ else {				
+  // scaling
+  if ((p->scale_buqd) && (p->Nk > 1)) {
+   Vkc = sqrt(p->Vnobridge[0]*(p->kBandTop-p->kBandEdge)/(p->Nk-1));
+  }
+  else {
+   Vkc = p->Vnobridge[0];
+  }
+
+  // parabolic coupling of bulk band to QD
+  if (p->parabolicCoupling) {
+   for (i = 0; i < p->Nk; i++) {
+    for (j = 0; j < p->Nc; j++) {
+     vArray[p->Ik+i][p->Ic+j] = parabolicV(Vkc, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
+     vArray[p->Ic+j][p->Ik+i] = parabolicV(Vkc, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
+    }
+   }
+  }
+  else {
+   for (i = 0; i < p->Nk; i++) {
+    for (j = 0; j < p->Nc; j++) {
+     vArray[p->Ik+i][p->Ic+j] = Vkc;
+     vArray[p->Ic+j][p->Ik+i] = Vkc;
+    }
+   }
+  }
+ }
+
+#ifdef DEBUG
+ cout << "\nCoupling matrix:\n";
+ for (i = 0; i < p->NEQ; i++) {
+  for (j = 0; j < p->NEQ; j++)
+   cout << scientific << vArray[i][j] << " ";
+  cout << endl;
+ }
+#endif
+
+ FILE * couplings;
+ if (outs["couplings.out"]) {
+  couplings = fopen("couplings.out","w");
+  for (i = 0; i < p->NEQ; i++) {
+   for (j = 0; j < p->NEQ; j++) {
+    fprintf(couplings,"%.7g ",vArray[i][j]);
+   }
+   fprintf(couplings,"\n");
+  }
+  fclose(couplings);
+ }
+}
+
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p) {
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PARAMETERS * p) {
  // indices
  int idx1, idx2;
- int N = p.NEQ;
+ int N = p->NEQ;
  
 #ifdef DEBUG
   fprintf(stderr, "Assigning diagonal elements of Hamiltonian.\n");
@@ -275,14 +386,14 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #endif
   }
 
- if (p.bridge_on) {
+ if (p->bridge_on) {
   // assign bulk-bridge coupling
 #ifdef DEBUG
   fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
 #endif
-  idx2 = p.Ib;
-  for (int ii = 0; ii < p.Nk; ii++) {
-   idx1 = p.Ik + ii;
+  idx2 = p->Ib;
+  for (int ii = 0; ii < p->Nk; ii++) {
+   idx1 = p->Ik + ii;
 #ifdef DEBUG2
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -295,9 +406,9 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #ifdef DEBUG
   fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
 #endif
-  for (int ii = 1; ii < p.Nb; ii++) {
-   idx1 = p.Ib + ii;
-   idx2 = p.Ib+ ii + 1;
+  for (int ii = 1; ii < p->Nb; ii++) {
+   idx1 = p->Ib + ii;
+   idx2 = p->Ib+ ii + 1;
 #ifdef DEBUG2
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -310,9 +421,9 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #ifdef DEBUG
   fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
 #endif
-  idx2 = p.Ib + p.Nb - 1;
-  for (int ii = 0; ii < p.Nc; ii++) {
-   idx1 = p.Ic + ii;
+  idx2 = p->Ib + p->Nb - 1;
+  for (int ii = 0; ii < p->Nc; ii++) {
+   idx1 = p->Ic + ii;
 #ifdef DEBUG2
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -328,10 +439,10 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
 #ifdef DEBUG
   fprintf(stderr, "Assigning bulk-QD coupling elements in Hamiltonian.\n");
 #endif
-  for (int ii = 0; ii < p.Nk; ii++) {
-   idx1 = p.Ik + ii;
-   for (int jj = 0; jj < p.Nc; jj++) {
-    idx2 = p.Ic + jj;
+  for (int ii = 0; ii < p->Nk; ii++) {
+   idx1 = p->Ik + ii;
+   for (int jj = 0; jj < p->Nc; jj++) {
+    idx2 = p->Ic + jj;
 #ifdef DEBUG2
     fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
     fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
@@ -343,3 +454,14 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS
   }
  }
 }
+
+/* Updates \rho(t) at each time step. */
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) {
+ for (int ii = 0; ii < p->NEQ2; ii++) {
+  dmt[2*p->NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
+  dmt[2*p->NEQ2*timeStep + ii + p->NEQ2] = NV_Ith_S(dm, ii + p->NEQ2);
+ }
+
+ return;
+}
+

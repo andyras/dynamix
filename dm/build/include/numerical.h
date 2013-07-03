@@ -1,9 +1,12 @@
 #ifndef __NUMERICAL_H__
 #define __NUMERICAL_H__
 
+#include <map>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <iostream>
 #include <nvector/nvector_serial.h>
 
 #include "params.h"
@@ -75,6 +78,11 @@ int findFirstArrayMaximumIndex(realtype * inputArray, int num);
 /* returns index of first maximum in an array. */
 int findArrayMaximumIndex(realtype * inputArray, int num);
 
+void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
+                    std::map<std::string, bool> &outs);
+
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p);
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PARAMETERS * p);
 #endif
+
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);

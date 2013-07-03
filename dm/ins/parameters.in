@@ -88,7 +88,7 @@ ham.out
 #Icprob.out
 #Ikprob.out
 #kmax.out
-#kprobs.out
+kprobs.out
 #kprobs_gnuplot.out
 #lprobs.out
 #log.out
