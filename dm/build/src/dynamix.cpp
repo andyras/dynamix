@@ -1643,7 +1643,7 @@ int main (int argc, char * argv[]) {
    tlprob, tcprob, tbprob, energy,
    energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
    */
- computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, params);
+ computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
 
  // compute time-independent outputs
  FILE * energyFile;

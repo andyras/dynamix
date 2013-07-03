@@ -185,7 +185,7 @@ void plot_cprobs(PARAMETERS p) {
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
-                     std::map<std::string, bool> &outs, PARAMETERS p) {
+                     std::map<std::string, bool> &outs, struct PARAMETERS * p) {
  // accumulator
  realtype summ;
 
@@ -195,9 +195,9 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
   totprob = fopen("totprob.out", "w");
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
-   for (int jj = 0; jj < p.NEQ; jj++) {
+   for (int jj = 0; jj < p->NEQ; jj++) {
 //fprintf(stdout, "Population at time %d in state %d\n", ii, jj);
-    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*jj + jj];
+    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*jj + jj];
    }
    fprintf(totprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -210,8 +210,8 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
   tkprob = fopen("tkprob.out", "w");
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
-   for (int jj = 0; jj < p.Nk; jj++) {
-    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*(p.Ik + jj) + p.Ik + jj];
+   for (int jj = 0; jj < p->Nk; jj++) {
+    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*(p->Ik + jj) + p->Ik + jj];
    }
    fprintf(tkprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -224,8 +224,8 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
   tbprob = fopen("tbprob.out", "w");
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
-   for (int jj = 0; jj < p.Nb; jj++) {
-    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*(p.Ib + jj) + p.Ib + jj];
+   for (int jj = 0; jj < p->Nb; jj++) {
+    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*(p->Ib + jj) + p->Ib + jj];
    }
    fprintf(tbprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -238,8 +238,8 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
   tcprob = fopen("tcprob.out", "w");
   for (int ii = 0; ii < numTimeSteps; ii++) {
    summ = 0.0;
-   for (int jj = 0; jj < p.Nc; jj++) {
-    summ += dmt[2*p.NEQ*p.NEQ*ii + p.NEQ*(p.Ic + jj) + p.Ic + jj];
+   for (int jj = 0; jj < p->Nc; jj++) {
+    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*(p->Ic + jj) + p->Ic + jj];
    }
    fprintf(tcprob, "%-.7g %-.7g\n", t[ii], summ);
   }
@@ -255,16 +255,16 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["dmt_z.out"]) {
   dmt_z = fopen("dmt_z.out", "w");
   // loop over time steps
-  for (int ii = 0; ii < p.numOutputSteps; ii++) {
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
    // loop over first index
-   for (int jj = 0; jj < p.NEQ; jj++) {
+   for (int jj = 0; jj < p->NEQ; jj++) {
     // first element in row
     // loop over second index
-    fprintf(dmt_z, "%+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj],2)
-                               + pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2],2)));
-    for (int kk = 1; kk < p.NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", sqrt(pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + kk],2)
-				+ pow(dmt[2*p.NEQ2*ii + p.NEQ*jj + kk + p.NEQ2],2)));
+    fprintf(dmt_z, "%+.7e", sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj],2)
+                               + pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2],2)));
+    for (int kk = 1; kk < p->NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk],2)
+				+ pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2],2)));
     }
     fprintf(dmt_z, "\n");
    }
@@ -278,14 +278,14 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["dmt_re.out"]) {
   dmt_re = fopen("dmt_re.out", "w");
   // loop over time steps
-  for (int ii = 0; ii < p.numOutputSteps; ii++) {
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
    // loop over first index
-   for (int jj = 0; jj < p.NEQ; jj++) {
+   for (int jj = 0; jj < p->NEQ; jj++) {
     // first element in row
     // loop over second index
-    fprintf(dmt_z, "%+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj]);
-    for (int kk = 1; kk < p.NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + kk]);
+    fprintf(dmt_z, "%+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj]);
+    for (int kk = 1; kk < p->NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj + kk]);
     }
     fprintf(dmt_z, "\n");
    }
@@ -299,14 +299,14 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["dmt_im.out"]) {
   dmt_im = fopen("dmt_im.out", "w");
   // loop over time steps
-  for (int ii = 0; ii < p.numOutputSteps; ii++) {
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
    // loop over first index
-   for (int jj = 0; jj < p.NEQ; jj++) {
+   for (int jj = 0; jj < p->NEQ; jj++) {
     // first element in row
     // loop over second index
-    fprintf(dmt_z, "%+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + p.NEQ2]);
-    for (int kk = 1; kk < p.NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*p.NEQ2*ii + p.NEQ*jj + kk + p.NEQ2]);
+    fprintf(dmt_z, "%+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2]);
+    for (int kk = 1; kk < p->NEQ; kk++) {
+     fprintf(dmt_z, " %+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2]);
     }
     fprintf(dmt_z, "\n");
    }

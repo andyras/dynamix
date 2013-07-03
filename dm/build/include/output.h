@@ -60,5 +60,5 @@ void plot_cprobs(PARAMETERS p);
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
-                     std::map<std::string, bool> &outs, PARAMETERS p);
+                     std::map<std::string, bool> &outs, struct PARAMETERS * p);
 #endif
