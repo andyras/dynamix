@@ -265,16 +265,40 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
   fclose(tcprob);
  }
 
-#ifdef DEBUG
+#ifdef DEBUG_OUTPUT
  fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
 #endif
 
  // populations in k states
  if (outs["kprobs.out"]) {
+#ifdef DEBUG_OUTPUT
   std::cout << "\nmaking kprobs.out\n";
-#ifdef DEBUG
 #endif
   outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
+ }
+
+ // populations in c states
+ if (outs["cprobs.out"]) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nmaking cprobs.out\n";
+#endif
+  outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
+ }
+
+ // populations in b states
+ if (outs["bprobs.out"]) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nmaking bprobs.out\n";
+#endif
+  outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
+ }
+
+ // populations in l states
+ if (outs["lprobs.out"]) {
+#ifdef DEBUG
+  std::cout << "\nmaking lprobs.out\n";
+#endif
+  outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
  }
 
  // norm of DM elements

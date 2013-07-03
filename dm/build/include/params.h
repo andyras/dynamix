@@ -6,11 +6,13 @@
 // Struct of parameters
 struct PARAMETERS {
  int Nk;
- int Nb;
  int Nc;
+ int Nb;
+ int Nl;
  int Ik;
- int Ib;
  int Ic;
+ int Ib;
+ int Il;
  int NEQ;
  int NEQ2;
  int numOutputSteps;

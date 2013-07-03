@@ -1,7 +1,7 @@
 #ifndef __OUTPUT_H__
 #define __OUTPUT_H__
 
-#define DEBUG
+//#define DEBUG_OUTPUT
 
 #include <map>
 #include <cmath>

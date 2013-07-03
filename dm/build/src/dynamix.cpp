@@ -23,7 +23,7 @@
 #include "userdata.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-#define DEBUG
+//#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -1278,9 +1278,11 @@ int main (int argc, char * argv[]) {
  params.Nk = Nk;
  params.Nc = Nc;
  params.Nb = Nb;
+ params.Nl = Nl;
  params.Ik = Ik;
  params.Ic = Ic;
  params.Ib = Ib;
+ params.Il = Il;
  params.NEQ = NEQ;
  params.NEQ2 = NEQ2;
  params.numOutputSteps = numOutputSteps;
