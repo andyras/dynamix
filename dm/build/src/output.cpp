@@ -183,6 +183,25 @@ void plot_cprobs(PARAMETERS p) {
  return;
 }
 
+/* Output the population in each state over time.  This function takes
+ * the indices 'start' and 'end', e.g. Ik and Ik+Nk
+ */
+void outputXProbs(char * fileName, int start, int end, realtype * dmt,
+                  struct PARAMETERS * p) {
+ std::ofstream output(fileName);
+
+ for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  output << std::setw(8) << std::scientific << p->times[ii];
+  for (int jj = start; jj < end; jj++) {
+   output << " "
+          << std::setw(8) << std::scientific << dmt[ii*p->NEQ2*2 + jj*p->NEQ + jj]
+          << "\n";
+  }
+ }
+
+ return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, struct PARAMETERS * p) {

@@ -58,6 +58,8 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
 void plot_cprobs(PARAMETERS p);
 
+void outputXProbs(int start, int end, realtype * dmt, struct PARAMETERS * p);
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, struct PARAMETERS * p);
