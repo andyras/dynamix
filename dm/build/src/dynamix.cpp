@@ -27,7 +27,8 @@
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
 /* enormous (many GB).  This flag turns on debug output within the f          */
 /* function.                                                                  */
-#define DEBUGf
+// #define DEBUGf
+#define DEBUG_DMf
 
 using namespace std;
 
@@ -35,6 +36,9 @@ using namespace std;
 PARAMETERS params;
 
 // GLOBAL VARIABLES GO HERE //
+#ifdef DEBUG_DMf
+FILE * dmf;				// file for density matrix coeff derivatives in time
+#endif
 void * cvode_mem;			// pointer to block of CVode memory
 realtype * user_data;
 N_Vector y, yout;			// arrays of populations
@@ -190,6 +194,9 @@ void buildCoupling (realtype ** vArray, int dim, realtype kBandEdge,
 int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 // gives f(y,t) for CVODE
 
+ fprintf(stdout, "%f", data[0]);
+
+ /*
  // TODO: decompose 'data' variable into energies
  // TODO: only calculate upper/lower triangle of diagonal blocks in DM
  
@@ -246,29 +253,35 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   cout << "\nCalculating contributions from energy gaps.\n";
 #endif
   //// Contributions from energy gaps
+  //TODO: could just calculate one triangle
   for (int ii = 0; ii < NEQ; ii++) {
    // only need off-diagonal terms (would be 0 if ii == jj)
-   for (int jj = 0; jj < ii; jj++) {
+   for (int jj = 0; jj < NEQ; jj++) {
     IijRe = NEQ*ii + jj;
     IijIm = IijRe + NEQ2;
-    IjiRe = NEQ*jj + ii;
-    IjiIm = IjiRe + NEQ2;
+    //IjiRe = NEQ*jj + ii;
+    //IjiIm = IjiRe + NEQ2;
     wij = energy[ii] - energy[jj];
-    wji = -1*wij;
+    //wji = -1*wij;
 
     // real parts of complex conjugates are the same
     NV_Ith_S(ydot, IijRe) += wij*NV_Ith_S(y, IijIm);
-    NV_Ith_S(ydot, IjiRe) += wji*NV_Ith_S(y, IjiIm);
+    //NV_Ith_S(ydot, IjiRe) += wji*NV_Ith_S(y, IjiIm);
     // imaginary parts of complex conjugates have opposite sign (use opposite of wij)
     NV_Ith_S(ydot, IijIm) -= wij*NV_Ith_S(y, IijRe);
-    NV_Ith_S(ydot, IjiIm) -= wji*NV_Ith_S(y, IjiRe);
-#ifdef DEBUGf
-    fprintf(stdout, "In f, energy gaps\n");
-    fprintf(stdout, "w(%.2d, %.2d) = %.7e\n", ii, jj, wij);
-    fprintf(stdout, "IijRe: %.2d; IijIm: %.2d\n", IijRe, IijIm);
-    fprintf(stdout, "IjiRe: %.2d; IjiIm: %.2d\n", IjiRe, IjiIm);
-    fprintf(stdout, "Re(\\dot{p_{ij}}) = %.7e*%.7e\n", wij, NV_Ith_S(y, IijIm));
-#endif
+    //NV_Ith_S(ydot, IjiIm) -= wji*NV_Ith_S(y, IjiRe);
+//#ifdef DEBUGf
+    if (t == 0.0) {
+     fprintf(stdout, "In f, energy gaps\n");
+     fprintf(stdout, "w(%.2d, %.2d) = %.7e\n", ii, jj, wij);
+     fprintf(stdout, "IijRe: %.2d; IijIm: %.2d\n", IijRe, IijIm);
+     //fprintf(stdout, "IjiRe: %.2d; IjiIm: %.2d\n", IjiRe, IjiIm);
+     fprintf(stdout, "Re(\\dot{p_{(%.2d,%.2d)}}) = %.7e*%.7e\n", ii, jj, wij, NV_Ith_S(y, IijIm));
+     fprintf(stdout, "Im(\\dot{p_{(%.2d,%.2d)}}) = -1*%.7e*%.7e\n", ii, jj, wij, NV_Ith_S(y, IijRe));
+     //fprintf(stdout, "Re(\\dot{p_{(%.2d,%.2d)}}) = %.7e*%.7e\n", jj, ii, wji, NV_Ith_S(y, IjiIm));
+     //fprintf(stdout, "Im(\\dot{p_{(%.2d,%.2d)}}) = -1*%.7e*%.7e\n", jj, ii, wji, NV_Ith_S(y, IjiRe));
+    }
+//#endif
    }
   }
 
@@ -290,9 +303,12 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IkbIm = IkbRe + NEQ2;
 
     // real part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
-    NV_Ith_S(ydot, IkkpRe) += Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
+    NV_Ith_S(ydot, IkkpRe) -= Vkb*(NV_Ith_S(y, IbkpIm) - NV_Ith_S(y, IkbIm));
     // imaginary part	V_{kb}(\rho_{bk'} - \rho_{kb}) term
-    NV_Ith_S(ydot, IkkpIm) -= Vbc*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
+    // is non-zero only if k != k'
+    if (IkRe != IkpRe) {
+     NV_Ith_S(ydot, IkkpIm) += Vkb*(NV_Ith_S(y, IbkpRe) - NV_Ith_S(y, IkbRe));
+    }
 #ifdef DEBUGf
     fprintf(stdout, "In f, \\rho_{kk'}\n");
     fprintf(stdout, "IkRe: %.2d; IkpRe: %.2d\n", IkRe, IkpRe);
@@ -328,7 +344,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   // real part		V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
-  NV_Ith_S(ydot, IbbpRe) += Vkb*sumRe;
+  NV_Ith_S(ydot, IbbpRe) -= Vkb*sumRe;
   // imaginary part	V_{kb}(\dot{\rho_{kb}} - \dot{\rho_{bk}}) term
   // can assume this will be 0 as long as there is only one bridge
   // NV_Ith_S(ydot, IbbpIm) += Vkb*sumIm;
@@ -349,7 +365,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   // real part		V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
-  NV_Ith_S(ydot, IbbpRe) += Vbc*sumRe;
+  NV_Ith_S(ydot, IbbpRe) -= Vbc*sumRe;
   // imaginary part	V_{bc}(\dot{\rho_{bc}} - \dot{\rho_{cb}}) term
   // can assume this will be 0 as long as there is only one bridge
   // NV_Ith_S(ydot, IbbpIm) += Vbc*sumIm;
@@ -386,17 +402,27 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    IbkRe = NEQ*IbRe + IkRe;
    IbkIm = IbkRe + NEQ2;
 
-   // real part		V_{kb}\rho_{bb} term
-   sumRe = NV_Ith_S(y, IbbpIm);
-   // imaginary part	V_{kb}\rho_{bb} term
-   sumIm = -1*NV_Ith_S(y, IbbpRe);
+   // real part		V_{kb}\rho_{bb'} term
+   // is non-zero only if b != b'
+   if (IbRe != IbpRe) {
+    NV_Ith_S(ydot, IkbRe) -= Vkb*NV_Ith_S(y, IbbpIm);
+    NV_Ith_S(ydot, IbkRe) += Vkb*NV_Ith_S(y, IbbpIm);
+   }
+   // imaginary part	V_{kb}\rho_{bb'} term
+   NV_Ith_S(ydot, IkbIm) += Vkb*NV_Ith_S(y, IbbpRe);
+   NV_Ith_S(ydot, IbkIm) -= Vkb*NV_Ith_S(y, IbbpRe);
 
+   sumRe = 0.0;
+   sumIm = 0.0;
    for (int jj = 0; jj < Nk; jj++) {
     IkpRe = Ik + jj;
     IkkpRe = NEQ*IkRe + IkpRe;
     IkkpIm = IkkpRe + NEQ2;
     // real part	V_{kb}\rho_{kk'} term
-    sumRe -= NV_Ith_S(y, IkkpIm);
+    if (IkRe != IkpRe) {
+     // is non-zero only if k != k'
+     sumRe += NV_Ith_S(y, IkkpIm);
+    }
     // imaginary part	V_{kb}\rho_{kk'} term
     sumIm += NV_Ith_S(y, IkkpRe);
    }
@@ -404,8 +430,8 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    NV_Ith_S(ydot, IkbRe) += Vkb*sumRe;
    NV_Ith_S(ydot, IbkRe) += Vkb*sumRe;
    // imaginary part	V_{kb} terms
-   NV_Ith_S(ydot, IkbIm) += Vkb*sumIm;
-   NV_Ith_S(ydot, IbkIm) -= Vkb*sumIm;
+   NV_Ith_S(ydot, IkbIm) -= Vkb*sumIm;
+   NV_Ith_S(ydot, IbkIm) += Vkb*sumIm;
 
    sumRe = 0.0;
    sumIm = 0.0;
@@ -415,7 +441,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
     IkcIm = IkcRe + NEQ2;
 
     // real part	V_{bc}\rho_{kc} term
-    sumRe -= NV_Ith_S(y, IkcIm);
+    sumRe += NV_Ith_S(y, IkcIm);
     // imaginary part	V_{bc}\rho_{kc} term
     sumIm += NV_Ith_S(y, IkcRe);
    }
@@ -424,7 +450,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
    NV_Ith_S(ydot, IkbRe) += Vbc*sumRe;
    NV_Ith_S(ydot, IbkRe) += Vbc*sumRe;
    // imaginary part	V_{bc}\rho_{kc} term
-   NV_Ith_S(ydot, IkbIm) += Vbc*sumIm;
+   NV_Ith_S(ydot, IkbIm) -= Vbc*sumIm;
    NV_Ith_S(ydot, IbkIm) += Vbc*sumIm;
   }
 
@@ -514,6 +540,17 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
  }
 #endif
+
+#ifdef DEBUG_DMf
+ fprintf(dmf, "%+.7e", t);
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < NEQ; jj++) {
+   fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*NEQ + jj), NV_Ith_S(ydot, ii*NEQ + jj + NEQ2));
+  }
+ }
+ fprintf(dmf, "\n");
+#endif
+ */
 
  return 0;
 }
@@ -1461,7 +1498,7 @@ int main (int argc, char * argv[]) {
   energy[Ib + i] = b_energies[i];
  for (i = 0; i < Nl; i++)
   energy[Il + i] = l_energies[i];
- user_data = energy;
+ //user_data = energy;
 
 #ifdef DEBUG
  // output energies
@@ -1576,8 +1613,6 @@ int main (int argc, char * argv[]) {
  cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
 #endif
 
- // DONE PREPROCESSING //
- 
  //// feed parameters to struct
  params.Nk = Nk;
  params.Nc = Nc;
@@ -1588,7 +1623,21 @@ int main (int argc, char * argv[]) {
  params.NEQ = NEQ;
  params.NEQ2 = NEQ2;
  params.numOutputSteps = numOutputSteps;
+ params.bridge_on = bridge_on;
 
+  // build Hamiltonian
+#ifdef DEBUG
+  fprintf(stderr, "Building Hamiltonian.\n");
+#endif
+  realtype * H = new realtype [NEQ2];
+  buildHamiltonian(H, energy, V, params);
+  if (outs["ham.out"]) {
+   outputSquareMatrix(H, NEQ, "ham.out");
+  }
+  user_data = H;
+
+ // DONE PREPROCESSING //
+ 
 #ifdef DEBUG
  cout << "\nCreating N_Vectors.\n";
  cout << "\nProblem size is " << 2*NEQ2 << " elements.\n";
@@ -1649,6 +1698,10 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  cout << "\nAdvancing the solution in time.\n";
 #endif
+#ifdef DEBUG_DMf
+ cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+ dmf = fopen("dmf.out", "w");
+#endif
  for (i = 1; i <= numsteps; ++i) {
   t = (tout*((double) i)/((double) numsteps));
   flag = CVode(cvode_mem, t, yout, &tret, 1);
@@ -1656,7 +1709,7 @@ int main (int argc, char * argv[]) {
   //cout << endl << "CVode flag at step " << i << ": " << flag << endl;
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
-   //fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+   fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
    updateDM(yout, dmt, i*numOutputSteps/numsteps);
    /*
    Output_checkpoint(
@@ -1669,6 +1722,10 @@ int main (int argc, char * argv[]) {
    */
   }
  }
+#ifdef DEBUG_DMf
+ cout << "Closing output file for density matrix coefficients in time.\n";
+ fclose(dmf);
+#endif
 
  // compute final outputs //
  /*

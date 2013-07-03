@@ -20,7 +20,7 @@
 #include "numerical.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -29,10 +29,14 @@
 //#define DEBUGf
 /* This flag is debuggery related to checking against Sai's code.             */
 //#define DEBUG_SAI
+#define DEBUG_DMf
 
 using namespace std;
 
 // GLOBAL VARIABLES GO HERE //
+#ifdef DEBUG_DMf
+FILE * dmf;
+#endif
 void * cvode_mem;			// pointer to block of CVode memory
 realtype * user_data;
 N_Vector y, yout;			// arrays of populations
@@ -408,10 +412,23 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
  }
 #endif
 
+#ifdef DEBUG_DMf
+ // Output density matrix coefficient derivatives
+ fprintf(dmf, "%+.7e", t);
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < NEQ; jj++) {
+   fprintf(dmf, " (%+.2e,%+.2e)",
+           NV_Ith_S(ydot, ii)*NV_Ith_S(y, jj) + NV_Ith_S(ydot, ii + NEQ)*NV_Ith_S(y, jj + NEQ)
+	 + NV_Ith_S(y, ii)*NV_Ith_S(ydot, jj) + NV_Ith_S(y, ii + NEQ)*NV_Ith_S(ydot, jj + NEQ),
+           NV_Ith_S(ydot, ii)*NV_Ith_S(y, jj + NEQ) - NV_Ith_S(ydot, ii + NEQ)*NV_Ith_S(y, jj)
+	 + NV_Ith_S(y, ii)*NV_Ith_S(ydot, jj + NEQ) - NV_Ith_S(y, ii + NEQ)*NV_Ith_S(ydot, jj));
+  }
+ }
+ fprintf(dmf, "\n");
+#endif
+
  return 0;
 }
-
-
 
 
 int Output_checkpoint(
@@ -2418,8 +2435,8 @@ int main (int argc, char * argv[]) {
   fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
   return -1;
  }
- if (Nl < 1) {
-  fprintf(stderr, "ERROR [Inputs]: Nl less than 1.\n");
+ if (Nl < 0) {
+  fprintf(stderr, "ERROR [Inputs]: Nl less than 0.\n");
   return -1;
  }
  if ((bulk_FDD && bulk_constant) || (bulk_FDD && bulk_Gauss) || (bulk_constant && bulk_Gauss)) {
@@ -2820,6 +2837,10 @@ int main (int argc, char * argv[]) {
 
  // advance the solution in time! //
  // use CVODE for time-dependent H
+#ifdef DEBUG_DMf
+ cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+ dmf = fopen("dmf.out", "w");
+#endif
  if (timedepH) {
   for (i = 1; i <= numsteps; ++i) {
    t = (tout*((double) i)/((double) numsteps));
@@ -2838,6 +2859,10 @@ int main (int argc, char * argv[]) {
       k_bandedge, k_bandtop, k_pops);
    }
   }
+#ifdef DEBUG_DMf
+  cout << "Closing output file for density matrix coefficients in time.\n";
+  fclose(dmf);
+#endif
 
  // compute final outputs //
  Compute_final_outputs(allprob, times, tkprob,

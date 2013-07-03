@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <nvector/nvector_serial.h>
 
+#include "params.h"
+
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
  */
@@ -73,4 +75,6 @@ int findFirstArrayMaximumIndex(realtype * inputArray, int num);
 /* returns index of first maximum in an array. */
 int findArrayMaximumIndex(realtype * inputArray, int num);
 
+/* builds a Hamiltonian from site energies and couplings. */
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p);
 #endif

@@ -1,4 +1,5 @@
 #include "numerical.h"
+#include "params.h"
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
@@ -257,3 +258,88 @@ int findArrayMaximumIndex(realtype * inputArray, int num) {
  return currentMax_index;
 }
 
+/* builds a Hamiltonian from site energies and couplings. */
+void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p) {
+ // indices
+ int idx1, idx2;
+ int N = p.NEQ;
+ 
+#ifdef DEBUG
+  fprintf(stderr, "Assigning diagonal elements of Hamiltonian.\n");
+#endif
+  for (int ii = 0; ii < N; ii++) {
+   // diagonal
+   H[ii*N + ii] = energy[ii];
+#ifdef DEBUG
+   cout << "diagonal element " << ii << " of H is " << energy[ii] << "\n";
+#endif
+  }
+
+ if (p.bridge_on) {
+  // assign bulk-bridge coupling
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
+#endif
+  idx2 = p.Ib;
+  for (int ii = 0; ii < p.Nk; ii++) {
+   idx1 = p.Ik + ii;
+#ifdef DEBUG2
+   fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+   fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+   fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+   H[idx1*N + idx2] = V[idx1][idx2];
+   H[idx2*N + idx1] = V[idx2][idx1];
+  }
+  // assign bridge-bridge couplings
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
+#endif
+  for (int ii = 1; ii < p.Nb; ii++) {
+   idx1 = p.Ib + ii;
+   idx2 = p.Ib+ ii + 1;
+#ifdef DEBUG2
+   fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+   fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+   fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+   H[idx1*N + idx2] = V[idx1][idx2];
+   H[idx2*N + idx1] = V[idx2][idx1];
+  }
+  // assign bridge-QD coupling
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
+#endif
+  idx2 = p.Ib + p.Nb - 1;
+  for (int ii = 0; ii < p.Nc; ii++) {
+   idx1 = p.Ic + ii;
+#ifdef DEBUG2
+   fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+   fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+   fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+   H[idx1*N + idx2] = V[idx1][idx2];
+   H[idx2*N + idx1] = V[idx2][idx1];
+  }
+ }
+ // no bridge
+ else {
+  // assign bulk-QD coupling
+#ifdef DEBUG
+  fprintf(stderr, "Assigning bulk-QD coupling elements in Hamiltonian.\n");
+#endif
+  for (int ii = 0; ii < p.Nk; ii++) {
+   idx1 = p.Ik + ii;
+   for (int jj = 0; jj < p.Nc; jj++) {
+    idx2 = p.Ic + jj;
+#ifdef DEBUG2
+    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+    fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+    H[idx1*N + idx2] = V[idx1][idx2];
+    H[idx2*N + idx1] = V[idx2][idx1];
+   }
+  }
+ }
+}
