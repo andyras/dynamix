@@ -1437,7 +1437,7 @@ int main (int argc, char * argv[]) {
  V = new realtype * [NEQ];
  for (i = 0; i < NEQ; i++)
   V[i] = new realtype [NEQ];
- buildCoupling(V, params, outs);
+ buildCoupling(V, &params, outs);
 
  if (outs["log.out"]) {
   // make a note in the log about system timescales

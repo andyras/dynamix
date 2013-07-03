@@ -77,7 +77,7 @@ int findFirstArrayMaximumIndex(realtype * inputArray, int num);
 /* returns index of first maximum in an array. */
 int findArrayMaximumIndex(realtype * inputArray, int num);
 
-void buildCoupling (realtype ** vArray, PARAMETERS p,
+void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
                     std::map<std::string, bool> &outs);
 
 /* builds a Hamiltonian from site energies and couplings. */
