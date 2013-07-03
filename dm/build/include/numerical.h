@@ -84,4 +84,4 @@ void buildCoupling (realtype ** vArray, PARAMETERS p,
 void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, PARAMETERS p);
 #endif
 
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, PARAMETERS p);
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);

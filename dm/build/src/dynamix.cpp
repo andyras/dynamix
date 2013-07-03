@@ -1292,6 +1292,12 @@ int main (int argc, char * argv[]) {
  params.scale_brqd = scale_brqd;
  params.scale_buqd = scale_buqd;
  params.parabolicCoupling = parabolicCoupling;
+ /*
+ params.times.resize(numOutputSteps);
+ for (int ii = 0; ii < numOutputSteps; ii++) {
+  params.times[ii] = times[ii];
+ }
+ */
 
  //// Build initial wavefunction
 
@@ -1550,7 +1556,7 @@ int main (int argc, char * argv[]) {
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
  // put in t = 0 information
- updateDM(y, dmt, 0, params);
+ updateDM(y, dmt, 0, &params);
  // the vector yout has the same dimensions as y
  yout = N_VClone(y);
 
@@ -1614,7 +1620,7 @@ int main (int argc, char * argv[]) {
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
-   updateDM(yout, dmt, i*numOutputSteps/numsteps, params);
+   updateDM(yout, dmt, i*numOutputSteps/numsteps, &params);
    /*
    Output_checkpoint(
 #ifdef DEBUG
