@@ -1,5 +1,6 @@
 #include "numerical.h"
 
+//#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
@@ -275,10 +276,12 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
   }
  }
 
+#ifdef DEBUG_BUILDCOUPLING
  for (int ii = 0; ii < p->Nb + 1; ii++) {
   std::cout << "p->Vbridge[" << ii << "] is ";
   std::cout << p->Vbridge[ii] << "\n";
  }
+#endif
 
  // bridge
  if (p->bridge_on) {
