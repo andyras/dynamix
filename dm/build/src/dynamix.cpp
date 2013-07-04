@@ -91,35 +91,40 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 
  // initialize ydot
  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
+#pragma omp parallel for
  for (int ii = 0; ii < 2*NEQ2; ii++) {
   NV_Ith_S(ydot, ii) = 0.0;
  }
 
- // real parts of ydot
+ //// diagonal; no need to calculate the imaginary part
 #pragma omp parallel for
  for (int ii = 0; ii < NEQ; ii++) {
   for (int jj = 0; jj < NEQ; jj++) {
-   for (int kk = 0; kk < NEQ; kk++) {
-    // first term: H*\rho
-    NV_Ith_S(ydot, ii*NEQ + jj) += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
-    // second term: -\rho*H
-    NV_Ith_S(ydot, ii*NEQ + jj) -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
-   }
+   NV_Ith_S(ydot, ii*NEQ + ii) += 2*Ham[ii*NEQ + jj]*NV_Ith_S(y, jj*NEQ + ii + NEQ2);
   }
  }
 
- // imaginary parts of ydot (lower triangle and complex conjugate)
+ //// off-diagonal
 #pragma omp parallel for
  for (int ii = 0; ii < NEQ; ii++) {
   for (int jj = 0; jj < ii; jj++) {
    for (int kk = 0; kk < NEQ; kk++) {
+    //// real parts of ydot
+    // first term: H*\rho
+    NV_Ith_S(ydot, ii*NEQ + jj) += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
+    // second term: -\rho*H
+    NV_Ith_S(ydot, ii*NEQ + jj) -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
+
+    //// imaginary parts of ydot (lower triangle and complex conjugate)
     // lower triangle: column jj is less than row ii
     NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) -= Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj);
     NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) += NV_Ith_S(y, ii*NEQ + kk)*Ham[kk*NEQ + jj];
     // upper triangle: row jj is less than column ii
-    // complex conjugate has opposite sign
-    NV_Ith_S(ydot, jj*NEQ + ii + NEQ2) = -1*NV_Ith_S(ydot, ii*NEQ + jj + NEQ2);
    }
+   // conjugate (upper triangle) is the same
+   NV_Ith_S(ydot, jj*NEQ + ii) = NV_Ith_S(ydot, ii*NEQ + jj);
+   // complex conjugate (upper triangle) has opposite sign
+   NV_Ith_S(ydot, jj*NEQ + ii + NEQ2) = -1*NV_Ith_S(ydot, ii*NEQ + jj + NEQ2);
   }
  }
  /*
