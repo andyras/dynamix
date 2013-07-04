@@ -81,7 +81,7 @@ return
 dmt_z.out
 dmt_re.out
 dmt_im.out
-#energy.out
+energies.out
 #energy_exp.out
 #FTtcprob.out
 ham.out
@@ -103,7 +103,7 @@ kprobs.out
 #tbprob.out
 #tcderiv.out
 #tcrate.out
-#times.out
+times.out
 #tkderiv.out
 tbprob.out
 tcprob.out
