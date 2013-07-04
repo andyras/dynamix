@@ -90,18 +90,35 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 // gives f(y,t) for CVODE
 
  // initialize ydot
+ // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
  for (int ii = 0; ii < 2*NEQ2; ii++) {
   NV_Ith_S(ydot, ii) = 0.0;
  }
 
+ // real parts of ydot
 #pragma omp parallel for
  for (int ii = 0; ii < NEQ; ii++) {
   for (int jj = 0; jj < NEQ; jj++) {
    for (int kk = 0; kk < NEQ; kk++) {
-    NV_Ith_S(ydot, ii*NEQ + jj)        += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
+    // first term: H*\rho
+    NV_Ith_S(ydot, ii*NEQ + jj) += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
+    // second term: -\rho*H
+    NV_Ith_S(ydot, ii*NEQ + jj) -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
+   }
+  }
+ }
+
+ // imaginary parts of ydot (lower triangle and complex conjugate)
+#pragma omp parallel for
+ for (int ii = 0; ii < NEQ; ii++) {
+  for (int jj = 0; jj < ii; jj++) {
+   for (int kk = 0; kk < NEQ; kk++) {
+    // lower triangle: column jj is less than row ii
     NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) -= Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj);
-    NV_Ith_S(ydot, ii*NEQ + jj)        -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
     NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) += NV_Ith_S(y, ii*NEQ + kk)*Ham[kk*NEQ + jj];
+    // upper triangle: row jj is less than column ii
+    // complex conjugate has opposite sign
+    NV_Ith_S(ydot, jj*NEQ + ii + NEQ2) = -1*NV_Ith_S(ydot, ii*NEQ + jj + NEQ2);
    }
   }
  }
@@ -1175,13 +1192,11 @@ int main (int argc, char * argv[]) {
   fclose(log);					// note that the log file is opened after variable declaration
  }
  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
- printf("Computing outputs...");
- printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
  // Compute density matrix outputs.
-//#ifdef DEBUG
+#ifdef DEBUG
  cout << "Computing outputs...";
-//#endif
+#endif
  computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
 #ifdef DEBUG
  std::cout << "done.";
