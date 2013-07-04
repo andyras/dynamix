@@ -23,7 +23,7 @@
 #include "userdata.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -1023,8 +1023,8 @@ int main (int argc, char * argv[]) {
  }
 
  // Create the array to store the density matrix in time
- dmt = new realtype [2*NEQ2*numOutputSteps];
- initializeArray(dmt, 2*NEQ2*numOutputSteps, 0.0);
+ dmt = new realtype [2*NEQ2*(numOutputSteps+1)];
+ initializeArray(dmt, 2*NEQ2*(numOutputSteps+1), 0.0);
 
 #ifdef DEBUG
  // print out density matrix
@@ -1105,14 +1105,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  realImaginary = fopen("real_imaginary.out", "w");
 #endif
- /*
- Output_checkpoint(
-#ifdef DEBUG
-   realImaginary, 
-#endif
-   allprob, y, t0, tkprob, tlprob, tcprob, tbprob, times, qd_est,
-   qd_est_diag, energy_expectation, 0, energy, k_bandedge, k_bandtop, k_pops);
-   */
 
  // create CVode object
  // this is a stiff problem, I guess?
@@ -1165,15 +1157,6 @@ int main (int argc, char * argv[]) {
  fclose(dmf);
 #endif
 
- // compute time-independent outputs
- FILE * energyFile;
- if (outs["energy.out"]) {
-  energyFile = fopen("energy.out", "w");
-  for (i = 0; i < NEQ; i++) {
-   fprintf(energyFile, "%-.9e\n", energy[i]);
-  }
-  fclose(energyFile);
- }
 #ifdef DEBUG
  fclose(realImaginary);
 #endif
@@ -1192,9 +1175,17 @@ int main (int argc, char * argv[]) {
   fclose(log);					// note that the log file is opened after variable declaration
  }
  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
+ printf("Computing outputs...");
+ printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
  // Compute density matrix outputs.
+//#ifdef DEBUG
+ cout << "Computing outputs...";
+//#endif
  computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
+#ifdef DEBUG
+ std::cout << "done.";
+#endif
 
 #ifdef DEBUG
  fprintf(stdout, "Deallocating N_Vectors.\n");

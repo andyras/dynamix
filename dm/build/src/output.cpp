@@ -1,5 +1,7 @@
 #include "output.h"
 
+// #define DEBUG_OUTPUTTXPROB
+
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
  */
@@ -188,6 +190,9 @@ void plot_cprobs(PARAMETERS p) {
  */
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
                   struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ std::cout << "Creating file " << fileName << ".\n";
+#endif
  std::ofstream output(fileName);
 
  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -202,12 +207,51 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
  return;
 }
 
+/* Output the total population in a set of states over time.  This function
+ * takes the indices 'start' and 'end', e.g. Ik and Ik+Nk
+ */
+void outputtXprob(char * fileName, int start, int end, realtype * dmt,
+                   struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ std::cout << "Creating file " << fileName << ".\n";
+#endif
+ std::ofstream output(fileName);
+ realtype summ;
+
+ for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+  output << std::setw(8) << std::scientific << p->times[ii] << " ";
+  summ = 0.0;
+  for (int jj = start; jj < end; jj++) {
+   summ += dmt[ii*p->NEQ2*2 + jj*p->NEQ + jj];
+  }
+  output << std::setw(8) << std::scientific << summ << "\n";
+ }
+
+ return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, struct PARAMETERS * p) {
  // accumulator
  realtype summ;
 
+ if (outs["totprob.out"]) {
+  outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
+ }
+ if (outs["tkprob.out"]) {
+  outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
+ }
+ if (outs["tcprob.out"]) {
+  outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
+ }
+ if (outs["tbprob.out"]) {
+  outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
+ }
+ if (outs["tlprob.out"]) {
+  outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
+ }
+ /*
  //// Population over time
  FILE * totprob;
  if (outs["totprob.out"]) {
@@ -264,6 +308,7 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
   }
   fclose(tcprob);
  }
+ */
 
 #ifdef DEBUG_OUTPUT
  fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");

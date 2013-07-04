@@ -1,5 +1,7 @@
 #include "numerical.h"
 
+#define DEBUG_UPDATEDM
+
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
  */
@@ -457,10 +459,16 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PAR
 
 /* Updates \rho(t) at each time step. */
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) {
+#ifdef DEBUG_UPDATEDM
+ std::cout << "Updating DM at step " << timeStep << "...";
+#endif
  for (int ii = 0; ii < p->NEQ2; ii++) {
   dmt[2*p->NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
   dmt[2*p->NEQ2*timeStep + ii + p->NEQ2] = NV_Ith_S(dm, ii + p->NEQ2);
  }
+#ifdef DEBUG_UPDATEDM
+ std::cout << "done.\n";
+#endif
 
  return;
 }
