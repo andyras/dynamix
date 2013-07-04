@@ -230,185 +230,133 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
  return;
 }
 
+/* Outputs the norm of each component of the density matrix */
+void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+ std::ofstream output(fileName);
+ // loop over time steps
+ for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  // loop over first index
+  for (int jj = 0; jj < p->NEQ; jj++) {
+   // first element in row
+   output << std::setw(8) << std::scientific
+	  << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj],2)
+		+ pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2],2));
+   // loop over second index
+   for (int kk = 1; kk < p->NEQ; kk++) {
+   output << " " << std::setw(8) << std::scientific
+	  << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk],2)
+		+ pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2],2));
+   }
+   output << "\n";
+  }
+  output << "\n";
+ }
+
+ return;
+}
+
+/* Outputs the real part of each component of the density matrix */
+void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+ std::ofstream output(fileName);
+ // loop over time steps
+ for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  // loop over first index
+  for (int jj = 0; jj < p->NEQ; jj++) {
+   // first element in row
+   output << std::setw(8) << std::scientific
+	  << dmt[2*p->NEQ2*ii + p->NEQ*jj];
+   // loop over second index
+   for (int kk = 1; kk < p->NEQ; kk++) {
+   output << " " << std::setw(8) << std::scientific
+	  << dmt[2*p->NEQ2*ii + p->NEQ*jj + kk];
+   }
+   output << "\n";
+  }
+  output << "\n";
+ }
+
+ return;
+}
+
+/* Outputs the imaginary part of each component of the density matrix */
+void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+ std::ofstream output(fileName);
+ // loop over time steps
+ for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  // loop over first index
+  for (int jj = 0; jj < p->NEQ; jj++) {
+   // first element in row
+   output << std::setw(8) << std::scientific
+	  << dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2];
+   // loop over second index
+   for (int kk = 1; kk < p->NEQ; kk++) {
+   output << " " << std::setw(8) << std::scientific
+	  << dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2];
+   }
+   output << "\n";
+  }
+  output << "\n";
+ }
+
+ return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, struct PARAMETERS * p) {
  // accumulator
  realtype summ;
 
+ // total population
  if (outs["totprob.out"]) {
   outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
+ }
+ // populations in k states
+ if (outs["kprobs.out"]) {
+  outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
  }
  if (outs["tkprob.out"]) {
   outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
  }
+ // populations in c states
+ if (outs["cprobs.out"]) {
+  outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
+ }
  if (outs["tcprob.out"]) {
   outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
+ }
+ // populations in b states
+ if (outs["bprobs.out"]) {
+  outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
  }
  if (outs["tbprob.out"]) {
   outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
  }
+ // populations in l states
+ if (outs["lprobs.out"]) {
+  outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
+ }
  if (outs["tlprob.out"]) {
   outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
  }
- /*
- //// Population over time
- FILE * totprob;
- if (outs["totprob.out"]) {
-  totprob = fopen("totprob.out", "w");
-  for (int ii = 0; ii < numTimeSteps; ii++) {
-   summ = 0.0;
-   for (int jj = 0; jj < p->NEQ; jj++) {
-//fprintf(stdout, "Population at time %d in state %d\n", ii, jj);
-    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*jj + jj];
-   }
-   fprintf(totprob, "%-.7g %-.7g\n", t[ii], summ);
-  }
-  fclose(totprob);
- }
-
- //// Population in k states
- FILE * tkprob;
- if (outs["tkprob.out"]) {
-  tkprob = fopen("tkprob.out", "w");
-  for (int ii = 0; ii < numTimeSteps; ii++) {
-   summ = 0.0;
-   for (int jj = 0; jj < p->Nk; jj++) {
-    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*(p->Ik + jj) + p->Ik + jj];
-   }
-   fprintf(tkprob, "%-.7g %-.7g\n", t[ii], summ);
-  }
-  fclose(tkprob);
- }
-
- //// Population in b states
- FILE * tbprob;
- if (outs["tbprob.out"]) {
-  tbprob = fopen("tbprob.out", "w");
-  for (int ii = 0; ii < numTimeSteps; ii++) {
-   summ = 0.0;
-   for (int jj = 0; jj < p->Nb; jj++) {
-    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*(p->Ib + jj) + p->Ib + jj];
-   }
-   fprintf(tbprob, "%-.7g %-.7g\n", t[ii], summ);
-  }
-  fclose(tbprob);
- }
-
- //// Population in c states
- FILE * tcprob;
- if (outs["tcprob.out"]) {
-  tcprob = fopen("tcprob.out", "w");
-  for (int ii = 0; ii < numTimeSteps; ii++) {
-   summ = 0.0;
-   for (int jj = 0; jj < p->Nc; jj++) {
-    summ += dmt[2*p->NEQ*p->NEQ*ii + p->NEQ*(p->Ic + jj) + p->Ic + jj];
-   }
-   fprintf(tcprob, "%-.7g %-.7g\n", t[ii], summ);
-  }
-  fclose(tcprob);
- }
- */
 
 #ifdef DEBUG_OUTPUT
  fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
 #endif
 
- // populations in k states
- if (outs["kprobs.out"]) {
-#ifdef DEBUG_OUTPUT
-  std::cout << "\nmaking kprobs.out\n";
-#endif
-  outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
- }
-
- // populations in c states
- if (outs["cprobs.out"]) {
-#ifdef DEBUG_OUTPUT
-  std::cout << "\nmaking cprobs.out\n";
-#endif
-  outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
- }
-
- // populations in b states
- if (outs["bprobs.out"]) {
-#ifdef DEBUG_OUTPUT
-  std::cout << "\nmaking bprobs.out\n";
-#endif
-  outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
- }
-
- // populations in l states
- if (outs["lprobs.out"]) {
-#ifdef DEBUG
-  std::cout << "\nmaking lprobs.out\n";
-#endif
-  outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
+ // norm of DM elements
+ if (outs["dmt_z.out"]) {
+  outputDMZ("dmt_z.out", dmt, p);
  }
 
  // norm of DM elements
- FILE * dmt_z;
- if (outs["dmt_z.out"]) {
-  dmt_z = fopen("dmt_z.out", "w");
-  // loop over time steps
-  for (int ii = 0; ii < p->numOutputSteps; ii++) {
-   // loop over first index
-   for (int jj = 0; jj < p->NEQ; jj++) {
-    // first element in row
-    // loop over second index
-    fprintf(dmt_z, "%+.7e", sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj],2)
-                               + pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2],2)));
-    for (int kk = 1; kk < p->NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk],2)
-				+ pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2],2)));
-    }
-    fprintf(dmt_z, "\n");
-   }
-   fprintf(dmt_z, "\n");
-  }
-  fclose(dmt_z);
- }
-
- // real part of DM
- FILE * dmt_re;
  if (outs["dmt_re.out"]) {
-  dmt_re = fopen("dmt_re.out", "w");
-  // loop over time steps
-  for (int ii = 0; ii < p->numOutputSteps; ii++) {
-   // loop over first index
-   for (int jj = 0; jj < p->NEQ; jj++) {
-    // first element in row
-    // loop over second index
-    fprintf(dmt_z, "%+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj]);
-    for (int kk = 1; kk < p->NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj + kk]);
-    }
-    fprintf(dmt_z, "\n");
-   }
-   fprintf(dmt_z, "\n");
-  }
-  fclose(dmt_re);
+  outputDMRe("dmt_re.out", dmt, p);
  }
 
- // imaginary part of DM
- FILE * dmt_im;
+ // norm of DM elements
  if (outs["dmt_im.out"]) {
-  dmt_im = fopen("dmt_im.out", "w");
-  // loop over time steps
-  for (int ii = 0; ii < p->numOutputSteps; ii++) {
-   // loop over first index
-   for (int jj = 0; jj < p->NEQ; jj++) {
-    // first element in row
-    // loop over second index
-    fprintf(dmt_z, "%+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2]);
-    for (int kk = 1; kk < p->NEQ; kk++) {
-     fprintf(dmt_z, " %+.7e", dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2]);
-    }
-    fprintf(dmt_z, "\n");
-   }
-   fprintf(dmt_z, "\n");
-  }
-  fclose(dmt_im);
+  outputDMIm("dmt_im.out", dmt, p);
  }
 
  return;

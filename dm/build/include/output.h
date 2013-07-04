@@ -66,6 +66,12 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
                    struct PARAMETERS * p);
 
+void outputDMZ(realtype * dmt, struct PARAMETERS * p);
+
+void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
+
+void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
                      std::map<std::string, bool> &outs, struct PARAMETERS * p);
