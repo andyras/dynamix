@@ -461,114 +461,6 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 }
 
 
-/*
-int Output_checkpoint(
-#ifdef DEBUG
-  FILE * realImaginary, 
-#endif
-  double ** allprobs, N_Vector outputData, realtype time,
-  realtype * totK, realtype * totL, realtype * totC, realtype * totB, realtype ** vibProb, realtype * times,
-  realtype * qd_est, realtype * qd_est_diag, realtype * energy_expectation, int index, realtype * energies,
-  double kBandEdge, double kBandTop, double * k_pops) {
-// computes many time-dependent properties
-
- int i, j, k, l;				// counters
- int Re1, Im1, Re2, Im2;			// indices for real and imaginary components
- double sinn, coss;				// these are used for computing observables
- 						// in the interaction picture.
- int Idx;
- double sumkpop = 0;
- double sumcpop = 0;
- double sumbpop = 0;
- double sumlpop = 0;
- double temp;
-
-#ifdef DEBUG
- for (i = 0; i < NEQ2; i++) {
-  fprintf(realImaginary, "%-.9e %-.9e\n", NV_Ith_S(outputData, i), NV_Ith_S(outputData, i+NEQ2));
- }
- fprintf(realImaginary, "\n");
-#endif
-
- for (i = 0; i < Nk; i++) {			// k populations
-  temp = 0.0;
-  for (j = 0; j < N_vib; j++) {
-   Idx = Ik_vib + i*N_vib + j;			// indices
-   temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
-  }
-  allprobs[index][Ik+i] = temp;
-  sumkpop += temp;
- }
- for (i = 0; i < Nl; i++) {			// l populations
-  temp = 0.0;
-  for (j = 0; j < N_vib; j++) {
-   Idx = Il_vib + i*N_vib + j;			// indices
-   temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
-  }
-  allprobs[index][Il+i] = temp;
-  sumlpop += temp;
- }
- for (i = 0; i < Nc; i++) {			// c populations
-  temp = 0.0;
-  for (j = 0; j < N_vib; j++) {
-   Idx = Ic_vib + i*N_vib + j;			// indices
-   temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
-  }
-  allprobs[index][Ic+i] = temp;
-  sumcpop += temp;
- }
- for (i = 0; i < Nb; i++) {			// b populations
-  temp = 0.0;
-  for (j = 0; j < N_vib; j++) {
-   Idx = Ib_vib + i*N_vib + j;			// indices
-   temp += pow(NV_Ith_S(outputData, Idx),2) + pow(NV_Ith_S(outputData, Idx+NEQ_vib),2);
-  }
-  sumbpop += temp;
-  allprobs[index][Ib+i] = temp;
- }
- for (i = 0; i < N_vib; i++) {
-  temp = 0;
-  for (j = 0; j < NEQ; j++) {
-   temp += pow(NV_Ith_S(outputData,i+j*N_vib),2) + pow(NV_Ith_S(outputData, i+j*N_vib+NEQ_vib),2);
-  }
-  vibProb[index][i] = temp;
- }
- totK[index] = sumkpop;
- totL[index] = sumlpop;
- totC[index] = sumcpop;
- totB[index] = sumbpop;
- times[index] = time;
-
- temp = 0.0;
- for (i = 0; i < NEQ; i++) {		// loop over all states
-  for (j = 0; j < N_vib; j++) {		// loop over all vibronic states
-   Re1 = i*N_vib + j;			// index for current state
-   Im1 = i*N_vib + j + NEQ_vib;	
-   temp += energy[Re1]*(pow(NV_Ith_S(outputData,Re1),2) + pow(NV_Ith_S(outputData,Im1),2));
-   for (k = 0; k < NEQ; k++) {		// loop over all states (for coupling)
-    for (l = 0; l < N_vib; l++) {	// loop over all vibronic states (for coupling)
-     Re2 = k*N_vib + l;			// index for coupled state
-     Im2 = k*N_vib + l + NEQ_vib;
-     // WARNING: this only works correctly when the Franck-Condon displacement
-     // factors are all 0. In order for this to be corrected, I will have to
-     // rewrite this section to account for the differing FC factors for
-     // different states (k, c, b...)
-     sinn = V[i][k]*sin((energy[Re1] - energy[Re2])*time);	// precalculate sin and cos to save space
-     coss = V[i][k]*cos((energy[Re1] - energy[Re2])*time);
-     temp += NV_Ith_S(outputData,Re1)*NV_Ith_S(outputData,Re2)*coss;
-     temp += NV_Ith_S(outputData,Im1)*NV_Ith_S(outputData,Im2)*coss;
-     temp -= NV_Ith_S(outputData,Re1)*NV_Ith_S(outputData,Im2)*sinn;
-     temp += NV_Ith_S(outputData,Im1)*NV_Ith_S(outputData,Re2)*sinn;
-    }
-   }
-  }
- }
- energy_expectation[index] = temp;
-
- return 0;
-}
-*/
-
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
@@ -1266,28 +1158,12 @@ int main (int argc, char * argv[]) {
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
    updateDM(yout, dmt, i*numOutputSteps/numsteps, &params);
-   /*
-   Output_checkpoint(
-#ifdef DEBUG
-     realImaginary, 
-#endif
-     allprob, yout, t, tkprob, tlprob, tcprob, tbprob, times, qd_est,
-     qd_est_diag, energy_expectation, (i*numOutputSteps/numsteps), energy,
-     k_bandedge, k_bandtop, k_pops);
-   */
   }
  }
 #ifdef DEBUG_DMf
  cout << "Closing output file for density matrix coefficients in time.\n";
  fclose(dmf);
 #endif
-
- // compute final outputs //
- /*
- Compute_final_outputs(allprob, times, tkprob,
-   tlprob, tcprob, tbprob, energy,
-   energy_expectation, numOutputSteps, qd_est, qd_est_diag, outs);
-   */
 
  // compute time-independent outputs
  FILE * energyFile;
