@@ -23,7 +23,7 @@
 #include "userdata.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -869,7 +869,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  fprintf(stdout, "Deallocating N_Vectors.\n");
 #endif
- /*
  //  TODO why does this block break?
  // deallocate memory for N_Vectors //
  N_VDestroy_Serial(y);
@@ -900,7 +899,6 @@ int main (int argc, char * argv[]) {
  delete [] c_energies;
  delete [] b_energies;
  delete [] l_energies;
- */
  fprintf(stderr, "\nwhoo\n");
 
  return 0;
