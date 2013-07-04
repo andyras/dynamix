@@ -327,6 +327,48 @@ void outputEnergy(char * fileName, struct PARAMETERS * p) {
  return;
 }
 
+/* Outputs all the time steps */
+void outputTimes(char * fileName, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ std::cout << "\nMaking " << fileName << "\n";
+#endif
+
+ std::ofstream output(fileName);
+ for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  output << std::setw(8) << std::scientific << p->times[ii] << "\n";
+ }
+
+ return;
+}
+
+/* Outputs expectation value of energy at all times */
+void outputEnergyExp(char * fileName, realtype * dmt,
+                     struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ std::cout << "\nMaking " << fileName << "\n";
+#endif
+
+ std::ofstream output(fileName);
+ realtype summ ;
+
+ // loop over timesteps
+ for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+  summ = 0.0;
+  for (int ii = 0; ii < p->NEQ; ii++) {
+   summ += p->H[ii*p->NEQ + ii]*dmt[kk*p->NEQ2*2 + ii*p->NEQ + ii];
+   for (int jj = 0; jj < ii; jj++) {
+    summ += 2*p->H[ii*p->NEQ + jj]*dmt[kk*p->NEQ2*2 + jj*p->NEQ + ii];
+   }
+  }
+  output << std::setw(8) << std::scientific
+         << p->times[kk] << " "
+         << std::setw(8) << std::scientific
+	 << summ << std::endl;
+ }
+
+ return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
                      struct PARAMETERS * p) {
@@ -386,6 +428,16 @@ void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
  // energies of all states
  if (outs["energies.out"]) {
   outputEnergy("energies.out", p);
+ }
+ 
+ // all time steps
+ if (outs["times.out"]) {
+  outputTimes("times.out", p);
+ }
+
+ // expectation value of energy
+ if (outs["energyexp.out"]) {
+  outputEnergyExp("energyexp.out", dmt, p);
  }
 
  return;

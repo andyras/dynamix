@@ -29,6 +29,7 @@ struct PARAMETERS {
  std::vector<realtype> energies;
  std::vector<realtype> Vbridge;
  std::vector<realtype> Vnobridge;
+ std::vector<realtype> H;
  std::vector<realtype> times;
 };
 

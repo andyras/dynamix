@@ -82,7 +82,7 @@ dmt_z.out
 dmt_re.out
 dmt_im.out
 energies.out
-#energy_exp.out
+energyexp.out
 #FTtcprob.out
 ham.out
 #Icprob.out

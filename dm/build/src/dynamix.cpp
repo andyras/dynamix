@@ -759,6 +759,11 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < NEQ2; ii++) {
    Ham[ii] = H[ii];
   }
+  // add Hamiltonian to params
+  params.H.resize(NEQ2);
+  for (int ii = 0; ii < NEQ2; ii++) {
+   params.H[ii] = H[ii];
+  }
 
  // DONE PREPROCESSING //
  

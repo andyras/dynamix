@@ -76,6 +76,9 @@ void outputEnergy(char * fileName, struct PARAMETERS * p);
 
 void outputTimes(char * fileName, struct PARAMETERS * p);
 
+void outputEnergyExp(char * fileName, realtype * dmt,
+                     struct PARAMETERS * p);
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
                      struct PARAMETERS * p);
