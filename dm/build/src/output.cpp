@@ -313,6 +313,20 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
  return;
 }
 
+/* Outputs energies of all states */
+void outputEnergy(char * fileName, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ std::cout << "\nMaking " << fileName << "\n";
+#endif
+
+ std::ofstream output(fileName);
+ for (int ii = 0; ii < p->NEQ; ii++) {
+  output << std::setw(8) << std::scientific << p->energies[ii] << "\n";
+ }
+
+ return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
                      struct PARAMETERS * p) {
@@ -367,6 +381,11 @@ void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
  // norm of DM elements
  if (outs["dmt_im.out"]) {
   outputDMIm("dmt_im.out", dmt, p);
+ }
+
+ // energies of all states
+ if (outs["energies.out"]) {
+  outputEnergy("energies.out", p);
  }
 
  return;

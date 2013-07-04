@@ -72,6 +72,8 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
+void outputEnergy(char * fileName, struct PARAMETERS * p);
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
                      struct PARAMETERS * p);
