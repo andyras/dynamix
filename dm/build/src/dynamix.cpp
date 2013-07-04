@@ -856,7 +856,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  cout << "Computing outputs...";
 #endif
- computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
+ computeDMOutput(dmt, outs, &params);
 #ifdef DEBUG
  std::cout << "done.";
 #endif

@@ -232,6 +232,10 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
 
 /* Outputs the norm of each component of the density matrix */
 void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ fprintf(stderr, "\n\n\noutputting |\\rho| in time\n\n\n");
+#endif
+
  std::ofstream output(fileName);
  // loop over time steps
  for (int ii = 0; ii < p->numOutputSteps; ii++) {
@@ -257,6 +261,10 @@ void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 
 /* Outputs the real part of each component of the density matrix */
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ fprintf(stderr, "\n\n\noutputting Re(\\rho) in time\n\n\n");
+#endif
+
  std::ofstream output(fileName);
  // loop over time steps
  for (int ii = 0; ii < p->numOutputSteps; ii++) {
@@ -280,6 +288,10 @@ void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 
 /* Outputs the imaginary part of each component of the density matrix */
 void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+ fprintf(stderr, "\n\n\noutputting Im(\\rho) in time\n\n\n");
+#endif
+
  std::ofstream output(fileName);
  // loop over time steps
  for (int ii = 0; ii < p->numOutputSteps; ii++) {
@@ -302,15 +314,14 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 }
 
 /* Computes outputs from \rho(t) */
-void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
-                     std::map<std::string, bool> &outs, struct PARAMETERS * p) {
- // accumulator
- realtype summ;
+void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
+                     struct PARAMETERS * p) {
 
  // total population
  if (outs["totprob.out"]) {
   outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
  }
+
  // populations in k states
  if (outs["kprobs.out"]) {
   outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
@@ -318,6 +329,7 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["tkprob.out"]) {
   outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
  }
+
  // populations in c states
  if (outs["cprobs.out"]) {
   outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
@@ -325,6 +337,7 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["tcprob.out"]) {
   outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
  }
+
  // populations in b states
  if (outs["bprobs.out"]) {
   outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
@@ -332,6 +345,7 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["tbprob.out"]) {
   outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
  }
+
  // populations in l states
  if (outs["lprobs.out"]) {
   outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
@@ -339,10 +353,6 @@ void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtyp
  if (outs["tlprob.out"]) {
   outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
  }
-
-#ifdef DEBUG_OUTPUT
- fprintf(stderr, "\n\n\noutputting dm in time\n\n\n");
-#endif
 
  // norm of DM elements
  if (outs["dmt_z.out"]) {
