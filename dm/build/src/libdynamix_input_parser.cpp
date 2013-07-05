@@ -5,8 +5,6 @@
 
 #include "libdynamix_input_parser.hpp"
 
-//#define DEBUG_INPUT_PARSER
-
 // Methods for the outputFile class
 
 // Construct an outputFile object

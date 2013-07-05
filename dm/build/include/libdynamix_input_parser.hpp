@@ -1,6 +1,8 @@
 #ifndef __LIBDYNAMIX_INPUT_PARSER_H__
 #define __LIBDYNAMIX_INPUT_PARSER_H__
 
+#define DEBUG_INPUT_PARSER
+
 class outputFile {
  private:
   // variables

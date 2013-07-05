@@ -30,7 +30,7 @@ numOutputSteps=6000			# number of output timesteps
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
 #k_bandtop=0.0				# upper band edge of bulk conduction band (a.u.)
-Nk=11					# number of k states to have
+Nk=7					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -79,7 +79,7 @@ return
 #c_diag.out
 #c_offdiag.out
 #couplings.out
-#cprobs.out
+cprobs.out
 #dmt_z.out
 #dmt_re.out
 #dmt_im.out
