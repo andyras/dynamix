@@ -750,7 +750,15 @@ int main (int argc, char * argv[]) {
  std::cout << "\nInitializing CVode solver.\n";
 #endif
  // initialize CVode solver //
+ 
+ if (rta) {
+  //RHS = &RHS_DM_RTA;
+ flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+ }
+ else {
+  //RHS = &RHS_DM;
  flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+ }
 
 #ifdef DEBUG
  std::cout << "\nSpecifying integration tolerances.\n";

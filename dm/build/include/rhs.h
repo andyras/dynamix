@@ -2,6 +2,7 @@
 #define __RHS__
 
 
+#include <iostream>
 #include <vector>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
