@@ -37,14 +37,10 @@ using namespace std;
 // Struct of parameters
 PARAMETERS params;
 
-// Hamiltonian
-realtype * Ham;
-
 // GLOBAL VARIABLES GO HERE //
 #ifdef DEBUG_DMf
 FILE * dmf;				// file for density matrix coeff derivatives in time
 #endif
-realtype * Vnobridge;			// coupling constant when there is no bridge
 // END GLOBAL VARIABLES
 
 int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
@@ -138,7 +134,8 @@ int main (int argc, char * argv[]) {
  realtype ** V;				// pointer to k-c coupling constants
  realtype * energy;
  realtype * Vbridge;			// pointer to array of bridge coupling constants.
-					 // first element [0] is Vkb1, last [Nb] is VcbN
+					// first element [0] is Vkb1, last [Nb] is VcbN
+ realtype * Vnobridge;			// coupling constant when there is no bridge
  bool bulk_FDD = 0;			// switches for starting conditions
  bool bulk_Gauss = 0;
  bool bulk_constant = 0;
@@ -764,10 +761,6 @@ int main (int argc, char * argv[]) {
   buildHamiltonian(H, energy, V, &params);
   if (outs["ham.out"]) {
    outputSquareMatrix(H, NEQ, "ham.out");
-  }
-  Ham = new realtype [NEQ2];
-  for (int ii = 0; ii < NEQ2; ii++) {
-   Ham[ii] = H[ii];
   }
   // add Hamiltonian to params
   params.H.resize(NEQ2);
