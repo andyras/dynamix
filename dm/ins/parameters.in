@@ -20,6 +20,7 @@ nproc=4
 # method parameters #
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
+rta=1					# use relaxation time approximation (RTA)
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
@@ -40,6 +41,8 @@ bulkGaussSigma=0.008217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
+gamma1=1e-3				# \gamma_1 in RTA (relaxation rate)
+gamma2=1e-3				# \gamma_2 in RTA (dephasing rate)
 # laser parameters #
 muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)

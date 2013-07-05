@@ -109,7 +109,6 @@ int main (int argc, char * argv[]) {
  int Nk_final;					// final k state initially populated
  realtype bulk_gap;				// bulk band gap
  double valenceBand;				// valence band width
- double temperature;				// system temperature
  double bulkGaussSigma;				// width of initial Gaussian in bulk
  double bulkGaussMu;				// position of initial Gaussian above band edge
  realtype t0 = 0.0;				// initial time
@@ -166,6 +165,7 @@ int main (int argc, char * argv[]) {
  double summ = 0;			// sum variable
  bool timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
  bool analytical = 0;			// turn on analytical propagation
+ bool rta = 0;				// turn on relaxation time approximation (RTA)
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -182,7 +182,9 @@ int main (int argc, char * argv[]) {
  bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
  bulkGaussMu = 0.01;			// position of initial Gaussian above band edge
  // physical parameters //
- temperature = 3e2;			// temperature of the system
+ realtype temperature = 3e2;			// temperature of the system
+ realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
+ realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
  // laser parameters
  muLK = 1.0;				// transition dipole moment from l to k (energy a.u.)
  pumpFWHM = 1000;
@@ -235,8 +237,9 @@ int main (int argc, char * argv[]) {
   std::cout << "Parameter: " << input_param << std::endl << "New value: " << atof(param_val.c_str()) << std::endl;
 #endif
   if (input_param == "timedepH") { timedepH = atoi(param_val.c_str()); }
-  else if (input_param == "nproc") { nproc = atof(param_val.c_str()); }
-  else if (input_param == "analytical") { analytical = atof(param_val.c_str()); }
+  else if (input_param == "nproc") { nproc = atoi(param_val.c_str()); }
+  else if (input_param == "analytical") { analytical = atoi(param_val.c_str()); }
+  else if (input_param == "rta") { rta = atoi(param_val.c_str()); }
   else if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
   else if (input_param == "tout" ) { tout = atof(param_val.c_str()); }
@@ -253,6 +256,8 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bulkGaussSigma" ) { bulkGaussSigma = atof(param_val.c_str()); }
   else if (input_param == "bulkGaussMu" ) { bulkGaussMu = atof(param_val.c_str()); }
   else if (input_param == "temperature" ) { temperature = atof(param_val.c_str()); }
+  else if (input_param == "gamma1" ) { gamma1 = atof(param_val.c_str()); }
+  else if (input_param == "gamma2" ) { gamma2 = atof(param_val.c_str()); }
   else if (input_param == "muLK" ) { muLK = atof(param_val.c_str()); }
   else if (input_param == "pumpFWHM" ) { pumpFWHM = atof(param_val.c_str()); }
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
@@ -279,6 +284,7 @@ int main (int argc, char * argv[]) {
  std::cout << std::endl;
  std::cout << "timedepH is " << timedepH << std::endl;
  std::cout << "analytical is " << analytical << std::endl;
+ std::cout << "rta is " << rta << std::endl;
  std::cout << "nproc is " << nproc << std::endl;
  std::cout << "abstol is " << abstol << std::endl;
  std::cout << "reltol is " << reltol << std::endl;
@@ -296,6 +302,8 @@ int main (int argc, char * argv[]) {
  std::cout << "bulkGaussSigma is " << bulkGaussSigma << std::endl;
  std::cout << "bulkGaussMu is " << bulkGaussMu << std::endl;
  std::cout << "temperature is " << temperature << std::endl;
+ std::cout << "gamma1 is " << gamma1 << std::endl;
+ std::cout << "gamma2 is " << gamma2 << std::endl;
  std::cout << "muLK is " << muLK << std::endl;
  std::cout << "pumpFWHM is " << pumpFWHM << std::endl;
  std::cout << "pumpPeak is " << pumpPeak << std::endl;
