@@ -15,13 +15,13 @@
 #include <fftw/fftw3.h>
 #include <omp.h>
 
-#include "libdynamix_input_parser.h"
-#include "libdynamix_outputs.h"
-#include "output.h"
-#include "numerical.h"
-#include "params.h"
-#include "userdata.h"
-#include "rhs.h"
+#include "libdynamix_input_parser.hpp"
+#include "libdynamix_outputs.hpp"
+#include "output.hpp"
+#include "numerical.hpp"
+#include "params.hpp"
+#include "userdata.hpp"
+#include "rhs.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 #define DEBUG

@@ -1,4 +1,4 @@
-#include "output.h"
+#include "output.hpp"
 
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.

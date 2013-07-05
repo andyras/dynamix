@@ -1,4 +1,4 @@
-#include "rhs.h"
+#include "rhs.hpp"
 
 /* Right-hand-side equation for density matrix */
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
