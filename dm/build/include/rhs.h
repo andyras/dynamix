@@ -1,0 +1,14 @@
+#ifndef __RHS__
+#define __RHS__
+
+
+#include <vector>
+#include <cvode/cvode.h>
+#include <cvode/cvode_dense.h>
+#include <nvector/nvector_serial.h>
+
+#include "params.h"
+
+int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
+
+#endif

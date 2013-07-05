@@ -21,6 +21,7 @@
 #include "numerical.h"
 #include "params.h"
 #include "userdata.h"
+#include "rhs.h"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 //#define DEBUG
@@ -48,86 +49,20 @@ FILE * dmf;
 //// END GLOBAL VARIABLES
 
 
-/* Right-hand-side equation for CVode */
-int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
-
- // data is a pointer to the params struct
- PARAMETERS * p;
- p = (PARAMETERS *) data;
-
- // extract parameters from p
- std::vector<realtype> H = p->H;
- int N = p->NEQ;
- int N2 = p->NEQ2;
-
- // initialize ydot
- // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
-#pragma omp parallel for
- for (int ii = 0; ii < 2*N2; ii++) {
-  NV_Ith_S(ydot, ii) = 0.0;
- }
-
- //// diagonal; no need to calculate the imaginary part
-#pragma omp parallel for
- for (int ii = 0; ii < N; ii++) {
-  for (int jj = 0; jj < N; jj++) {
-   NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
-  }
- }
-
- //// off-diagonal
-#pragma omp parallel for
- for (int ii = 0; ii < N; ii++) {
-  for (int jj = 0; jj < ii; jj++) {
-   for (int kk = 0; kk < N; kk++) {
-    //// real parts of ydot
-    NV_Ith_S(ydot, ii*N + jj) += H[ii*N + kk]*NV_Ith_S(y, kk*N + jj + N2);
-    NV_Ith_S(ydot, ii*N + jj) -= NV_Ith_S(y, ii*N + kk + N2)*H[kk*N + jj];
-
-    //// imaginary parts of ydot (lower triangle and complex conjugate)
-    NV_Ith_S(ydot, ii*N + jj + N2) -= H[ii*N + kk]*NV_Ith_S(y, kk*N + jj);
-    NV_Ith_S(ydot, ii*N + jj + N2) += NV_Ith_S(y, ii*N + kk)*H[kk*N + jj];
-   }
-   // the complex conjugate
-   NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
-   NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
-  }
- }
-
-#ifdef DEBUGf_DM
- fprintf(dmf, "%+.7e", t);
- for (int ii = 0; ii < N; ii++) {
-  for (int jj = 0; jj < N; jj++) {
-   fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
-  }
- }
- fprintf(dmf, "\n");
-#endif
-
- return 0;
-}
-
 int main (int argc, char * argv[]) {
 
- // VARIABLES GO HERE//
+ //// DECLARING VARIABLES
  // Struct of parameters
  PARAMETERS params;
-
- // number of processors
- int nproc;
-
- int Nk;				// number of each type of state
- int Nc;
- int Nb;
- int Nl;
- int Ik;				// index starters for each type of state
- int Ic;
- int Ib;
- int Il;
- int NEQ;				// total number of states/equations
- int NEQ2;
+ // CVode variables
  void * cvode_mem;			// pointer to block of CVode memory
  N_Vector y, yout;			// arrays of populations
+
+ int nproc;				// number of processors
+ int Nk, Nc, Nb, Nl;			// number of each type of state
+ int Ik, Ic, Ib, Il;			// index starters for each type of state
+ int NEQ;				// total number of states
+ int NEQ2;				// total number of coefficients in density matrix
  int numOutputSteps;			// number of timesteps
  realtype k_bandedge;			// lower edge of bulk conduction band
  realtype k_bandtop;			// upper edge of bulk conduction band
@@ -807,7 +742,7 @@ int main (int argc, char * argv[]) {
  std::cout << "\nInitializing CVode solver.\n";
 #endif
  // initialize CVode solver //
- flag = CVodeInit(cvode_mem, &f, t0, y);
+ flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
 
 #ifdef DEBUG
  std::cout << "\nSpecifying integration tolerances.\n";
