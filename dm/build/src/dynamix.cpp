@@ -44,46 +44,7 @@ realtype * Ham;
 #ifdef DEBUG_DMf
 FILE * dmf;				// file for density matrix coeff derivatives in time
 #endif
-void * cvode_mem;			// pointer to block of CVode memory
-realtype * user_data;
-N_Vector y, yout;			// arrays of populations
-int Nk;				// number of each type of state
-int Nc;
-int Nb;
-int Nl;
-int Ik;				// index starters for each type of state
-int Ic;
-int Ib;
-int Il;
-int NEQ;				// total number of states/equations
-int NEQ2;
-int numOutputSteps;			// number of timesteps
-realtype k_bandedge;			// lower edge of bulk conduction band
-realtype k_bandtop;			// upper edge of bulk conduction band
-double muLK;                           // transition dipole moment from l to k (energy a.u.)
-double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
-double pumpPeak;                       // time of peak of pump pulse (a.u.)
-double pumpFreq;                       // frequency of pump pulse (energy a.u.)
-double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
-double pumpPhase;                      // pump pulse phase (in units of radians)
-realtype ** V;				// pointer to k-c coupling constants
-realtype * energy;
-realtype * Vbridge;			// pointer to array of bridge coupling constants.
-					// first element [0] is Vkb1, last [Nb] is VcbN
 realtype * Vnobridge;			// coupling constant when there is no bridge
-bool bulk_FDD = 0;			// switches for starting conditions
-bool bulk_Gauss = 0;
-bool bulk_constant = 0;
-bool qd_pops = 0;
-bool laser_on = 0;
-bool parabolicCoupling = 0;
-bool scale_bubr = 0;
-bool scale_brqd = 0;
-bool scale_buqd = 0;
-bool scale_laser = 0;
-bool bridge_on = 0;
-bool random_phase = 0;
-int random_seed = 0;
 // END GLOBAL VARIABLES
 
 int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
@@ -151,6 +112,46 @@ int main (int argc, char * argv[]) {
  // VARIABLES GO HERE//
  // number of processors
  int nproc;
+
+ int Nk;				// number of each type of state
+ int Nc;
+ int Nb;
+ int Nl;
+ int Ik;				// index starters for each type of state
+ int Ic;
+ int Ib;
+ int Il;
+ int NEQ;				// total number of states/equations
+ int NEQ2;
+ void * cvode_mem;			// pointer to block of CVode memory
+ realtype * user_data;
+ N_Vector y, yout;			// arrays of populations
+ int numOutputSteps;			// number of timesteps
+ realtype k_bandedge;			// lower edge of bulk conduction band
+ realtype k_bandtop;			// upper edge of bulk conduction band
+ double muLK;                           // transition dipole moment from l to k (energy a.u.)
+ double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
+ double pumpPeak;                       // time of peak of pump pulse (a.u.)
+ double pumpFreq;                       // frequency of pump pulse (energy a.u.)
+ double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
+ double pumpPhase;                      // pump pulse phase (in units of radians)
+ realtype ** V;				// pointer to k-c coupling constants
+ realtype * energy;
+ realtype * Vbridge;			// pointer to array of bridge coupling constants.
+					 // first element [0] is Vkb1, last [Nb] is VcbN
+ bool bulk_FDD = 0;			// switches for starting conditions
+ bool bulk_Gauss = 0;
+ bool bulk_constant = 0;
+ bool qd_pops = 0;
+ bool laser_on = 0;
+ bool parabolicCoupling = 0;
+ bool scale_bubr = 0;
+ bool scale_brqd = 0;
+ bool scale_buqd = 0;
+ bool scale_laser = 0;
+ bool bridge_on = 0;
+ bool random_phase = 0;
+ int random_seed = 0;
 
  int i, j;					// counter!
  int flag;
