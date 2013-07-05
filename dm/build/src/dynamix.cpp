@@ -24,7 +24,7 @@
 #include "rhs.h"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-//#define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
@@ -389,6 +389,9 @@ int main (int argc, char * argv[]) {
   Vbridge = new realtype [Nb+1];
   readArrayFromFile(b_energies, "ins/b_energies.in", Nb);
   readArrayFromFile(Vbridge, "ins/Vbridge.in", Nb + 1);
+  for (int ii = 0; ii < Nb+1; ii++) {
+   std::cout << "Vbridge[" << ii << "] is " << Vbridge[ii] << std::endl;
+  }
   // feed coupling array to params
   params.Vbridge.resize(Nb+1);
   for (int ii = 0; ii < Nb + 1; ii++) {
@@ -459,6 +462,8 @@ int main (int argc, char * argv[]) {
  params.tout = tout;
  params.kBandEdge = k_bandedge;
  params.kBandTop = k_bandtop;
+ params.gamma1 = gamma1;
+ params.gamma2 = gamma2;
  params.scale_bubr = scale_bubr;
  params.scale_brqd = scale_brqd;
  params.scale_buqd = scale_buqd;
@@ -752,12 +757,10 @@ int main (int argc, char * argv[]) {
  // initialize CVode solver //
  
  if (rta) {
-  //RHS = &RHS_DM_RTA;
- flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+  flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
  }
  else {
-  //RHS = &RHS_DM;
- flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+  flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
  }
 
 #ifdef DEBUG

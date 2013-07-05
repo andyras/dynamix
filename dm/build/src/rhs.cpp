@@ -71,6 +71,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
  std::vector<realtype> H = p->H;
  int N = p->NEQ;
  int N2 = p->NEQ2;
+ realtype g2 = p->gamma2;
 
  // initialize ydot
  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
@@ -103,6 +104,12 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
    // the complex conjugate
    NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
    NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
+
+   // relaxation
+   NV_Ith_S(ydot, ii*N + jj) -= g2*NV_Ith_S(y, ii*N + jj);
+   NV_Ith_S(ydot, jj*N + ii) -= g2*NV_Ith_S(y, jj*N + ii);
+   NV_Ith_S(ydot, ii*N + jj + N2) -= g2*NV_Ith_S(y, ii*N + jj + N2);
+   NV_Ith_S(ydot, jj*N + ii + N2) -= g2*NV_Ith_S(y, jj*N + ii + N2);
   }
  }
 

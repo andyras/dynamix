@@ -3,6 +3,8 @@
 
 //#define DEBUG_OUTPUT
 
+// #define DEBUG_OUTPUTTXPROB
+
 #include <map>
 #include <cmath>
 #include <string>

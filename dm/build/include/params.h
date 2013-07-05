@@ -26,6 +26,9 @@ struct PARAMETERS {
  realtype kBandTop;
  realtype tout;
 
+ realtype gamma1;
+ realtype gamma2;
+
  std::vector<realtype> energies;
  std::vector<realtype> Vbridge;
  std::vector<realtype> Vnobridge;
