@@ -23,7 +23,7 @@
 #include "userdata.h"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+//#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
@@ -33,14 +33,15 @@
  * enormous (many GB).
  */
 
+// DEBUGf flag: general output at each CVode step
 //#define DEBUGf
-// DEBUG_DMf flag: DEBUGf for density matrix EOM
-//#define DEBUG_DMf
+// DEBUGf_DM flag: DEBUGf for density matrix EOM
+//#define DEBUGf_DM
 
 //using namespace std;
 
 //// GLOBAL VARIABLES
-#ifdef DEBUG_DMf
+#ifdef DEBUGf_DM
 // file for density matrix coeff derivatives in time
 FILE * dmf;
 #endif
@@ -93,7 +94,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
   }
  }
 
-#ifdef DEBUG_DMf
+#ifdef DEBUGf_DM
  fprintf(dmf, "%+.7e", t);
  for (int ii = 0; ii < N; ii++) {
   for (int jj = 0; jj < N; jj++) {
@@ -827,7 +828,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  std::cout << "\nAdvancing the solution in time.\n";
 #endif
-#ifdef DEBUG_DMf
+#ifdef DEBUGf_DM
  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
  dmf = fopen("dmf.out", "w");
 #endif
@@ -842,7 +843,7 @@ int main (int argc, char * argv[]) {
    updateDM(yout, dmt, i*numOutputSteps/numsteps, &params);
   }
  }
-#ifdef DEBUG_DMf
+#ifdef DEBUGf_DM
  std::cout << "Closing output file for density matrix coefficients in time.\n";
  fclose(dmf);
 #endif
