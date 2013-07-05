@@ -22,6 +22,7 @@
 #include "params.hpp"
 #include "userdata.hpp"
 #include "rhs.hpp"
+#include "plots.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 #define DEBUG
@@ -804,10 +805,6 @@ int main (int argc, char * argv[]) {
  fclose(realImaginary);
 #endif
 
- if (outs["cprobs.plt"] && (Nc > 1)) {
-  plot_cprobs(params);
- }
- 
  // finalize log file //
  time(&endRun);
  currentTime = localtime(&endRun);
@@ -827,6 +824,9 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
  std::cout << "done.";
 #endif
+
+ // Make plot files
+ makePlots(outs, &params);
 
 #ifdef DEBUG
  fprintf(stdout, "Deallocating N_Vectors.\n");

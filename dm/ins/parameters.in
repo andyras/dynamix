@@ -115,4 +115,6 @@ tkprob.out
 #tlprob.out
 totprob.out
 #projections.plt
+cprobs.plt
+kprobs.plt
 [[End]]
