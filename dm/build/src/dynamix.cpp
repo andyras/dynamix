@@ -34,9 +34,6 @@
 
 using namespace std;
 
-// Struct of parameters
-PARAMETERS params;
-
 // GLOBAL VARIABLES GO HERE //
 #ifdef DEBUG_DMf
 FILE * dmf;				// file for density matrix coeff derivatives in time
@@ -106,6 +103,9 @@ int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 int main (int argc, char * argv[]) {
 
  // VARIABLES GO HERE//
+ // Struct of parameters
+ PARAMETERS params;
+
  // number of processors
  int nproc;
 
