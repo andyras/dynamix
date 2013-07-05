@@ -23,7 +23,7 @@
 #include "userdata.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -455,7 +455,7 @@ int main (int argc, char * argv[]) {
   readArrayFromFile(Vnobridge, "ins/Vnobridge.in", 1);
   // feed coupling array to params
   params.Vnobridge.resize(1);
-  params.Vnobridge[0] = Vbridge[0];
+  params.Vnobridge[0] = Vnobridge[0];
  }
  // DONE READING //
 #ifdef DEBUG
@@ -903,8 +903,12 @@ int main (int argc, char * argv[]) {
  delete [] b_pops;
  delete [] energy;
  delete [] V;
- delete [] Vbridge;
- delete [] Vnobridge;
+ if (bridge_on) {
+  delete [] Vbridge;
+ }
+ else {
+  delete [] Vnobridge;
+ }
  delete [] k_energies;
  delete [] c_energies;
  delete [] b_energies;
