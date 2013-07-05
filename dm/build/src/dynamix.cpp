@@ -49,11 +49,11 @@ FILE * dmf;
 
 
 /* Right-hand-side equation for CVode */
-int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
+int f(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
- // user_data is a pointer to the params struct
+ // data is a pointer to the params struct
  PARAMETERS * p;
- p = (PARAMETERS *) user_data;
+ p = (PARAMETERS *) data;
 
  // extract parameters from p
  std::vector<realtype> H = p->H;
@@ -127,7 +127,6 @@ int main (int argc, char * argv[]) {
  int NEQ;				// total number of states/equations
  int NEQ2;
  void * cvode_mem;			// pointer to block of CVode memory
- realtype * user_data;
  N_Vector y, yout;			// arrays of populations
  int numOutputSteps;			// number of timesteps
  realtype k_bandedge;			// lower edge of bulk conduction band
@@ -636,7 +635,6 @@ int main (int argc, char * argv[]) {
   energy[Ib + i] = b_energies[i];
  for (i = 0; i < Nl; i++)
   energy[Il + i] = l_energies[i];
- user_data = energy;
 
 #ifdef DEBUG
  // output energies
