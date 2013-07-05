@@ -23,7 +23,7 @@
 #include "userdata.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-#define DEBUG
+//#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -89,45 +89,54 @@ int random_seed = 0;
 int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
 // gives f(y,t) for CVODE
 
+ // user_data is a pointer to the params struct
+ PARAMETERS * p;
+ p = (PARAMETERS *) user_data;
+
+ // extract parameters from p
+ std::vector<realtype> H = p->H;
+ int N = p->NEQ;
+ int N2 = p->NEQ2;
+
  // initialize ydot
  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
 #pragma omp parallel for
- for (int ii = 0; ii < 2*NEQ2; ii++) {
+ for (int ii = 0; ii < 2*N2; ii++) {
   NV_Ith_S(ydot, ii) = 0.0;
  }
 
  //// diagonal; no need to calculate the imaginary part
 #pragma omp parallel for
- for (int ii = 0; ii < NEQ; ii++) {
-  for (int jj = 0; jj < NEQ; jj++) {
-   NV_Ith_S(ydot, ii*NEQ + ii) += 2*Ham[ii*NEQ + jj]*NV_Ith_S(y, jj*NEQ + ii + NEQ2);
+ for (int ii = 0; ii < N; ii++) {
+  for (int jj = 0; jj < N; jj++) {
+   NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
   }
  }
 
  //// off-diagonal
 #pragma omp parallel for
- for (int ii = 0; ii < NEQ; ii++) {
+ for (int ii = 0; ii < N; ii++) {
   for (int jj = 0; jj < ii; jj++) {
-   for (int kk = 0; kk < NEQ; kk++) {
+   for (int kk = 0; kk < N; kk++) {
     //// real parts of ydot
-    NV_Ith_S(ydot, ii*NEQ + jj) += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
-    NV_Ith_S(ydot, ii*NEQ + jj) -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
+    NV_Ith_S(ydot, ii*N + jj) += H[ii*N + kk]*NV_Ith_S(y, kk*N + jj + N2);
+    NV_Ith_S(ydot, ii*N + jj) -= NV_Ith_S(y, ii*N + kk + N2)*H[kk*N + jj];
 
     //// imaginary parts of ydot (lower triangle and complex conjugate)
-    NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) -= Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj);
-    NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) += NV_Ith_S(y, ii*NEQ + kk)*Ham[kk*NEQ + jj];
+    NV_Ith_S(ydot, ii*N + jj + N2) -= H[ii*N + kk]*NV_Ith_S(y, kk*N + jj);
+    NV_Ith_S(ydot, ii*N + jj + N2) += NV_Ith_S(y, ii*N + kk)*H[kk*N + jj];
    }
    // the complex conjugate
-   NV_Ith_S(ydot, jj*NEQ + ii) = NV_Ith_S(ydot, ii*NEQ + jj);
-   NV_Ith_S(ydot, jj*NEQ + ii + NEQ2) = -1*NV_Ith_S(ydot, ii*NEQ + jj + NEQ2);
+   NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
+   NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
   }
  }
 
 #ifdef DEBUG_DMf
  fprintf(dmf, "%+.7e", t);
- for (int ii = 0; ii < NEQ; ii++) {
-  for (int jj = 0; jj < NEQ; jj++) {
-   fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*NEQ + jj), NV_Ith_S(ydot, ii*NEQ + jj + NEQ2));
+ for (int ii = 0; ii < N; ii++) {
+  for (int jj = 0; jj < N; jj++) {
+   fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
   }
  }
  fprintf(dmf, "\n");
@@ -793,7 +802,7 @@ int main (int argc, char * argv[]) {
  cout << "\nCreating cvode_mem object.\n";
 #endif
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
- flag = CVodeSetUserData(cvode_mem, (void *) user_data);
+ flag = CVodeSetUserData(cvode_mem, (void *) &params);
 
 #ifdef DEBUG
  cout << "\nInitializing CVode solver.\n";
