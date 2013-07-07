@@ -346,6 +346,6 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
  o << "!mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null \"mf://img/*.png\"" << std::endl;
  o << "!mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o figures/kprobs_movie.avi \"mf://img/*.png\"" << std::endl;
  o << "!rm -f divx2pass.log" << std::endl;
- o << "#!rm -rf img" << std::endl;
+ o << "!rm -rf img" << std::endl;
  return;
 }
