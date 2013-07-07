@@ -19,4 +19,6 @@ void plotCProbs(struct PARAMETERS * p);
 
 void plotDMt_z(char * fileName, struct PARAMETERS * p);
 
+void plotKProbsMovie(char * fileName, struct PARAMETERS * p);
+
 #endif

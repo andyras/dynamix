@@ -27,6 +27,7 @@ struct PARAMETERS {
 
  realtype kBandEdge;
  realtype kBandTop;
+ realtype kBandWidth;
  realtype tout;
 
  realtype gamma1;

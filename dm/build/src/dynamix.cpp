@@ -463,6 +463,7 @@ int main (int argc, char * argv[]) {
  params.tout = tout;
  params.kBandEdge = k_bandedge;
  params.kBandTop = k_bandtop;
+ params.kBandWidth = params.kBandTop - params.kBandEdge;
  params.gamma1 = gamma1;
  params.gamma2 = gamma2;
  params.scale_bubr = scale_bubr;
