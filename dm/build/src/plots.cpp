@@ -3,14 +3,30 @@
 void makePlots(std::map<std::string, bool> &outs, struct PARAMETERS * p) {
  // populations in subsystems
  if (outs["populations.plt"]) {
+  if (! outs["tkprob.out"]) {
+   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'tkprob.out' may not exist." << std::endl;
+  }
+  if (! outs["tcprob.out"]) {
+   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'tcprob.out' may not exist." << std::endl;
+  }
+  if ((p->bridge_on) && (! outs["tbprob.out"])) {
+   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'tbprob.out' may not exist." << std::endl;
+  }
   plotPopulations("populations.plt", p);
  }
+
  // probabilities in k states
  if (outs["kprobs.plt"] && (p->Nk > 1)) {
+  if (! outs["kprobs.out"]) {
+   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'kprobs.out' may not exist." << std::endl;
+  }
   plotKProbs("kprobs.plt", p);
  }
  // probabilities in c states
  if (outs["cprobs.plt"] && (p->Nc > 1)) {
+  if (! outs["cprobs.out"]) {
+   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'cprobs.out' may not exist." << std::endl;
+  }
   plotCProbs(p);
  }
  return;
@@ -117,7 +133,6 @@ void plotKProbs(char * fileName, struct PARAMETERS * p) {
  o << "set output 'figures/kprobs.pdf'" << std::endl;
  o << "set title 'Electron probability density in bulk conduction band'" << std::endl;
  o << "unset key " << std::endl;
- //o << "unset colorbox" << std::endl;
  o << "set border 0" << std::endl;
  o << "set tics scale 0" << std::endl;
  o << "set ylabel 'Energy above band edge (a.u.)'" << std::endl;
@@ -168,7 +183,6 @@ void plotCProbs(struct PARAMETERS * p) {
  o << "set output 'figures/cprobs.pdf'" << std::endl;
  o << "set title 'Electron probability density in QD'" << std::endl;
  o << "unset key " << std::endl;
- //o << "unset colorbox" << std::endl
  o << "set border 0" << std::endl;
  o << "set tics scale 0" << std::endl;
  o << "set ylabel 'State (index above band edge)'" << std::endl;
@@ -197,27 +211,6 @@ void plotCProbs(struct PARAMETERS * p) {
  o << ")" << std::endl;
  o << std::endl;
  o << "replot" << std::endl;
- /*
- output << "#!/usr/bin/env gnuplot\n\n"
- << "reset\n"
- << "set terminal pdfcairo enhanced size 4in,3in font 'Arial-Bold,14'\n"
- << "set output '/dev/null'\n"
- << "!transpose -o _transpose ../outs/cprobs.out\n"
- << "plot '../outs/cprobs_transpose.out' every :::1 u ($1*" << p->tout << "/" << p->numOutputSteps << "):(-$2):3 matrix with image\n"
- << "set output 'cprobs.pdf'\n"
- << "set title 'Electron probability density in QD'\n"
- << "set border 0\n"
- << "unset ytics\n"
- << "set xtics scale 0\n"
- << "set ylabel 'States above band edge'\n"
- << "set xlabel 'Time (a.u.)'\n"
- << "set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]\n"
- << "set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]\n"
- << "unset key\n"
- << "unset colorbox\n"
- << "set palette defined ( 0 '#000090', 1 '#000fff', 2 '#0090ff', 3 '#0fffee', 4 '#90ff70', 5 '#ffee00', 6 '#ff7000', 7 '#ee0000', 8 '#7f0000')\n"
- << "repl\n";
- */
 
  return;
 }
