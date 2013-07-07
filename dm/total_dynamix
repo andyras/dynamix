@@ -95,7 +95,7 @@ function movie_maker {
  sed 's/[^ ]* \(.*\)/\1/' outs/cprobs.out > temp2.out	# strip first column (times) from cprobs.out
  sed 's/[^ ]* \(.*\)/\1/' outs/bprobs.out > temp3.out	# strip first column (times) from bprobs.out
  paste -d " " temp1.out temp2.out temp3.out > temp4.out
- cat outs/energy.out temp4.out > temp.out
+ cat outs/energies.out temp4.out > temp.out
  cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
  
  max_pop=$(python2 tools/findMaxZ.py outs/kprobs_gnuplot.out)

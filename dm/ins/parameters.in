@@ -7,7 +7,7 @@ make_plotter=1
 do_plot=0
 do_time_space_plot=0
 populations_plot=0
-make_movie_maker=0
+make_movie_maker=1
 do_movie=0
 do_cleanup=0
 do_fullcleanup=0
@@ -25,7 +25,7 @@ abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
 tout=5000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
-numOutputSteps=6000			# number of output timesteps
+numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
 k_bandtop=0.05				# upper band edge of bulk conduction band (a.u.)
@@ -80,7 +80,7 @@ return
 #c_offdiag.out
 #couplings.out
 cprobs.out
-#dmt_z.out
+dmt_z.out
 #dmt_re.out
 #dmt_im.out
 energies.out
@@ -117,4 +117,5 @@ projections.plt
 populations.plt
 cprobs.plt
 kprobs.plt
+dmt_z.plt
 [[End]]

@@ -17,4 +17,6 @@ void plotKProbs(char * fileName, struct PARAMETERS * p);
 
 void plotCProbs(struct PARAMETERS * p);
 
+void plotDMt_z(char * fileName, struct PARAMETERS * p);
+
 #endif
