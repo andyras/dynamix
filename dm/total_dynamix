@@ -47,30 +47,10 @@ function compile {
  fi
 }
 
-function compile_serial {
- export OMP_NUM_THREADS=1
- export MKL_NUM_THREADS=1
- export MKL_DOMAIN_NUM_THREADS=1
- cd build
- make clean
- cd - &> /dev/null
- compile
-}
-
-function compile_parallel {
- export OMP_NUM_THREADS=
- export MKL_NUM_THREADS=
- export MKL_DOMAIN_NUM_THREADS=
- cd build
- make clean
- cd - &> /dev/null
- compile
-}
-
 function run {
 ## RUN THE PROGRAM! ##
  module load intel
- module load cvode/debug-2.7.0
+ module load cvode/2.7.0
  echo "### $(date) running dynamix..."
  ./bin/dynamix
  if [ $? == 0 ] ; then
@@ -79,9 +59,12 @@ function run {
   echo "### $(date) dynamix did not run :("
   exit
  fi
+ # move outputs
+ [ -d outs ] && rm -rf outs
  mkdir -p outs
- rm -f outs/*
  mv *.out outs/
+ # move plot files
+ [ -d figures ] && rm -rf figures
  mkdir -p figures
  chmod 755 *.plt
  mv *.plt figures/
@@ -101,15 +84,10 @@ function backup {
 
 ### This is where the script actually starts doing things. ###
 
-Nb=$(wc -l "ins/b_energies.in" | awk '{print $1}')
-mkdir -p figures
-
 echo "### $(date) dynamix run starting now..."
 echo "###"
 echo "###"
 
-[ $do_compile_serial == 1 ] && compile_serial
-[ $do_compile_parallel == 1 ] && compile_parallel
 [ $do_compile == 1 ] && compile
 [ $do_run == 1 ] && run
 [ $do_backup == 1 ] && backup

@@ -1,10 +1,6 @@
 ## FLAGS FOR RUN ##
 do_compile=1
-do_compile_parallel=0
-do_compile_serial=0
 do_run=1
-do_cleanup=0
-do_fullcleanup=0
 do_backup=0
 
 ## START INPUT PARAMETERS ##
