@@ -87,96 +87,6 @@ function run {
  mv *.plt figures/
 }
 
-function movie_maker {
- ## GENERATE MOVIE MAKER ##
- timestep=$(echo "scale=4; ($tout/$numOutputSteps/41.34)" | bc)
- echo "### $(date) making movie maker..."
- sed 's/[^ ]* \(.*\)/\1/' outs/kprobs.out > temp1.out	# strip first column (times) from kprobs.out
- sed 's/[^ ]* \(.*\)/\1/' outs/cprobs.out > temp2.out	# strip first column (times) from cprobs.out
- sed 's/[^ ]* \(.*\)/\1/' outs/bprobs.out > temp3.out	# strip first column (times) from bprobs.out
- paste -d " " temp1.out temp2.out temp3.out > temp4.out
- cat outs/energies.out temp4.out > temp.out
- cat temp.out | awk 'BEGIN {FS=" "}{for (i=1;i<=NF;i++){ arr[NR,i]=$i; if(big <= NF) big=NF; }} END { for (i=1;i<=big;i++) { for(j=1;j<=NR;j++) { printf("%s\t",arr[j,i]); } printf("\n"); }}' > transpose.out
- 
- max_pop=$(python2 tools/findMaxZ.py outs/kprobs_gnuplot.out)
- max_pop=$(echo "scale=4; ($max_pop*1.1)" | bc)
- 
- echo "set term png truecolor size 800,800 font 'Arial-Bold,14'
-set xtics scale 0
-unset key" > figures/movie.plt
-
- xtics_string="nomirror scale 0,-1 ("	# starts the xtics string
- for (( i=0 ; i<=$tout ; i+=1000 ))	# builds the xtics string
- do
-  time_au=$i
-  time_fs=$(echo "scale=4; ($i/41.3414)" | bc)
-  time_x=$time_au	# make this line reflect the units you want in the plot
-  xtics_string=$xtics_string"\"$time_x\" $i, "
- done
-
- #for (( i=0; i<=$numOutputSteps; i++ ))
- for (( i=500; i<=515; i++ ))	# for testing movie making
- do
-  time_fs=$(echo "scale=4; ($i*$tout/$numOutputSteps/41.3414)" | bc)
-  time_au=$(echo "scale=4; ($i*$tout/$numOutputSteps)" | bc)
-  time_n=$(echo "scale=4; ($time_au/$tout)" | bc)
-  time_x=$time_au	# make this line reflect the units you want in the plot
-  time_unit="a.u."	# make this line reflect the units you want in the plot
-  foo=$(printf "%07d" $(($i)))
-  xtix=$xtics_string"\"\" $time_x 1)"	# terminates the xtics string
-  echo "set output \"img/${foo}.png\"
-set multiplot
-
-set origin 0,0
-set size 1.1,0.5
-set border 0
-set ytics scale 0
-set ylabel \"Energy above band edge \(a.u.\)\"
-set xlabel \"Time \($time_unit\)\"
-set xrange [0:$tout]
-set yrange [$k_bandedge:$k_bandtop]
-unset colorbox
-set pm3d map
-set palette model XYZ functions gray**0.45, gray**1.0, gray**1.0
-set arrow 1 from graph $time_n, graph -0.03 to graph $time_n, graph -0.01 nohead lw 3
-set arrow 2 from graph $time_n, graph 1.01 to graph $time_n, graph 0.98 nohead lw 3
-splot './outs/kprobs_gnuplot.out'
-unset arrow
-
-set origin 0,0.5
-set size 1,0.5
-set border 15
-set ytics scale 1 nomirror
-set xlabel \"Energy above band edge \(a.u.\)\"
-set ylabel \"Electron probability\"
-set title \"Bulk populations at time = $time_x $time_unit\"
-plot [$k_bandedge:$k_bandtop] [0:$max_pop] '../transpose.out' every ::::$((Nk-1)) using 1:$((i+2)) with filledcurve x1
-unset title
-
-unset multiplot" >> figures/movie.plt
- done
- echo "### $(date) done making movie maker!"
-}
-
-
-function movie {
- ## MAKE MOVIE ##
- echo "### $(date) making .png for each frame of the movie..."
- mkdir -p img
- rm -rf img/*
- gnuplot figures/movie.plt && echo "### $(date) done making .pngs!"
- echo "### $(date) making movie..."
- mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null mf://img/\*.png
- mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o bulk_states.avi mf://img/\*.png
- echo "### $(date) done\! movie is bulk_states.avi"
- rm -rf img
- [ $do_fullcleanup == 1 ] && rm -f figures/movie.plt
- [ $do_cleanup == 1 ] && rm -f divx2pass.log
- [ $do_cleanup == 1 ] && rm -f temp*.out
- [ $do_cleanup == 1 ] && rm -f transpose.out
-}
-
-
 function backup {
 ## BACK UP FILES ##
  echo "### $(date) backing things up..."
@@ -202,8 +112,6 @@ echo "###"
 [ $do_compile_parallel == 1 ] && compile_parallel
 [ $do_compile == 1 ] && compile
 [ $do_run == 1 ] && run
-[ $make_movie_maker == 1 ] && movie_maker
-[ $do_movie == 1 ] && movie
 [ $do_backup == 1 ] && backup
 
 echo "### $(date) all done!"
