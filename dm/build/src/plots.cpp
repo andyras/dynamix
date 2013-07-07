@@ -1,6 +1,10 @@
 #include "plots.hpp"
 
 void makePlots(std::map<std::string, bool> &outs, struct PARAMETERS * p) {
+ // populations in subsystems
+ if (outs["populations.plt"]) {
+  plotPopulations("populations.plt", p);
+ }
  // probabilities in k states
  if (outs["kprobs.plt"] && (p->Nk > 1)) {
   plotKProbs("kprobs.plt", p);
@@ -9,6 +13,88 @@ void makePlots(std::map<std::string, bool> &outs, struct PARAMETERS * p) {
  if (outs["cprobs.plt"] && (p->Nc > 1)) {
   plotCProbs(p);
  }
+ return;
+}
+
+/* Plots the populations in different subsystems over time,
+ * separately and on the same plot. */
+void plotPopulations(char * fileName, struct PARAMETERS * p) {
+ std::ofstream o(fileName);
+
+ o << "#!/usr/bin/env gnuplot" << std::endl;
+ o << std::endl;
+ o << "reset" << std::endl;
+ o << std::endl;
+ o << "set style data lines" << std::endl;
+ o << "set style line 1 lt 1 lc rgb 'red'" << std::endl;
+ o << "set style line 2 lt 1 lc rgb 'dark-green'" << std::endl;
+ o << "set style line 3 lt 1 lc rgb 'blue'" << std::endl;
+ o << "set style increment user" << std::endl;
+ o << std::endl;
+ o << "set terminal pdfcairo enhanced size 5,5 lw 2 font 'Arial-Bold,12'" << std::endl;
+ o << "set output 'populations.pdf'" << std::endl;
+ o << std::endl;
+ o << "stats './outs/tkprob.out' nooutput" << std::endl;
+ o << "set xrange [STATS_min_x:STATS_max_x]" << std::endl;
+ o << std::endl;
+ o << "set rmargin 3" << std::endl;
+ o << "set tmargin 0" << std::endl;
+ o << "set bmargin 3" << std::endl;
+ o << "set tics scale 0 nomirror" << std::endl;
+ o << "unset xtics" << std::endl;
+ o << "set format y '%.2e'" << std::endl;
+ o << std::endl;
+ o << "set multiplot" << std::endl;
+ if (p->bridge_on) {
+  o << "set size 1,0.31" << std::endl;
+ }
+ else {
+  o << "set size 1,0.47" << std::endl;
+ }
+ o << std::endl;
+ if (p->bridge_on) {
+  o << "set origin 0,0.62" << std::endl;
+ }
+ else {
+  o << "set origin 0,0.48" << std::endl;
+ }
+ o << "set ylabel 'Population (a.u.)'" << std::endl;
+ o << "set title 'Bulk Population vs. Time'" << std::endl;
+ o << "plot './outs/tkprob.out' lt 1 notitle" << std::endl;
+ o << std::endl;
+ if (p->bridge_on) {
+  o << "set origin 0,0.32" << std::endl;
+  o << "set title 'Bridge Population vs. Time'" << std::endl;
+  o << "plot './outs/tbprob.out' lt 3 notitle" << std::endl;
+  o << std::endl;
+ }
+ o << "set origin 0,0.01" << std::endl;
+ o << "set xlabel 'Time (fs)'" << std::endl;
+ o << "set xtics scale 0" << std::endl;
+ o << "set title 'QD Population vs. Time'" << std::endl;
+ o << "plot './outs/tcprob.out' lt 2 notitle" << std::endl;
+ o << std::endl;
+ o << "unset multiplot" << std::endl;
+ o << std::endl;
+ o << "set terminal pdfcairo enhanced size 5,3 lw 2 font 'Arial-Bold,12' dashed rounded" << std::endl;
+ o << "set output 'populationsTogether.pdf'" << std::endl;
+ o << std::endl;
+ o << "set key tmargin right" << std::endl;
+ o << "set size 1,1" << std::endl;
+ o << "set tmargin 4" << std::endl;
+ o << "set ytics 1 format '%.0f'" << std::endl;
+ o << "unset style line" << std::endl;
+ o << "set style line 1 lc rgb 'red'" << std::endl;
+ o << "set style line 2 lc rgb 'dark-green'" << std::endl;
+ o << "set style line 3 lc rgb 'blue'" << std::endl;
+ o << std::endl;
+ o << "set title 'Subsystem Populations vs. Time' offset 0,0.6" << std::endl;
+ o << "plot './outs/tkprob.out' lt 1 lw 2 title 'Bulk', \\" << std::endl;
+  if (p->bridge_on) {
+   o<< "'./outs/tbprob.out' lt 3 lw 2 title 'Bridge', \\" << std::endl;
+  }
+   o<< "'./outs/tcprob.out' lt 2 lw 2 title 'QD'" << std::endl;
+     
  return;
 }
 

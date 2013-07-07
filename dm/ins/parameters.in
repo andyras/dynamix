@@ -3,7 +3,7 @@ do_compile=1
 do_compile_parallel=0
 do_compile_serial=0
 do_run=1
-make_plotter=0
+make_plotter=1
 do_plot=0
 do_time_space_plot=0
 populations_plot=0
@@ -113,7 +113,8 @@ tkprob.out
 #tkrate.out
 #tlprob.out
 totprob.out
-#projections.plt
+projections.plt
+populations.plt
 cprobs.plt
 kprobs.plt
 [[End]]
