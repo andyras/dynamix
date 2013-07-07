@@ -1,6 +1,7 @@
 ## FLAGS FOR RUN ##
 do_compile=1
 do_run=1
+do_plot=1
 do_backup=0
 
 ## START INPUT PARAMETERS ##
@@ -103,10 +104,11 @@ tkprob.out
 #tkrate.out
 #tlprob.out
 totprob.out
+# PLOT FILES
 projections.plt
 populations.plt
 cprobs.plt
 kprobs.plt
-dmt_z.plt
-kprobs_movie.plt
+#dmt_z.plt
+#kprobs_movie.plt
 [[End]]

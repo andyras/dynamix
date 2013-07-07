@@ -20,12 +20,17 @@ if [ ${HOSTNAME} == "tim.selfip.org" ]; then
  fi
 fi
 
+# Function for formatted echo
+function fecho {
+ echo "### ${1}"
+}
+
 ## INPUT PARAMETERS ##
 . ./ins/parameters.in
 
 function compile {
 ## COMPILE ##
- echo "### $(date) compiling dynamix.cpp..."
+ fecho "$(date) compiling dynamix.cpp..."
  CPP=g++
  # check if better compilers are installed
  which g++-4.7.0 &> /dev/null
@@ -39,10 +44,10 @@ function compile {
  cd build
  make -j 12 CPP=$CPP
  if [ $? == 0 ] ; then
-  echo "### $(date) done compiling!" && make install
+  fecho "$(date) done compiling!" && make install
   cd ..
  else
-  echo "### $(date) failed to compile :("
+  fecho "$(date) failed to compile :("
   exit
  fi
 }
@@ -51,12 +56,12 @@ function run {
 ## RUN THE PROGRAM! ##
  module load intel
  module load cvode/2.7.0
- echo "### $(date) running dynamix..."
+ fecho "$(date) running dynamix..."
  ./bin/dynamix
  if [ $? == 0 ] ; then
-  echo "### $(date) dynamix done!"
+  fecho "$(date) dynamix done!"
  else
-  echo "### $(date) dynamix did not run :("
+  fecho "$(date) dynamix did not run :("
   exit
  fi
  # move outputs
@@ -72,26 +77,39 @@ function run {
 
 function backup {
 ## BACK UP FILES ##
- echo "### $(date) backing things up..."
+ fecho "$(date) backing things up..."
  durr=backup/dynamix_$(date +%F.%H.%M.%S)
  mkdir -p $durr
  cp -rf ins/ outs/ bin/ figures/ doc/ total_dynamix $durr
  [ $do_plot == 1 ] && cp *.eps $durr
  [ $do_movie == 1 ] && cp bulk_states.avi $durr
  [ $(($Nb)) == 0 ] && rm -f $durr/outs/tbprob.out $durr/outs/Ibprob.out $durr/outs/bmax.out && ls $durr
- echo "### $(date) all backed up\!"
+ fecho "$(date) all backed up\!"
+}
+
+function plot {
+ if [ -d figures ]; then
+  for plotfile in $(ls figures/*plt)
+  do
+   fecho "plotting ${plotfile}..."
+   ./$plotfile
+  done
+ else
+  fecho "Nothing to plot."
+ fi
 }
 
 ### This is where the script actually starts doing things. ###
 
-echo "### $(date) dynamix run starting now..."
-echo "###"
-echo "###"
+fecho "$(date) dynamix run starting now..."
+fecho ""
+fecho ""
 
 [ $do_compile == 1 ] && compile
 [ $do_run == 1 ] && run
+[ $do_plot == 1 ] && plot
 [ $do_backup == 1 ] && backup
 
-echo "### $(date) all done!"
-echo "###"
-echo "###"
+fecho "$(date) all done!"
+fecho ""
+fecho ""
