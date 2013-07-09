@@ -2,7 +2,7 @@
 
 //#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
-#define DEBUG_BUILDHAMILTONIAN
+//#define DEBUG_BUILDHAMILTONIAN
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.

@@ -1,8 +1,6 @@
 #ifndef __PLOTS__
 #define __PLOTS
 
-#define DEBUG_PLOT
-
 #include <iostream>
 #include <fstream>
 #include <map>

@@ -6,7 +6,7 @@ do_backup=0
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
-nproc=6
+nproc=8
 # method parameters #
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation

@@ -1,5 +1,7 @@
 #include "plots.hpp"
 
+//#define DEBUG_PLOT
+
 void makePlots(std::map<std::string, bool> &outs, struct PARAMETERS * p) {
  // populations in subsystems
  if (outs["populations.plt"]) {
