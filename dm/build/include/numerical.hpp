@@ -9,7 +9,7 @@
 #include <iostream>
 #include <nvector/nvector_serial.h>
 
-#include "params.h"
+#include "params.hpp"
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.

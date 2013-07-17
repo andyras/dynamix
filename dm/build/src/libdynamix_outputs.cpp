@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "libdynamix_outputs.h"
+#include "libdynamix_outputs.hpp"
 
 /* Writes a scalar to a file */
 void outputDScalar(const char * fileName, double scalar) {

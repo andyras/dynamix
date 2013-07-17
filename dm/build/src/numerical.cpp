@@ -1,6 +1,8 @@
-#include "numerical.h"
+#include "numerical.hpp"
 
+//#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
+//#define DEBUG_BUILDHAMILTONIAN
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
@@ -50,7 +52,7 @@ void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfVa
 /* Returns an array of length n with all values set to initializeValue. */
 void initializeArray(realtype * array, int n, realtype initializeValue) {
 #ifdef DEBUG
- cout << "initializeValue is " << initializeValue << endl;
+ std::cout << "initializeValue is " << initializeValue << std::endl;
 #endif
 
  int i;
@@ -84,12 +86,12 @@ void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, real
  for (i = 0; i < Nk; i++) {
   kPops[i] = sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
 #ifdef DEBUG
- cout << "\nk population at state " << i << " is: "
+  std::cout << "\nk population at state " << i << " is: "
       << sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
 #endif
  }
 #ifdef DEBUG
- cout << endl;
+ std::cout << std::endl;
 #endif
 }
 
@@ -101,12 +103,12 @@ void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEd
  for (i = 0; i < Nk; i++) {
   kPops[i] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #ifdef DEBUG
- cout << "\nk population at state " << i << " is: "
+  std::cout << "\nk population at state " << i << " is: "
       << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #endif
  }
 #ifdef DEBUG
- cout << endl;
+ std::cout << std::endl;
 #endif
 }
 
@@ -275,10 +277,12 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
   }
  }
 
+#ifdef DEBUG_BUILDCOUPLING
  for (int ii = 0; ii < p->Nb + 1; ii++) {
   std::cout << "p->Vbridge[" << ii << "] is ";
   std::cout << p->Vbridge[ii] << "\n";
  }
+#endif
 
  // bridge
  if (p->bridge_on) {
@@ -350,11 +354,11 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
  }
 
 #ifdef DEBUG
- cout << "\nCoupling matrix:\n";
+ std::cout << "\nCoupling matrix:\n";
  for (i = 0; i < p->NEQ; i++) {
   for (j = 0; j < p->NEQ; j++)
-   cout << scientific << vArray[i][j] << " ";
-  cout << endl;
+   std::cout << std::scientific << vArray[i][j] << " ";
+  std::cout << std::endl;
  }
 #endif
 
@@ -377,26 +381,26 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PAR
  int idx1, idx2;
  int N = p->NEQ;
  
-#ifdef DEBUG
+#ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "Assigning diagonal elements of Hamiltonian.\n");
 #endif
   for (int ii = 0; ii < N; ii++) {
    // diagonal
    H[ii*N + ii] = energy[ii];
-#ifdef DEBUG
-   cout << "diagonal element " << ii << " of H is " << energy[ii] << "\n";
+#ifdef DEBUG_BUILDHAMILTONIAN
+   std::cout << "diagonal element " << ii << " of H is " << energy[ii] << "\n";
 #endif
   }
 
  if (p->bridge_on) {
   // assign bulk-bridge coupling
-#ifdef DEBUG
+#ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
 #endif
   idx2 = p->Ib;
   for (int ii = 0; ii < p->Nk; ii++) {
    idx1 = p->Ik + ii;
-#ifdef DEBUG2
+#ifdef DEBUG_BUILDHAMILTONIAN
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
    fprintf(stderr, "%e\n", V[idx1][idx2]);
@@ -405,13 +409,13 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PAR
    H[idx2*N + idx1] = V[idx2][idx1];
   }
   // assign bridge-bridge couplings
-#ifdef DEBUG
+#ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
 #endif
   for (int ii = 1; ii < p->Nb; ii++) {
    idx1 = p->Ib + ii;
    idx2 = p->Ib+ ii + 1;
-#ifdef DEBUG2
+#ifdef DEBUG_BUILDHAMILTONIAN
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
    fprintf(stderr, "%e\n", V[idx1][idx2]);
@@ -420,13 +424,13 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PAR
    H[idx2*N + idx1] = V[idx2][idx1];
   }
   // assign bridge-QD coupling
-#ifdef DEBUG
+#ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
 #endif
   idx2 = p->Ib + p->Nb - 1;
   for (int ii = 0; ii < p->Nc; ii++) {
    idx1 = p->Ic + ii;
-#ifdef DEBUG2
+#ifdef DEBUG_BUILDHAMILTONIAN
    fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
    fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
    fprintf(stderr, "%e\n", V[idx1][idx2]);
@@ -438,14 +442,14 @@ void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PAR
  // no bridge
  else {
   // assign bulk-QD coupling
-#ifdef DEBUG
+#ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "Assigning bulk-QD coupling elements in Hamiltonian.\n");
 #endif
   for (int ii = 0; ii < p->Nk; ii++) {
    idx1 = p->Ik + ii;
    for (int jj = 0; jj < p->Nc; jj++) {
     idx2 = p->Ic + jj;
-#ifdef DEBUG2
+#ifdef DEBUG_BUILDHAMILTONIAN
     fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
     fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
     fprintf(stderr, "%e\n", V[idx1][idx2]);

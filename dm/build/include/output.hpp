@@ -1,8 +1,6 @@
 #ifndef __OUTPUT_H__
 #define __OUTPUT_H__
 
-//#define DEBUG_OUTPUT
-
 #include <map>
 #include <cmath>
 #include <string>
@@ -12,9 +10,9 @@
 #include <fstream>
 #include <iomanip>
 
-#include "numerical.h"
-#include "fftmanip.h"
-#include "params.h"
+#include "numerical.hpp"
+#include "fftmanip.hpp"
+#include "params.hpp"
 
 /* TYPE DEFINITIONS */
 
@@ -58,8 +56,6 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 /* prints a square matrix stored as a 2D array */
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
-void plot_cprobs(PARAMETERS p);
-
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
                   struct PARAMETERS * p);
 
@@ -72,7 +68,14 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
+void outputEnergy(char * fileName, struct PARAMETERS * p);
+
+void outputTimes(char * fileName, struct PARAMETERS * p);
+
+void outputEnergyExp(char * fileName, realtype * dmt,
+                     struct PARAMETERS * p);
+
 /* Computes outputs from \rho(t) */
-void computeDMOutput(realtype * dmt, realtype ** V, realtype * energies, realtype * t, int numTimeSteps,
-                     std::map<std::string, bool> &outs, struct PARAMETERS * p);
+void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
+                     struct PARAMETERS * p);
 #endif

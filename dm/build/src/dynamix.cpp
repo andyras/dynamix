@@ -15,133 +15,82 @@
 #include <fftw/fftw3.h>
 #include <omp.h>
 
-#include "libdynamix_input_parser.h"
-#include "libdynamix_outputs.h"
-#include "output.h"
-#include "numerical.h"
-#include "params.h"
-#include "userdata.h"
+#include "libdynamix_input_parser.hpp"
+#include "libdynamix_outputs.hpp"
+#include "output.hpp"
+#include "numerical.hpp"
+#include "params.hpp"
+#include "userdata.hpp"
+#include "rhs.hpp"
+#include "plots.hpp"
 
-/* DEBUG compiler flag: turn on to generate basic debug outputs.         */
+// DEBUG compiler flag: turn on to generate basic debug outputs.
 //#define DEBUG
+
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
-/* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
-/* enormous (many GB).  This flag turns on debug output within the f          */
-/* function.                                                                  */
-// #define DEBUGf
-//#define DEBUG_DMf
 
-using namespace std;
+/* DEBUGf flags: creates output within the CVode RHS function.
+ * WARNING: Only turn on DEBUGf for small test runs, otherwise output is
+ * enormous (many GB).
+ */
 
-// Struct of parameters
-PARAMETERS params;
+// DEBUGf flag: general output at each CVode step
+//#define DEBUGf
+// DEBUGf_DM flag: DEBUGf for density matrix EOM
+//#define DEBUGf_DM
 
-// Hamiltonian
-realtype * Ham;
+//using namespace std;
 
-// GLOBAL VARIABLES GO HERE //
-#ifdef DEBUG_DMf
-FILE * dmf;				// file for density matrix coeff derivatives in time
+//// GLOBAL VARIABLES
+#ifdef DEBUGf_DM
+// file for density matrix coeff derivatives in time
+FILE * dmf;
 #endif
-void * cvode_mem;			// pointer to block of CVode memory
-realtype * user_data;
-N_Vector y, yout;			// arrays of populations
-int Nk;				// number of each type of state
-int Nc;
-int Nb;
-int Nl;
-int Ik;				// index starters for each type of state
-int Ic;
-int Ib;
-int Il;
-int NEQ;				// total number of states/equations
-int NEQ2;
-int numOutputSteps;			// number of timesteps
-realtype k_bandedge;			// lower edge of bulk conduction band
-realtype k_bandtop;			// upper edge of bulk conduction band
-double muLK;                           // transition dipole moment from l to k (energy a.u.)
-double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
-double pumpPeak;                       // time of peak of pump pulse (a.u.)
-double pumpFreq;                       // frequency of pump pulse (energy a.u.)
-double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
-double pumpPhase;                      // pump pulse phase (in units of radians)
-realtype ** V;				// pointer to k-c coupling constants
-realtype * energy;
-realtype * Vbridge;			// pointer to array of bridge coupling constants.
-					// first element [0] is Vkb1, last [Nb] is VcbN
-realtype * Vnobridge;			// coupling constant when there is no bridge
-bool bulk_FDD = 0;			// switches for starting conditions
-bool bulk_Gauss = 0;
-bool bulk_constant = 0;
-bool qd_pops = 0;
-bool laser_on = 0;
-bool parabolicCoupling = 0;
-bool scale_bubr = 0;
-bool scale_brqd = 0;
-bool scale_buqd = 0;
-bool scale_laser = 0;
-bool bridge_on = 0;
-bool random_phase = 0;
-int random_seed = 0;
-// END GLOBAL VARIABLES
-
-int f(realtype t, N_Vector y, N_Vector ydot, void * user_data) {
-// gives f(y,t) for CVODE
-
- // initialize ydot
- // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
-#pragma omp parallel for
- for (int ii = 0; ii < 2*NEQ2; ii++) {
-  NV_Ith_S(ydot, ii) = 0.0;
- }
-
- //// diagonal; no need to calculate the imaginary part
-#pragma omp parallel for
- for (int ii = 0; ii < NEQ; ii++) {
-  for (int jj = 0; jj < NEQ; jj++) {
-   NV_Ith_S(ydot, ii*NEQ + ii) += 2*Ham[ii*NEQ + jj]*NV_Ith_S(y, jj*NEQ + ii + NEQ2);
-  }
- }
-
- //// off-diagonal
-#pragma omp parallel for
- for (int ii = 0; ii < NEQ; ii++) {
-  for (int jj = 0; jj < ii; jj++) {
-   for (int kk = 0; kk < NEQ; kk++) {
-    //// real parts of ydot
-    NV_Ith_S(ydot, ii*NEQ + jj) += Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj + NEQ2);
-    NV_Ith_S(ydot, ii*NEQ + jj) -= NV_Ith_S(y, ii*NEQ + kk + NEQ2)*Ham[kk*NEQ + jj];
-
-    //// imaginary parts of ydot (lower triangle and complex conjugate)
-    NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) -= Ham[ii*NEQ + kk]*NV_Ith_S(y, kk*NEQ + jj);
-    NV_Ith_S(ydot, ii*NEQ + jj + NEQ2) += NV_Ith_S(y, ii*NEQ + kk)*Ham[kk*NEQ + jj];
-   }
-   // the complex conjugate
-   NV_Ith_S(ydot, jj*NEQ + ii) = NV_Ith_S(ydot, ii*NEQ + jj);
-   NV_Ith_S(ydot, jj*NEQ + ii + NEQ2) = -1*NV_Ith_S(ydot, ii*NEQ + jj + NEQ2);
-  }
- }
-
-#ifdef DEBUG_DMf
- fprintf(dmf, "%+.7e", t);
- for (int ii = 0; ii < NEQ; ii++) {
-  for (int jj = 0; jj < NEQ; jj++) {
-   fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*NEQ + jj), NV_Ith_S(ydot, ii*NEQ + jj + NEQ2));
-  }
- }
- fprintf(dmf, "\n");
-#endif
-
- return 0;
-}
+//// END GLOBAL VARIABLES
 
 
 int main (int argc, char * argv[]) {
 
- // VARIABLES GO HERE//
- // number of processors
- int nproc;
+ //// DECLARING VARIABLES
+ // Struct of parameters
+ PARAMETERS params;
+ // CVode variables
+ void * cvode_mem;			// pointer to block of CVode memory
+ N_Vector y, yout;			// arrays of populations
+
+ int nproc;				// number of processors
+ int Nk, Nc, Nb, Nl;			// number of each type of state
+ int Ik, Ic, Ib, Il;			// index starters for each type of state
+ int NEQ;				// total number of states
+ int NEQ2;				// total number of coefficients in density matrix
+ int numOutputSteps;			// number of timesteps
+ realtype k_bandedge;			// lower edge of bulk conduction band
+ realtype k_bandtop;			// upper edge of bulk conduction band
+ double muLK;                           // transition dipole moment from l to k (energy a.u.)
+ double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
+ double pumpPeak;                       // time of peak of pump pulse (a.u.)
+ double pumpFreq;                       // frequency of pump pulse (energy a.u.)
+ double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
+ double pumpPhase;                      // pump pulse phase (in units of radians)
+ realtype ** V;				// pointer to k-c coupling constants
+ realtype * energy;
+ realtype * Vbridge;			// pointer to array of bridge coupling constants.
+					// first element [0] is Vkb1, last [Nb] is VcbN
+ realtype * Vnobridge;			// coupling constant when there is no bridge
+ bool bulk_FDD = 0;			// switches for starting conditions
+ bool bulk_Gauss = 0;
+ bool bulk_constant = 0;
+ bool qd_pops = 0;
+ bool laser_on = 0;
+ bool parabolicCoupling = 0;
+ bool scale_bubr = 0;
+ bool scale_brqd = 0;
+ bool scale_buqd = 0;
+ bool scale_laser = 0;
+ bool bridge_on = 0;
+ bool random_phase = 0;
+ int random_seed = 0;
 
  int i, j;					// counter!
  int flag;
@@ -161,7 +110,6 @@ int main (int argc, char * argv[]) {
  int Nk_final;					// final k state initially populated
  realtype bulk_gap;				// bulk band gap
  double valenceBand;				// valence band width
- double temperature;				// system temperature
  double bulkGaussSigma;				// width of initial Gaussian in bulk
  double bulkGaussMu;				// position of initial Gaussian above band edge
  realtype t0 = 0.0;				// initial time
@@ -218,6 +166,7 @@ int main (int argc, char * argv[]) {
  double summ = 0;			// sum variable
  bool timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
  bool analytical = 0;			// turn on analytical propagation
+ bool rta = 0;				// turn on relaxation time approximation (RTA)
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -234,7 +183,9 @@ int main (int argc, char * argv[]) {
  bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
  bulkGaussMu = 0.01;			// position of initial Gaussian above band edge
  // physical parameters //
- temperature = 3e2;			// temperature of the system
+ realtype temperature = 3e2;			// temperature of the system
+ realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
+ realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
  // laser parameters
  muLK = 1.0;				// transition dipole moment from l to k (energy a.u.)
  pumpFWHM = 1000;
@@ -244,21 +195,21 @@ int main (int argc, char * argv[]) {
  pumpPhase = 0.0;
  // DONE ASSIGNING VARIABLE DEFAULTS //
 
- string line;
- string input_param;
- string param_val;
+ std::string line;
+ std::string input_param;
+ std::string param_val;
  size_t equals_pos;
  size_t space_pos;
 
- ifstream bash_in;	// declare input file stream
+ std::ifstream bash_in;	// declare input file stream
 
- bash_in.open("ins/parameters.in", ios::in);	// open file as input stream
+ bash_in.open("ins/parameters.in", std::ios::in);	// open file as input stream
  if (bash_in.good() == false) {
   fprintf(stderr, "ERROR [Inputs]: file 'ins/parameters.in' not available for reading\n");
   return -1;
  }
 
- cout << endl;
+ std::cout << std::endl;
 
  // read first line of input file
  getline (bash_in,line);
@@ -284,11 +235,12 @@ int main (int argc, char * argv[]) {
   param_val = line.substr(int(equals_pos)+1,int(space_pos)-int(equals_pos));
   // extract parameters
 #ifdef DEBUG
-  cout << "Parameter: " << input_param << endl << "New value: " << atof(param_val.c_str()) << endl;
+  std::cout << "Parameter: " << input_param << std::endl << "New value: " << atof(param_val.c_str()) << std::endl;
 #endif
   if (input_param == "timedepH") { timedepH = atoi(param_val.c_str()); }
-  else if (input_param == "nproc") { nproc = atof(param_val.c_str()); }
-  else if (input_param == "analytical") { analytical = atof(param_val.c_str()); }
+  else if (input_param == "nproc") { nproc = atoi(param_val.c_str()); }
+  else if (input_param == "analytical") { analytical = atoi(param_val.c_str()); }
+  else if (input_param == "rta") { rta = atoi(param_val.c_str()); }
   else if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
   else if (input_param == "tout" ) { tout = atof(param_val.c_str()); }
@@ -305,6 +257,8 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bulkGaussSigma" ) { bulkGaussSigma = atof(param_val.c_str()); }
   else if (input_param == "bulkGaussMu" ) { bulkGaussMu = atof(param_val.c_str()); }
   else if (input_param == "temperature" ) { temperature = atof(param_val.c_str()); }
+  else if (input_param == "gamma1" ) { gamma1 = atof(param_val.c_str()); }
+  else if (input_param == "gamma2" ) { gamma2 = atof(param_val.c_str()); }
   else if (input_param == "muLK" ) { muLK = atof(param_val.c_str()); }
   else if (input_param == "pumpFWHM" ) { pumpFWHM = atof(param_val.c_str()); }
   else if (input_param == "pumpPeak" ) { pumpPeak = atof(param_val.c_str()); }
@@ -328,45 +282,48 @@ int main (int argc, char * argv[]) {
   getline (bash_in,line);
  }
 #ifdef DEBUG
- cout << endl;
- cout << "timedepH is " << timedepH << endl;
- cout << "analytical is " << analytical << endl;
- cout << "nproc is " << nproc << endl;
- cout << "abstol is " << abstol << endl;
- cout << "reltol is " << reltol << endl;
- cout << "tout is " << tout << endl;
- cout << "numsteps is " << numsteps << endl;
- cout << "numOutputSteps is " << numOutputSteps << endl;
- cout << "k_bandedge is " << k_bandedge << endl;
- cout << "k_bandtop is " << k_bandtop << endl;
- cout << "bulk_gap is " << bulk_gap << endl;
- cout << "Nk is " << Nk << endl;
- cout << "Nk_first is " << Nk_first << endl;
- cout << "Nk_final is " << Nk_final << endl;
- cout << "valenceBand is " << valenceBand << endl;
- cout << "Nl is " << Nl << endl;
- cout << "bulkGaussSigma is " << bulkGaussSigma << endl;
- cout << "bulkGaussMu is " << bulkGaussMu << endl;
- cout << "temperature is " << temperature << endl;
- cout << "muLK is " << muLK << endl;
- cout << "pumpFWHM is " << pumpFWHM << endl;
- cout << "pumpPeak is " << pumpPeak << endl;
- cout << "pumpFreq is " << pumpFreq << endl;
- cout << "pumpAmpl is " << pumpAmpl << endl;
- cout << "pumpPhase is " << pumpPhase << endl;
- cout << "bulk_FDD is " << bulk_FDD << endl;
- cout << "bulk_Gauss is " << bulk_Gauss << endl;
- cout << "bulk_constant is " << bulk_constant << endl;
- cout << "qd_pops is " << qd_pops << endl;
- cout << "laser_on is " << laser_on << endl;
- cout << "parabolicCoupling is " << parabolicCoupling << endl;
- cout << "scale_bubr is " << scale_bubr << endl;
- cout << "scale_brqd is " << scale_brqd << endl;
- cout << "scale_buqd is " << scale_buqd << endl;
- cout << "scale_laser is " << scale_laser << endl;
- cout << "bridge_on is " << bridge_on << endl;
- cout << "random_phase is " << random_phase << endl;
- cout << "random_seed is " << random_seed << endl;
+ std::cout << std::endl;
+ std::cout << "timedepH is " << timedepH << std::endl;
+ std::cout << "analytical is " << analytical << std::endl;
+ std::cout << "rta is " << rta << std::endl;
+ std::cout << "nproc is " << nproc << std::endl;
+ std::cout << "abstol is " << abstol << std::endl;
+ std::cout << "reltol is " << reltol << std::endl;
+ std::cout << "tout is " << tout << std::endl;
+ std::cout << "numsteps is " << numsteps << std::endl;
+ std::cout << "numOutputSteps is " << numOutputSteps << std::endl;
+ std::cout << "k_bandedge is " << k_bandedge << std::endl;
+ std::cout << "k_bandtop is " << k_bandtop << std::endl;
+ std::cout << "bulk_gap is " << bulk_gap << std::endl;
+ std::cout << "Nk is " << Nk << std::endl;
+ std::cout << "Nk_first is " << Nk_first << std::endl;
+ std::cout << "Nk_final is " << Nk_final << std::endl;
+ std::cout << "valenceBand is " << valenceBand << std::endl;
+ std::cout << "Nl is " << Nl << std::endl;
+ std::cout << "bulkGaussSigma is " << bulkGaussSigma << std::endl;
+ std::cout << "bulkGaussMu is " << bulkGaussMu << std::endl;
+ std::cout << "temperature is " << temperature << std::endl;
+ std::cout << "gamma1 is " << gamma1 << std::endl;
+ std::cout << "gamma2 is " << gamma2 << std::endl;
+ std::cout << "muLK is " << muLK << std::endl;
+ std::cout << "pumpFWHM is " << pumpFWHM << std::endl;
+ std::cout << "pumpPeak is " << pumpPeak << std::endl;
+ std::cout << "pumpFreq is " << pumpFreq << std::endl;
+ std::cout << "pumpAmpl is " << pumpAmpl << std::endl;
+ std::cout << "pumpPhase is " << pumpPhase << std::endl;
+ std::cout << "bulk_FDD is " << bulk_FDD << std::endl;
+ std::cout << "bulk_Gauss is " << bulk_Gauss << std::endl;
+ std::cout << "bulk_constant is " << bulk_constant << std::endl;
+ std::cout << "qd_pops is " << qd_pops << std::endl;
+ std::cout << "laser_on is " << laser_on << std::endl;
+ std::cout << "parabolicCoupling is " << parabolicCoupling << std::endl;
+ std::cout << "scale_bubr is " << scale_bubr << std::endl;
+ std::cout << "scale_brqd is " << scale_brqd << std::endl;
+ std::cout << "scale_buqd is " << scale_buqd << std::endl;
+ std::cout << "scale_laser is " << scale_laser << std::endl;
+ std::cout << "bridge_on is " << bridge_on << std::endl;
+ std::cout << "random_phase is " << random_phase << std::endl;
+ std::cout << "random_seed is " << random_seed << std::endl;
 #endif
 
  if (outs["log.out"]) {
@@ -376,7 +333,7 @@ int main (int argc, char * argv[]) {
 
  // Error checking
  if ((bulk_FDD && qd_pops) || (bulk_constant && qd_pops) || (bulk_Gauss && qd_pops)) {
-  cerr << "\nWARNING: population starting both in bulk and QD.\n";
+  std::cerr << "\nWARNING: population starting both in bulk and QD.\n";
  }
  if (Nk_first > Nk || Nk_first < 1) {
   fprintf(stderr, "ERROR [Inputs]: Nk_first greater than Nk or less than 1.\n");
@@ -395,15 +352,15 @@ int main (int argc, char * argv[]) {
   return -1;
  }
  if ((bulk_FDD && bulk_constant) || (bulk_FDD && bulk_Gauss) || (bulk_constant && bulk_Gauss)) {
-  cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
+  std::cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
   return -1;
  }
  if (random_seed < -1) {
-  cerr << "\nERROR: random_phase must be -1 or greater.\n";
+  std::cerr << "\nERROR: random_phase must be -1 or greater.\n";
   return -1;
  }
 
- cout << endl;
+ std::cout << std::endl;
 
  bash_in.close();
 
@@ -427,7 +384,7 @@ int main (int argc, char * argv[]) {
  readArrayFromFile(c_energies, "ins/c_energies.in", Nc);
  if (bridge_on) {
   if (bridge_on && (Nb < 1)) {
-   cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
+   std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
    return -1;
   }
   Vbridge = new realtype [Nb+1];
@@ -445,11 +402,11 @@ int main (int argc, char * argv[]) {
   readArrayFromFile(Vnobridge, "ins/Vnobridge.in", 1);
   // feed coupling array to params
   params.Vnobridge.resize(1);
-  params.Vnobridge[0] = Vbridge[0];
+  params.Vnobridge[0] = Vnobridge[0];
  }
  // DONE READING //
 #ifdef DEBUG
- cout << "\nDone reading things from inputs.\n";
+ std::cout << "\nDone reading things from inputs.\n";
 #endif
 
  // PREPROCESS DATA FROM INPUTS //
@@ -459,8 +416,8 @@ int main (int argc, char * argv[]) {
  NEQ = Nk+Nc+Nb+Nl;				// total number of equations set
  NEQ2 = NEQ*NEQ;				// number of elements in DM
 #ifdef DEBUG
- cout << "\nTotal number of states: " << NEQ << endl;
- cout << Nk << " bulk, " << Nc << " QD, " << Nb << " bridge, " << Nl << " bulk VB.\n";
+ std::cout << "\nTotal number of states: " << NEQ << std::endl;
+ std::cout << Nk << " bulk, " << Nc << " QD, " << Nb << " bridge, " << Nl << " bulk VB.\n";
 #endif
  tkprob = new realtype [numOutputSteps+1];	// total population on k, b, c at each timestep
  tcprob = new realtype [numOutputSteps+1];
@@ -503,6 +460,9 @@ int main (int argc, char * argv[]) {
  params.tout = tout;
  params.kBandEdge = k_bandedge;
  params.kBandTop = k_bandtop;
+ params.kBandWidth = params.kBandTop - params.kBandEdge;
+ params.gamma1 = gamma1;
+ params.gamma2 = gamma2;
  params.scale_bubr = scale_bubr;
  params.scale_brqd = scale_brqd;
  params.scale_buqd = scale_buqd;
@@ -520,19 +480,19 @@ int main (int argc, char * argv[]) {
  // coefficients in bulk and other states depend on input conditions in bulk
  if (bulk_constant) {
 #ifdef DEBUG
-  cout << "\ninitializing k_pops\n";
+  std::cout << "\ninitializing k_pops\n";
 #endif
   initializeArray(k_pops, Nk, 0.0);
 #ifdef DEBUG
-  cout << "\ninitializing k_pops with constant probability in range of states\n";
+  std::cout << "\ninitializing k_pops with constant probability in range of states\n";
 #endif
   initializeArray(k_pops+Nk_first-1, Nk_final-Nk_first+1, 1.0);
 #ifdef DEBUG
-  cout << "\nThis is k_pops:\n";
+  std::cout << "\nThis is k_pops:\n";
   for (i = 0; i < Nk; i++) {
-   cout << k_pops[i] << endl;
+   std::cout << k_pops[i] << std::endl;
   }
-  cout << "\n";
+  std::cout << "\n";
 #endif
   initializeArray(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   initializeArray(c_pops, Nc, 0.0);		// QD states empty to start
@@ -587,29 +547,29 @@ int main (int argc, char * argv[]) {
 
 #ifdef DEBUG
  // print out details of wavefunction coefficients
- cout << endl;
+ std::cout << std::endl;
  for (i = 0; i < Nk; i++)
-  cout << "starting wavefunction: Re[k(" << i << ")] = " << wavefunction[Ik + i] << endl;
+  std::cout << "starting wavefunction: Re[k(" << i << ")] = " << wavefunction[Ik + i] << std::endl;
  for (i = 0; i < Nc; i++)
-  cout << "starting wavefunction: Re[c(" << i << ")] = " << wavefunction[Ic + i] << endl;
+  std::cout << "starting wavefunction: Re[c(" << i << ")] = " << wavefunction[Ic + i] << std::endl;
  for (i = 0; i < Nb; i++)
-  cout << "starting wavefunction: Re[b(" << i << ")] = " << wavefunction[Ib + i] << endl;
+  std::cout << "starting wavefunction: Re[b(" << i << ")] = " << wavefunction[Ib + i] << std::endl;
  for (i = 0; i < Nl; i++)
-  cout << "starting wavefunction: Re[l(" << i << ")] = " << wavefunction[Il + i] << endl;
+  std::cout << "starting wavefunction: Re[l(" << i << ")] = " << wavefunction[Il + i] << std::endl;
  for (i = 0; i < Nk; i++)
-  cout << "starting wavefunction: Im[k(" << i << ")] = " << wavefunction[Ik + i + NEQ] << endl;
+  std::cout << "starting wavefunction: Im[k(" << i << ")] = " << wavefunction[Ik + i + NEQ] << std::endl;
  for (i = 0; i < Nc; i++)
-  cout << "starting wavefunction: Im[c(" << i << ")] = " << wavefunction[Ic + i + NEQ] << endl;
+  std::cout << "starting wavefunction: Im[c(" << i << ")] = " << wavefunction[Ic + i + NEQ] << std::endl;
  for (i = 0; i < Nb; i++)
-  cout << "starting wavefunction: Im[b(" << i << ")] = " << wavefunction[Ib + i + NEQ] << endl;
+  std::cout << "starting wavefunction: Im[b(" << i << ")] = " << wavefunction[Ib + i + NEQ] << std::endl;
  for (i = 0; i < Nl; i++)
-  cout << "starting wavefunction: Im[l(" << i << ")] = " << wavefunction[Il + i + NEQ] << endl;
- cout << endl;
+  std::cout << "starting wavefunction: Im[l(" << i << ")] = " << wavefunction[Il + i + NEQ] << std::endl;
+ std::cout << std::endl;
  summ = 0;
  for (i = 0; i < 2*NEQ; i++) {
   summ += pow(wavefunction[i],2);
  }
- cout << "\nTotal population is " << summ << "\n\n";
+ std::cout << "\nTotal population is " << summ << "\n\n";
 #endif
 
  // Assemble array of energies
@@ -622,19 +582,18 @@ int main (int argc, char * argv[]) {
   energy[Ib + i] = b_energies[i];
  for (i = 0; i < Nl; i++)
   energy[Il + i] = l_energies[i];
- user_data = energy;
 
 #ifdef DEBUG
  // output energies
  for (i = 0; i < Nk; i++)
-  cout << "energy[k(" << i << ")] = " << energy[Ik + i] << endl;
+  std::cout << "energy[k(" << i << ")] = " << energy[Ik + i] << std::endl;
  for (i = 0; i < Nc; i++)
-  cout << "energy[c(" << i << ")] = " << energy[Ic + i] << endl;
+  std::cout << "energy[c(" << i << ")] = " << energy[Ic + i] << std::endl;
  for (i = 0; i < Nb; i++)
-  cout << "energy[b(" << i << ")] = " << energy[Ib + i] << endl;
+  std::cout << "energy[b(" << i << ")] = " << energy[Ib + i] << std::endl;
  for (i = 0; i < Nl; i++)
-  cout << "energy[l(" << i << ")] = " << energy[Il + i] << endl;
- cout << endl;
+  std::cout << "energy[l(" << i << ")] = " << energy[Il + i] << std::endl;
+ std::cout << std::endl;
 #endif
 
  // feed energies to params
@@ -704,7 +663,7 @@ int main (int argc, char * argv[]) {
 
 #ifdef DEBUG
  // print out density matrix
- cout << "\nDensity matrix before normalization:\n\n";
+ std::cout << "\nDensity matrix before normalization:\n\n";
  for (int ii = 0; ii < NEQ; ii++) {
   for (int jj = 0; jj < NEQ; jj++) {
    fprintf(stdout, "(%+.1e,%+.1e) ", dm[NEQ*ii + jj], dm[NEQ*ii + jj + NEQ2]);
@@ -720,7 +679,7 @@ int main (int argc, char * argv[]) {
   summ += dm[NEQ*ii + ii];
  }
  if ( summ == 0.0 ) {
-  cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+  std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
   return -1;
  }
  if (summ != 1.0) {
@@ -731,7 +690,7 @@ int main (int argc, char * argv[]) {
   }
  }
 #ifdef DEBUG
- cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+ std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
 #endif
 
  // Error checking for total population; recount population first
@@ -740,10 +699,10 @@ int main (int argc, char * argv[]) {
   summ += dm[NEQ*ii + ii];
  }
  if ( fabs(summ-1.0) > 1e-12 ) {
-  cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
+  std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
  }
 #ifdef DEBUG
- cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
+ std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
 #endif
 
   // build Hamiltonian
@@ -755,16 +714,17 @@ int main (int argc, char * argv[]) {
   if (outs["ham.out"]) {
    outputSquareMatrix(H, NEQ, "ham.out");
   }
-  Ham = new realtype [NEQ2];
+  // add Hamiltonian to params
+  params.H.resize(NEQ2);
   for (int ii = 0; ii < NEQ2; ii++) {
-   Ham[ii] = H[ii];
+   params.H[ii] = H[ii];
   }
 
  // DONE PREPROCESSING //
  
 #ifdef DEBUG
- cout << "\nCreating N_Vectors.\n";
- cout << "\nProblem size is " << 2*NEQ2 << " elements.\n";
+  std::cout << "\nCreating N_Vectors.\n";
+  std::cout << "\nProblem size is " << 2*NEQ2 << " elements.\n";
 #endif
  // Creates N_Vector y with initial populations which will be used by CVode//
  y = N_VMake_Serial(2*NEQ2, dm);
@@ -785,25 +745,31 @@ int main (int argc, char * argv[]) {
  // create CVode object
  // this is a stiff problem, I guess?
 #ifdef DEBUG
- cout << "\nCreating cvode_mem object.\n";
+ std::cout << "\nCreating cvode_mem object.\n";
 #endif
  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
- flag = CVodeSetUserData(cvode_mem, (void *) user_data);
+ flag = CVodeSetUserData(cvode_mem, (void *) &params);
 
 #ifdef DEBUG
- cout << "\nInitializing CVode solver.\n";
+ std::cout << "\nInitializing CVode solver.\n";
 #endif
  // initialize CVode solver //
- flag = CVodeInit(cvode_mem, &f, t0, y);
+ 
+ if (rta) {
+  flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+ }
+ else {
+  flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+ }
 
 #ifdef DEBUG
- cout << "\nSpecifying integration tolerances.\n";
+ std::cout << "\nSpecifying integration tolerances.\n";
 #endif
  // specify integration tolerances //
  flag = CVodeSStolerances(cvode_mem, reltol, abstol);
 
 #ifdef DEBUG
- cout << "\nAttaching linear solver module.\n";
+ std::cout << "\nAttaching linear solver module.\n";
 #endif
  // attach linear solver module //
  flag = CVDense(cvode_mem, 2*NEQ2);
@@ -811,25 +777,25 @@ int main (int argc, char * argv[]) {
  // advance the solution in time! //
  // use CVODE for time-dependent H
 #ifdef DEBUG
- cout << "\nAdvancing the solution in time.\n";
+ std::cout << "\nAdvancing the solution in time.\n";
 #endif
-#ifdef DEBUG_DMf
- cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+#ifdef DEBUGf_DM
+ std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
  dmf = fopen("dmf.out", "w");
 #endif
  for (i = 1; i <= numsteps; ++i) {
   t = (tout*((double) i)/((double) numsteps));
   flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
-  //cout << endl << "CVode flag at step " << i << ": " << flag << endl;
+  std::cout << std::endl << "CVode flag at step " << i << ": " << flag << std::endl;
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
    updateDM(yout, dmt, i*numOutputSteps/numsteps, &params);
   }
  }
-#ifdef DEBUG_DMf
- cout << "Closing output file for density matrix coefficients in time.\n";
+#ifdef DEBUGf_DM
+ std::cout << "Closing output file for density matrix coefficients in time.\n";
  fclose(dmf);
 #endif
 
@@ -837,10 +803,6 @@ int main (int argc, char * argv[]) {
  fclose(realImaginary);
 #endif
 
- if (outs["cprobs.plt"] && (Nc > 1)) {
-  plot_cprobs(params);
- }
- 
  // finalize log file //
  time(&endRun);
  currentTime = localtime(&endRun);
@@ -854,17 +816,19 @@ int main (int argc, char * argv[]) {
 
  // Compute density matrix outputs.
 #ifdef DEBUG
- cout << "Computing outputs...";
+ std::cout << "Computing outputs...";
 #endif
- computeDMOutput(dmt, V, energy, times, numOutputSteps, outs, &params);
+ computeDMOutput(dmt, outs, &params);
 #ifdef DEBUG
  std::cout << "done.";
 #endif
 
+ // Make plot files
+ makePlots(outs, &params);
+
 #ifdef DEBUG
  fprintf(stdout, "Deallocating N_Vectors.\n");
 #endif
- /*
  //  TODO why does this block break?
  // deallocate memory for N_Vectors //
  N_VDestroy_Serial(y);
@@ -889,13 +853,16 @@ int main (int argc, char * argv[]) {
  delete [] b_pops;
  delete [] energy;
  delete [] V;
- delete [] Vbridge;
- delete [] Vnobridge;
+ if (bridge_on) {
+  delete [] Vbridge;
+ }
+ else {
+  delete [] Vnobridge;
+ }
  delete [] k_energies;
  delete [] c_energies;
  delete [] b_energies;
  delete [] l_energies;
- */
  fprintf(stderr, "\nwhoo\n");
 
  return 0;

@@ -3,7 +3,7 @@
 #include <string>
 #include <map>
 
-#include "libdynamix_input_parser.h"
+#include "libdynamix_input_parser.hpp"
 
 //#define DEBUG_INPUT_PARSER
 

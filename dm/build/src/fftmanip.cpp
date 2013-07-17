@@ -1,7 +1,7 @@
 #include <math.h>
 
-#include "output.h"
-#include "fftmanip.h"
+#include "output.hpp"
+#include "fftmanip.hpp"
 
 /* This function implements something similar to MATLAB's 'fftshift':
  * it takes the FFT'd vector invec and puts a shifted copy in outvec.*/

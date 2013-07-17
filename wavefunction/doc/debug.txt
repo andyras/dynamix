@@ -1,6 +1,0 @@
-Debugging checklist
--read through all input parameters
--make sure scaling is the way you intend it to be
- -look to make sure it is not turned on by override in build_v
--look at the output H (energy.out, couplings.out, ham.out)
--turn on debug code
