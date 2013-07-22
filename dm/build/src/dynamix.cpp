@@ -59,25 +59,52 @@ int main (int argc, char * argv[]) {
  void * cvode_mem;			// pointer to block of CVode memory
  N_Vector y, yout;			// arrays of populations
 
- int nproc;				// number of processors
- int Nk, Nc, Nb, Nl;			// number of each type of state
- int Ik, Ic, Ib, Il;			// index starters for each type of state
- int NEQ;				// total number of states
- int NEQ2;				// total number of coefficients in density matrix
- int numOutputSteps;			// number of timesteps
- realtype k_bandedge;			// lower edge of bulk conduction band
- realtype k_bandtop;			// upper edge of bulk conduction band
- double muLK;                           // transition dipole moment from l to k (energy a.u.)
- double pumpFWHM;                       // FWHM of pump pulse (time a.u.)
- double pumpPeak;                       // time of peak of pump pulse (a.u.)
- double pumpFreq;                       // frequency of pump pulse (energy a.u.)
- double pumpAmpl;                       // intensity of pump pulse (electric field a.u.)
- double pumpPhase;                      // pump pulse phase (in units of radians)
+ int Nk = 1;				// number of each type of state
+ int Nc = 0;				// number of each type of state
+ int Nb = 0;				// number of each type of state
+ int Nl = 0;				// number of each type of state
+ int Ik = 0;				// index starters for each type of state
+ int Ic = 0;				// index starters for each type of state
+ int Ib = 0;				// index starters for each type of state
+ int Il = 0;				// index starters for each type of state
+
+ // arrays for energetic parameters
  realtype ** V;				// pointer to k-c coupling constants
  realtype * energy;
  realtype * Vbridge;			// pointer to array of bridge coupling constants.
 					// first element [0] is Vkb1, last [Nb] is VcbN
  realtype * Vnobridge;			// coupling constant when there is no bridge
+
+ //// Setting defaults for parameters to be read from input
+ int nproc = 0;				// number of processors
+ bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
+ bool analytical = false;		// turn on analytical propagation
+ bool rta = true;			// turn on relaxation time approximation (RTA)
+ bool progressFile = false;		// create a file to show progress of the run
+ realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
+ realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
+ realtype tout = 10000;			// final time reached by solver in atomic units
+ int numsteps = 10000;			// number of time steps
+ int numOutputSteps = 1000;		// number of timesteps
+ int NEQ;				// total number of states
+ int NEQ2;				// total number of coefficients in density matrix
+ realtype k_bandedge = 0.0;		// lower edge of bulk conduction band
+ realtype k_bandtop = 0.01;		// upper edge of bulk conduction band
+ int Nk_first = 1;			// first k state initially populated
+ int Nk_final = 1;			// final k state initially populated
+ realtype bulk_gap = 0.001;		// bulk band gap
+ double valenceBand = 0.01;		// valence band width
+ double bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
+ double bulkGaussMu = 0.01;		// position of initial Gaussian above band edge
+ realtype temperature = 3e2;		// temperature of the system
+ realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
+ realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
+ double muLK = 1.0;                     // transition dipole moment from l to k (energy a.u.)
+ double pumpFWHM = 1000;                // FWHM of pump pulse (time a.u.)
+ double pumpPeak = 2000;                // time of peak of pump pulse (a.u.)
+ double pumpFreq = 0.01;                // frequency of pump pulse (energy a.u.)
+ double pumpAmpl = 1.0;                 // intensity of pump pulse (electric field a.u.)
+ double pumpPhase = 0.0;                // pump pulse phase (in units of radians)
  bool bulk_FDD = false;			// switches for starting conditions
  bool bulk_Gauss = false;
  bool bulk_constant = false;
@@ -91,8 +118,9 @@ int main (int argc, char * argv[]) {
  bool bridge_on = false;
  bool random_phase = false;
  int random_seed = 0;
+ //// done setting defaults
 
- int i, j;					// counter!
+ int i = 0;					// counter!
  int flag;
  realtype * k_pops;				// pointers to arrays of populations
  realtype * l_pops;
@@ -106,12 +134,6 @@ int main (int argc, char * argv[]) {
  realtype * c_energies;
  realtype * b_energies;
  realtype * l_energies;
- int Nk_first;					// first k state initially populated
- int Nk_final;					// final k state initially populated
- realtype bulk_gap;				// bulk band gap
- double valenceBand;				// valence band width
- double bulkGaussSigma;				// width of initial Gaussian in bulk
- double bulkGaussMu;				// position of initial Gaussian above band edge
  realtype t0 = 0.0;				// initial time
  realtype t = 0;
  realtype tret;					// time returned by the solver
@@ -161,39 +183,7 @@ int main (int argc, char * argv[]) {
  // read in parameters from parameter bash script
 
  // ASSIGN VARIABLE DEFAULTS //
- i = 0;
- nproc = 0;
  double summ = 0;			// sum variable
- bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
- bool analytical = false;		// turn on analytical propagation
- bool rta = true;			// turn on relaxation time approximation (RTA)
- bool progressFile = false;		// create a file to show progress of the run
- realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
- realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
- realtype tout = 10000;			// final time reached by solver in atomic units
- int numsteps = 10000;			// number of time steps
- numOutputSteps = 1000;
- // bulk parameters //
- k_bandedge = 0.0;			// lower band edge of conduction band
- k_bandtop = 0.01;			// upper band edge of bulk conduction band
- bulk_gap = 0.001;			// bulk band gap
- valenceBand = 0.01;			// valence band width
- Nk = 100;				// number of k states
- Nk_first = 1;				// first k state initially populated
- Nk_final = 1;				// final k state initially populated
- bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
- bulkGaussMu = 0.01;			// position of initial Gaussian above band edge
- // physical parameters //
- realtype temperature = 3e2;			// temperature of the system
- realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
- realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
- // laser parameters
- muLK = 1.0;				// transition dipole moment from l to k (energy a.u.)
- pumpFWHM = 1000;
- pumpPeak = 2000;
- pumpFreq = 0.01;
- pumpAmpl = 1.0;
- pumpPhase = 0.0;
  // DONE ASSIGNING VARIABLE DEFAULTS //
 
  std::string line;
