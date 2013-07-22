@@ -78,18 +78,18 @@ int main (int argc, char * argv[]) {
  realtype * Vbridge;			// pointer to array of bridge coupling constants.
 					// first element [0] is Vkb1, last [Nb] is VcbN
  realtype * Vnobridge;			// coupling constant when there is no bridge
- bool bulk_FDD = 0;			// switches for starting conditions
- bool bulk_Gauss = 0;
- bool bulk_constant = 0;
- bool qd_pops = 0;
- bool laser_on = 0;
- bool parabolicCoupling = 0;
- bool scale_bubr = 0;
- bool scale_brqd = 0;
- bool scale_buqd = 0;
- bool scale_laser = 0;
- bool bridge_on = 0;
- bool random_phase = 0;
+ bool bulk_FDD = false;			// switches for starting conditions
+ bool bulk_Gauss = false;
+ bool bulk_constant = false;
+ bool qd_pops = false;
+ bool laser_on = false;
+ bool parabolicCoupling = false;
+ bool scale_bubr = false;
+ bool scale_brqd = false;
+ bool scale_buqd = false;
+ bool scale_laser = false;
+ bool bridge_on = false;
+ bool random_phase = false;
  int random_seed = 0;
 
  int i, j;					// counter!
@@ -164,9 +164,10 @@ int main (int argc, char * argv[]) {
  i = 0;
  nproc = 0;
  double summ = 0;			// sum variable
- bool timedepH = 1;			// if H is TD, use CVODE, else diag H and propogate
- bool analytical = 0;			// turn on analytical propagation
- bool rta = 0;				// turn on relaxation time approximation (RTA)
+ bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
+ bool analytical = false;		// turn on analytical propagation
+ bool rta = true;			// turn on relaxation time approximation (RTA)
+ bool progressFile = false;		// create a file to show progress of the run
  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
  realtype tout = 10000;			// final time reached by solver in atomic units
@@ -241,6 +242,7 @@ int main (int argc, char * argv[]) {
   else if (input_param == "nproc") { nproc = atoi(param_val.c_str()); }
   else if (input_param == "analytical") { analytical = atoi(param_val.c_str()); }
   else if (input_param == "rta") { rta = atoi(param_val.c_str()); }
+  else if (input_param == "progressFile") { progressFile = atoi(param_val.c_str()); }
   else if (input_param == "abstol") { abstol = atof(param_val.c_str()); }
   else if (input_param == "reltol" ) { reltol = atof(param_val.c_str()); }
   else if (input_param == "tout" ) { tout = atof(param_val.c_str()); }
@@ -286,6 +288,7 @@ int main (int argc, char * argv[]) {
  std::cout << "timedepH is " << timedepH << std::endl;
  std::cout << "analytical is " << analytical << std::endl;
  std::cout << "rta is " << rta << std::endl;
+ std::cout << "progressFile is " << progressFile << std::endl;
  std::cout << "nproc is " << nproc << std::endl;
  std::cout << "abstol is " << abstol << std::endl;
  std::cout << "reltol is " << reltol << std::endl;
@@ -791,6 +794,11 @@ int main (int argc, char * argv[]) {
 #endif
   if (i % (numsteps/numOutputSteps) == 0) {
    fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+   if (progressFile) {
+     std::ofstream progressFile("progress.tmp");
+     progressFile << ((double)i/((double)numsteps))*100 << " percent done." << std::endl;
+     progressFile.close();
+   }
    updateDM(yout, dmt, i*numOutputSteps/numsteps, &params);
   }
  }
