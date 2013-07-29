@@ -118,6 +118,9 @@ int main (int argc, char * argv[]) {
  bool bridge_on = false;
  bool random_phase = false;
  int random_seed = 0;
+ bool torsion = false;
+ std::string torsionFile = "ins/torsion.in";
+ int torsionSite = 0;
  //// done setting defaults
 
  int i = 0;					// counter!
@@ -270,6 +273,9 @@ int main (int argc, char * argv[]) {
   else if (input_param == "bridge_on" ) { bridge_on = atoi(param_val.c_str()); }
   else if (input_param == "random_phase" ) { random_phase = atoi(param_val.c_str()); }
   else if (input_param == "random_seed" ) { random_seed = atoi(param_val.c_str()); }
+  else if (input_param == "torsion" ) { torsion = atoi(param_val.c_str()); }
+  else if (input_param == "torsionFile" ) { torsionFile = param_val; }
+  else if (input_param == "torsionSite" ) { torsionSite = atoi(param_val.c_str()); }
   else {  }
   getline (bash_in,line);
  }
@@ -277,7 +283,7 @@ int main (int argc, char * argv[]) {
  std::cout << std::endl;
  std::cout << "timedepH is " << timedepH << std::endl;
  std::cout << "analytical is " << analytical << std::endl;
- std::cout << "rta is " << rta << std::endl;
+ std::cout << "rta is " << rta << std::endl;--no-check-certificate
  std::cout << "progressFile is " << progressFile << std::endl;
  std::cout << "nproc is " << nproc << std::endl;
  std::cout << "abstol is " << abstol << std::endl;
@@ -317,6 +323,9 @@ int main (int argc, char * argv[]) {
  std::cout << "bridge_on is " << bridge_on << std::endl;
  std::cout << "random_phase is " << random_phase << std::endl;
  std::cout << "random_seed is " << random_seed << std::endl;
+ std::cout << "torsion is " << torsion << std::endl;
+ std::cout << "torsionFile is " << torsionFile << std::endl;
+ std::cout << "torsionSite is " << torsionSite << std::endl;
 #endif
 
  if (outs["log.out"]) {
@@ -463,6 +472,18 @@ int main (int argc, char * argv[]) {
  params.times.resize(numOutputSteps);
  for (int ii = 0; ii <= numOutputSteps; ii++) {
   params.times[ii] = times[ii];
+ }
+
+ //// torsion error checking
+ if (torsionSite > Nb) {
+   std::cerr << "ERROR: torsion site is larger than number of bridge sites." << std::endl;
+ }
+ else if (torsionSite < 0) {
+   std::cerr << "ERROR: torsion site is less than zero." << std::endl;
+ }
+
+ if (!fileExists(torsionFile)) {
+   std::cerr << "ERROR: torsion file " << torsionFile << " does not exist." << std::endl;
  }
 
  //// Build initial wavefunction

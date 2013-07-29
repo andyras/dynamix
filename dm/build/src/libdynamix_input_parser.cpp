@@ -1,8 +1,3 @@
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <map>
-
 #include "libdynamix_input_parser.hpp"
 
 //#define DEBUG_INPUT_PARSER
@@ -90,4 +85,10 @@ void assignOutputs(const char * inputFile, std::map<std::string, bool> &outputs)
    }
   }
  }
+}
+
+// checks if a file exists (can be opened)
+bool fileExists(std::string fileName) {
+  std::ifstream ifile(fileName.c_str());
+  return ifile;
 }

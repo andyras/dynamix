@@ -55,6 +55,10 @@ scale_laser=1
 bridge_on=1
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
+# Torsional parameters #
+torsion=0				# turn torsion-mediated coupling on or off
+torsionFile=ins/torsion.in		# file in which torsion data live
+torsionSite=0				# 0 = coupling between bulk and bridge
 ## END INPUT PARAMETERS ##
 
 # return here so that when this file is sourced by bash the output files are not confusing.

@@ -6,6 +6,8 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
+#include "spline.hpp"
+
 // Struct of parameters
 struct PARAMETERS {
  int Nk;
