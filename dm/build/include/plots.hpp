@@ -7,7 +7,7 @@
 
 #include "params.hpp"
 
-void makePlots(std::map<std::string, bool> &outs, struct PARAMETERS * p);
+void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p);
 
 void plotPopulations(char * fileName, struct PARAMETERS * p);
 

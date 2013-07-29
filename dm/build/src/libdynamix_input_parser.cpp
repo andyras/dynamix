@@ -19,9 +19,14 @@ void outputFile::create() {
  createMe = true;
 }
 
+// returns a const string for input to outputs map
+const std::string makeConstString(std::string inputString) {
+  return inputString;
+}
+
 //void parseInput(const char * inputFile)
 
-void assignOutputs(const char * inputFile, std::map<std::string, bool> &outputs) {
+void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outputs) {
  std::string line;
  std::ifstream input;
  
@@ -77,7 +82,9 @@ void assignOutputs(const char * inputFile, std::map<std::string, bool> &outputs)
 #ifdef DEBUG_INPUT_PARSER
     std::cout << "Creating output file:  " << line << "\n";
 #endif
-    outputs[line] = true;
+    //outputs[line] = true;
+    //outputs[makeConstString(line)] = true;
+    outputs.insert(std::pair<const std::string,bool>(line,true));
     if ((line.substr(line.length()-4, line.length()) != ".out")
         && (line.substr(line.length()-4, line.length()) != ".plt")) {
      std::cerr << "WARNING [" << __FUNCTION__ << "]: output file extension is not '.out' or '.plt'\n";

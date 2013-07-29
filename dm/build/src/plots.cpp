@@ -2,52 +2,36 @@
 
 //#define DEBUG_PLOT
 
-void makePlots(std::map<std::string, bool> &outs, struct PARAMETERS * p) {
+void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
  // populations in subsystems
- if (outs["populations.plt"]) {
-  if (! outs["tkprob.out"]) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'tkprob.out' may not exist." << std::endl;
-  }
-  if (! outs["tcprob.out"]) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'tcprob.out' may not exist." << std::endl;
-  }
-  if ((p->bridge_on) && (! outs["tbprob.out"])) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'tbprob.out' may not exist." << std::endl;
-  }
+ try {
+ if (outs.at("populations.plt")) {
   plotPopulations("populations.plt", p);
  }
 
  // probabilities in k states
- if (outs["kprobs.plt"] && (p->Nk > 1)) {
-  if (! outs["kprobs.out"]) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'kprobs.out' may not exist." << std::endl;
-  }
+ if (outs.at("kprobs.plt") && (p->Nk > 1)) {
   plotKProbs("kprobs.plt", p);
  }
 
  // probabilities in c states
- if (outs["cprobs.plt"] && (p->Nc > 1)) {
-  if (! outs["cprobs.out"]) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'cprobs.out' may not exist." << std::endl;
-  }
+ if (outs.at("cprobs.plt") && (p->Nc > 1)) {
   plotCProbs(p);
  }
 
  // density matrix in time
- if (outs["dmt_z.plt"]) {
-  if (! outs["dmt_z.out"]) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'dmt_z.out' may not exist." << std::endl;
-  }
+ if (outs.at("dmt_z.plt")) {
   plotDMt_z("dmt_z.plt", p);
  }
 
  // populations in k states as a movie
- if (outs["kprobs_movie.plt"] && (p->Nk > 1)) {
-  if (! outs["kprobs.out"]) {
-   std::cerr << std::endl << "WARNING! [" << __FUNCTION__ << "]: file 'kprobs.out' may not exist." << std::endl;
-  }
+ if (outs.at("kprobs_movie.plt") && (p->Nk > 1)) {
   plotKProbsMovie("kprobs_movie.plt", p);
  }
+ }
+catch (const std::out_of_range& oor) {
+  std::cerr << "Out of Range error: " << oor.what() << std::endl;
+}
 
  return;
 }

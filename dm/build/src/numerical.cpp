@@ -263,7 +263,7 @@ int findArrayMaximumIndex(realtype * inputArray, int num) {
 
 /* assign coupling constants to global array V */
 void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
-                    std::map<std::string, bool> &outs) {
+                    std::map<const std::string, bool> &outs) {
  
  int i, j;	// counters
  double Vkc;	// coupling between bulk and QD
@@ -363,16 +363,21 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 #endif
 
  FILE * couplings;
- if (outs["couplings.out"]) {
-  couplings = fopen("couplings.out","w");
-  for (i = 0; i < p->NEQ; i++) {
-   for (j = 0; j < p->NEQ; j++) {
-    fprintf(couplings,"%.7g ",vArray[i][j]);
+  try {
+   if (outs.at("couplings.out")) {
+    couplings = fopen("couplings.out","w");
+    for (i = 0; i < p->NEQ; i++) {
+     for (j = 0; j < p->NEQ; j++) {
+      fprintf(couplings,"%.7g ",vArray[i][j]);
+     }
+     fprintf(couplings,"\n");
+    }
+    fclose(couplings);
    }
-   fprintf(couplings,"\n");
   }
-  fclose(couplings);
- }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 }
 
 /* builds a Hamiltonian from site energies and couplings. */

@@ -76,6 +76,6 @@ void outputEnergyExp(char * fileName, realtype * dmt,
                      struct PARAMETERS * p);
 
 /* Computes outputs from \rho(t) */
-void computeDMOutput(realtype * dmt, std::map<std::string, bool> &outs,
+void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
                      struct PARAMETERS * p);
 #endif

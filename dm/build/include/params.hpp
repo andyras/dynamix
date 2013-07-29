@@ -40,6 +40,8 @@ struct PARAMETERS {
  std::vector<realtype> Vnobridge;
  std::vector<realtype> H;
  std::vector<realtype> times;
+
+ Spline torsionV("ins/torsion.in");
 };
 
 #endif

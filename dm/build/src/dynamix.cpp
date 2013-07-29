@@ -158,7 +158,7 @@ int main (int argc, char * argv[]) {
  realtype * energy_expectation;			// expectation value of energy at each timestep
  const char * inputFile;			// name of input file
  inputFile = "ins/parameters.in";
- std::map<std::string, bool> outs;		// map of output file names to bool
+ std::map<const std::string, bool> outs;	// map of output file names to bool
  // END VARIABLES //
  
  // Decide which output files to make
@@ -168,18 +168,19 @@ int main (int argc, char * argv[]) {
  assignOutputs(inputFile, outs);
 #ifdef DEBUG
  // print out which outputs will be made
- for (std::map<std::string, bool>::iterator it = outs.begin(); it != outs.end(); it++) {
+ for (std::map<const std::string, bool>::iterator it = outs.begin(); it != outs.end(); it++) {
   std::cout << "Output file: " << it->first << " will be created.\n";
  }
 #endif
 
+ try {
  // OPEN LOG FILE; PUT IN START TIME //
- if (outs["log.out"]) {
+ if (outs.at("log.out")) {
   log = fopen("log.out", "w");			// note that this file is closed at the end of the program
  }
  time(&startRun);
  currentTime = localtime(&startRun);
- if (outs["log.out"]) {
+ if (outs.at("log.out")) {
   fprintf(log, "Run started at %s\n", asctime(currentTime));
  }
  
@@ -328,7 +329,7 @@ int main (int argc, char * argv[]) {
  std::cout << "torsionSite is " << torsionSite << std::endl;
 #endif
 
- if (outs["log.out"]) {
+ if (outs.at("log.out")) {
   // make a note about the laser intensity.
   fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
  }
@@ -542,7 +543,7 @@ int main (int argc, char * argv[]) {
  for (i = 0; i < Nl; i++)
   wavefunction[Il + i] = l_pops[i];
 
- if (outs["psi_start.out"]) {
+ if (outs.at("psi_start.out")) {
   outputWavefunction(wavefunction, NEQ);
  }
 
@@ -625,7 +626,7 @@ int main (int argc, char * argv[]) {
   V[i] = new realtype [NEQ];
  buildCoupling(V, &params, outs);
 
- if (outs["log.out"]) {
+ if (outs.at("log.out")) {
   // make a note in the log about system timescales
   double tau = 0;		// fundamental system timescale
   if (Nk == 1) {
@@ -725,7 +726,7 @@ int main (int argc, char * argv[]) {
 #endif
   realtype * H = new realtype [NEQ2];
   buildHamiltonian(H, energy, V, &params);
-  if (outs["ham.out"]) {
+  if (outs.at("ham.out")) {
    outputSquareMatrix(H, NEQ, "ham.out");
   }
   // add Hamiltonian to params
@@ -825,7 +826,7 @@ int main (int argc, char * argv[]) {
  // finalize log file //
  time(&endRun);
  currentTime = localtime(&endRun);
- if (outs["log.out"]) {
+ if (outs.at("log.out")) {
   fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
   fprintf(log, "Run ended at %s\n", asctime(currentTime));
   fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
@@ -883,6 +884,10 @@ int main (int argc, char * argv[]) {
  delete [] b_energies;
  delete [] l_energies;
  fprintf(stderr, "\nwhoo\n");
+ }
+catch (const std::out_of_range& oor) {
+  std::cerr << "Out of Range error: " << oor.what() << std::endl;
+}
 
  return 0;
 }
