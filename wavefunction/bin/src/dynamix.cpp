@@ -20,7 +20,7 @@
 #include "numerical.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-#define DEBUG
+//#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
