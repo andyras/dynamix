@@ -55,6 +55,8 @@ function run {
  mkdir -p figures
  chmod 755 *.plt
  mv *.plt figures/
+ # remove progress file
+ rm -f progress.tmp
 }
 
 function backup {

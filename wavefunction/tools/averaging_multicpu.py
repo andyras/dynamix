@@ -138,7 +138,7 @@ def do_run(i):
     # cd to the directory
     os.chdir(runDir)
     # run hoagie with command "$maindir/bin/dynamix && rm -rf ins/"
-    os.system('hoagie -e "$(pwd)/../../bin/dynamix && rm -rf ins')
+    os.system('hoagie -e "$(pwd)/../../bin/dynamix && rm -rf ins"')
     # go back to the parent directory
     os.chdir('../..')
 

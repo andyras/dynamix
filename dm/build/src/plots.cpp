@@ -70,7 +70,7 @@ void plotPopulations(char * fileName, struct PARAMETERS * p) {
  o << "set terminal pdfcairo enhanced size 5,5 lw 2 font 'Arial-Bold,12'" << std::endl;
  o << "set output 'figures/populations.pdf'" << std::endl;
  o << std::endl;
- o << "stats './outs/tkprob.out' nooutput" << std::endl;
+ o << "stats './outs/tkprob.out' u ($1/41.3414):2 nooutput" << std::endl;
  o << "set xrange [STATS_min_x:STATS_max_x]" << std::endl;
  o << std::endl;
  o << "set rmargin 3" << std::endl;
@@ -96,19 +96,19 @@ void plotPopulations(char * fileName, struct PARAMETERS * p) {
  }
  o << "set ylabel 'Population (a.u.)'" << std::endl;
  o << "set title 'Bulk Population vs. Time'" << std::endl;
- o << "plot './outs/tkprob.out' lt 1 notitle" << std::endl;
+ o << "plot u ($1/41.3414):2 './outs/tkprob.out' lt 1 notitle" << std::endl;
  o << std::endl;
  if (p->bridge_on) {
   o << "set origin 0,0.32" << std::endl;
   o << "set title 'Bridge Population vs. Time'" << std::endl;
-  o << "plot './outs/tbprob.out' lt 3 notitle" << std::endl;
+  o << "plot u ($1/41.3414):2 './outs/tbprob.out' lt 3 notitle" << std::endl;
   o << std::endl;
  }
  o << "set origin 0,0.01" << std::endl;
  o << "set xlabel 'Time (fs)'" << std::endl;
  o << "set xtics scale 0" << std::endl;
  o << "set title 'QD Population vs. Time'" << std::endl;
- o << "plot './outs/tcprob.out' lt 2 notitle" << std::endl;
+ o << "plot u ($1/41.3414):2 './outs/tcprob.out' lt 2 notitle" << std::endl;
  o << std::endl;
  o << "unset multiplot" << std::endl;
  o << std::endl;
@@ -125,11 +125,11 @@ void plotPopulations(char * fileName, struct PARAMETERS * p) {
  o << "set style line 3 lc rgb 'blue'" << std::endl;
  o << std::endl;
  o << "set title 'Subsystem Populations vs. Time' offset 0,0.6" << std::endl;
- o << "plot './outs/tkprob.out' lt 1 lw 2 title 'Bulk', \\" << std::endl;
+ o << "plot u ($1/41.3414):2 './outs/tkprob.out' lt 1 lw 2 title 'Bulk', \\" << std::endl;
   if (p->bridge_on) {
-   o<< "'./outs/tbprob.out' lt 3 lw 2 title 'Bridge', \\" << std::endl;
+   o<< "'./outs/tbprob.out' u ($1/41.3414):2 lt 3 lw 2 title 'Bridge', \\" << std::endl;
   }
-   o<< "'./outs/tcprob.out' lt 2 lw 2 title 'QD'" << std::endl;
+   o<< "'./outs/tcprob.out' u ($1/41.3414):2 lt 2 lw 2 title 'QD'" << std::endl;
      
  return;
 }
