@@ -56,7 +56,7 @@ int main (int argc, char * argv[]) {
   // Struct of parameters
   PARAMETERS params;
   // CVode variables
-  void * cvode_mem;			// pointer to block of CVode memory
+  void * cvode_mem = NULL;			// pointer to block of CVode memory
   N_Vector y, yout;			// arrays of populations
 
   int Nk = 1;				// number of each type of state
@@ -125,39 +125,38 @@ int main (int argc, char * argv[]) {
 
   int i = 0;					// counter!
   int flag;
-  realtype * k_pops;				// pointers to arrays of populations
-  realtype * l_pops;
-  realtype * c_pops;
-  realtype * b_pops;
-  realtype * ydata;				// pointer to ydata (contains all populations)
-  realtype * wavefunction;			// (initial) wavefunction
-  realtype * dm;					// density matrix
-  realtype * dmt;				// density matrix in tiinitOutputMapme
-  realtype * k_energies;				// pointers to arrays of energies
-  realtype * c_energies;
-  realtype * b_energies;
-  realtype * l_energies;
+  realtype * k_pops = NULL;				// pointers to arrays of populations
+  realtype * l_pops = NULL;
+  realtype * c_pops = NULL;
+  realtype * b_pops = NULL;
+  realtype * ydata = NULL;				// pointer to ydata (contains all populations)
+  realtype * wavefunction = NULL;			// (initial) wavefunction
+  realtype * dm = NULL;					// density matrix
+  realtype * dmt = NULL;				// density matrix in tiinitOutputMapme
+  realtype * k_energies = NULL;				// pointers to arrays of energies
+  realtype * c_energies = NULL;
+  realtype * b_energies = NULL;
+  realtype * l_energies = NULL;
   realtype t0 = 0.0;				// initial time
   realtype t = 0;
   realtype tret;					// time returned by the solver
   time_t startRun;				// time at start of log
   time_t endRun;					// time at end of log
-  struct tm * currentTime;			// time structure for localtime
+  struct tm * currentTime = NULL;			// time structure for localtime
 #ifdef DEBUG
   FILE * realImaginary;				// file containing real and imaginary parts of the wavefunction
 #endif
   FILE * log;					// log file with run times
-  realtype * tkprob; 				// total probability in k, l, c, b states at each timestep
-  realtype * tlprob;
-  realtype * tcprob;
-  realtype * tbprob;
-  double ** allprob;				// populations in all states at all times
-  realtype * times;
-  realtype * qd_est;
-  realtype * qd_est_diag;
-  realtype * energy_expectation;			// expectation value of energy at each timestep
-  const char * inputFile;			// name of input file
-  inputFile = "ins/parameters.in";
+  realtype * tkprob = NULL; 				// total probability in k, l, c, b states at each timestep
+  realtype * tlprob = NULL;
+  realtype * tcprob = NULL;
+  realtype * tbprob = NULL;
+  double ** allprob = NULL;				// populations in all states at all times
+  realtype * times = NULL;
+  realtype * qd_est = NULL;
+  realtype * qd_est_diag = NULL;
+  realtype * energy_expectation = NULL;			// expectation value of energy at each timestep
+  const char * inputFile = "ins/parameters.in";			// name of input file
   std::map<const std::string, bool> outs;	// map of output file names to bool
   // END VARIABLES //
 
@@ -484,7 +483,7 @@ int main (int argc, char * argv[]) {
   params.scale_brqd = scale_brqd;
   params.scale_buqd = scale_buqd;
   params.parabolicCoupling = parabolicCoupling;
-  params.times.resize(numOutputSteps);
+  params.times.resize(numOutputSteps+1);
   for (int ii = 0; ii <= numOutputSteps; ii++) {
     params.times[ii] = times[ii];
   }
@@ -502,6 +501,8 @@ int main (int argc, char * argv[]) {
   }
   //// create spline
   //params.torsionV = new Spline(torsionFile.c_str());
+  Spline mySpline(torsionFile.c_str());
+  params.torsionV = &mySpline;
 
   //// Build initial wavefunction
 
@@ -750,8 +751,12 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   fprintf(stderr, "Building Hamiltonian.\n");
 #endif
-  realtype * H = new realtype [NEQ2];
+  realtype * H = NULL;
+  H = new realtype [NEQ2];
   buildHamiltonian(H, energy, V, &params);
+  for (int ii = 0; ii < NEQ2; ii++) {
+    H[ii] = 0.0;
+  }
   try {
     if (outs.at("ham.out")) {
       outputSquareMatrix(H, NEQ, "ham.out");
@@ -905,11 +910,15 @@ int main (int argc, char * argv[]) {
   delete [] tlprob;
   delete [] tcprob;
   delete [] tbprob;
+  for (int ii = 0; ii <= numOutputSteps; ii++) {
+    delete [] allprob[ii];
+  }
+  delete [] allprob;
   delete [] k_pops;
   delete [] c_pops;
   delete [] b_pops;
+  delete [] l_pops;
   delete [] energy;
-  delete [] V;
   if (bridge_on) {
     delete [] Vbridge;
   }
@@ -920,6 +929,18 @@ int main (int argc, char * argv[]) {
   delete [] c_energies;
   delete [] b_energies;
   delete [] l_energies;
+  delete [] wavefunction;
+  delete [] H;
+  for (int ii = 0; ii < NEQ; ii++) {
+    delete [] V[ii];
+  }
+  delete [] V;
+  delete [] dm;
+  delete [] dmt;
+  delete [] times;
+  delete [] qd_est;
+  delete [] qd_est_diag;
+  delete [] energy_expectation;
   fprintf(stderr, "\nwhoo\n");
 
   return 0;

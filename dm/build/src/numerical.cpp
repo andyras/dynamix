@@ -25,6 +25,8 @@ int numberOfValuesInFile(const char * nameOfFile) {
     return -1;
   }
 
+  fclose(input);
+
   return numberOfValues;
 }
 
@@ -47,6 +49,8 @@ void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfVa
   }
 
   fclose(input);
+
+  return;
 }
 
 /* Returns an array of length n with all values set to initializeValue. */
@@ -60,10 +64,15 @@ void initializeArray(realtype * array, int n, realtype initializeValue) {
   for (i = 0; i < n; i++) {
     array[i] = initializeValue;
   }
+
+  return;
 }
 
 /* builds energies for a quasicontinuum (evenly spaced) */
 void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop) {
+  if (numberOfStates == 0) {
+    return;
+  }
 
   int i;
 
@@ -73,6 +82,8 @@ void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, 
   for (i = 1; i < numberOfStates; i++) {
     Energies[i] = Energies[i-1] + (BandTop-BandEdge)/(numberOfStates-1);
   }
+
+  return;
 }
 
 /* populates a set of states according to a Fermi-Dirac distribution.

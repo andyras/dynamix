@@ -23,8 +23,9 @@ class Spline {
   public:
     // default constructor
     Spline(const char * dataFile = NULL);
-    // get the value at a certain point
+    // method to get the value at a certain point
     double value(double x);
+    // method to print the contents of the spline (for debug)
     void print();
   private:
     std::vector<Point> s;
