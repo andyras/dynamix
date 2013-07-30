@@ -353,64 +353,134 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     if (outs.at("totprob.out")) {
       outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // populations in k states
     if (outs.at("kprobs.out")) {
       outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
+  try {
     if (outs.at("tkprob.out")) {
       outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // populations in c states
     if (outs.at("cprobs.out")) {
       outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
+  try {
     if (outs.at("tcprob.out")) {
       outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // populations in b states
     if (outs.at("bprobs.out")) {
       outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
+  try {
     if (outs.at("tbprob.out")) {
       outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // populations in l states
     if (outs.at("lprobs.out")) {
       outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
+  try {
     if (outs.at("tlprob.out")) {
       outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // norm of DM elements
     if (outs.at("dmt_z.out")) {
       outputDMZ("dmt_z.out", dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // norm of DM elements
     if (outs.at("dmt_re.out")) {
       outputDMRe("dmt_re.out", dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // norm of DM elements
     if (outs.at("dmt_im.out")) {
       outputDMIm("dmt_im.out", dmt, p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // energies of all states
     if (outs.at("energies.out")) {
       outputEnergy("energies.out", p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // all time steps
     if (outs.at("times.out")) {
       outputTimes("times.out", p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // expectation value of energy
     if (outs.at("energyexp.out")) {
       outputEnergyExp("energyexp.out", dmt, p);

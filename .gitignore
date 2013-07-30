@@ -1,6 +1,7 @@
 *.out
 *~
 *.avi
+*.log
 *.eps
 *.swp
 *plt

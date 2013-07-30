@@ -3,8 +3,8 @@
 # Function for formatted echo
 
 function fecho {
- timespec=--iso-8601=sec
- echo "### $(date ${timespec}) ${1}"
+timespec=--iso-8601=sec
+echo "### $(date ${timespec}) ${1}"
 }
 
 ## INPUT PARAMETERS ##
@@ -12,72 +12,72 @@ function fecho {
 
 function compile {
 ## COMPILE ##
- fecho "compiling dynamix.cpp..."
- CPP=g++
- # check if better compilers are installed
- which g++-4.7.0 &> /dev/null
- if [ $? == 0 ] ; then CPP=g++-4.7.0 ; fi
- which g++-4.7.1 &> /dev/null
- if [ $? == 0 ] ; then CPP=g++-4.7.1 ; fi
- which g++-4.7.2 &> /dev/null
- if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
- which icpc &> /dev/null
- if [ $? == 0 ] ; then CPP=icpc ; fi
- cd build
- make -j 12 CPP=$CPP
- if [ $? == 0 ] ; then
+fecho "compiling dynamix.cpp..."
+CPP=g++
+# check if better compilers are installed
+which g++-4.7.0 &> /dev/null
+if [ $? == 0 ] ; then CPP=g++-4.7.0 ; fi
+which g++-4.7.1 &> /dev/null
+if [ $? == 0 ] ; then CPP=g++-4.7.1 ; fi
+which g++-4.7.2 &> /dev/null
+if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
+which icpc &> /dev/null
+if [ $? == 0 ] ; then CPP=icpc ; fi
+cd build
+make -j 12 CPP=$CPP
+if [ $? == 0 ] ; then
   fecho "done compiling!" && make install
   cd ..
- else
+else
   fecho "failed to compile :("
   exit
- fi
+fi
 }
 
 function run {
 ## RUN THE PROGRAM! ##
- module load intel
- module load cvode/2.7.0
- fecho "running dynamix..."
- ./bin/dynamix
- if [ $? == 0 ] ; then
+module load intel
+module load cvode/2.7.0
+fecho "running dynamix..."
+./bin/dynamix 2> stderr.log
+if [ $? == 0 ] ; then
   fecho "dynamix done!"
- else
+else
   fecho "dynamix did not run :("
   exit
- fi
- # move outputs
- [ -d outs ] && rm -rf outs
- mkdir -p outs
- mv *.out outs/
- # move plot files
- [ -d figures ] && rm -rf figures
- mkdir -p figures
- chmod 755 *.plt
- mv *.plt figures/
- # remove progress file
- rm -f progress.tmp
+fi
+# move outputs
+[ -d outs ] && rm -rf outs
+mkdir -p outs
+mv *.out outs/
+# move plot files
+[ -d figures ] && rm -rf figures
+mkdir -p figures
+chmod 755 *.plt
+mv *.plt figures/
+# remove progress file
+rm -f progress.tmp
 }
 
 function backup {
 ## BACK UP FILES ##
- fecho "backing things up..."
- durr=backup/dynamix_$(date --iso-8601=sec)
- mkdir -p $durr
- cp -rf * $durr &> /dev/null
- fecho "all backed up!"
+fecho "backing things up..."
+durr=backup/dynamix_$(date --iso-8601=sec)
+mkdir -p $durr
+cp -rf * $durr &> /dev/null
+fecho "all backed up!"
 }
 
 function plot {
- if [ -d figures ]; then
+if [ -d figures ]; then
   for plotfile in $(ls figures/*plt)
   do
-   fecho "plotting ${plotfile}..."
-   ./$plotfile
+    fecho "plotting ${plotfile}..."
+    ./$plotfile
   done
- else
+else
   fecho "Nothing to plot."
- fi
+fi
 }
 
 ### This is where the script actually starts doing things. ###

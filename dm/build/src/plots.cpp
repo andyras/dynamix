@@ -8,22 +8,42 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
     if (outs.at("populations.plt")) {
       plotPopulations("populations.plt", p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // probabilities in k states
     if (outs.at("kprobs.plt") && (p->Nk > 1)) {
       plotKProbs("kprobs.plt", p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // probabilities in c states
     if (outs.at("cprobs.plt") && (p->Nc > 1)) {
       plotCProbs(p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // density matrix in time
     if (outs.at("dmt_z.plt")) {
       plotDMt_z("dmt_z.plt", p);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+  }
 
+  try {
     // populations in k states as a movie
     if (outs.at("kprobs_movie.plt") && (p->Nk > 1)) {
       plotKProbsMovie("kprobs_movie.plt", p);

@@ -184,8 +184,13 @@ int main (int argc, char * argv[]) {
   }
   time(&startRun);
   currentTime = localtime(&startRun);
-  if (outs.at("log.out")) {
-    fprintf(log, "Run started at %s\n", asctime(currentTime));
+  try {
+    if (outs.at("log.out")) {
+      fprintf(log, "Run started at %s\n", asctime(currentTime));
+    }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
   }
 
   // read in parameters from parameter bash script
@@ -333,9 +338,14 @@ int main (int argc, char * argv[]) {
   std::cout << "torsionSite is " << torsionSite << std::endl;
 #endif
 
-  if (outs.at("log.out")) {
-    // make a note about the laser intensity.
-    fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
+  try {
+    if (outs.at("log.out")) {
+      // make a note about the laser intensity.
+      fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(pumpAmpl,2)*3.5094452e16);
+    }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
   }
 
   // Error checking
@@ -547,8 +557,13 @@ int main (int argc, char * argv[]) {
   for (i = 0; i < Nl; i++)
     wavefunction[Il + i] = l_pops[i];
 
-  if (outs.at("psi_start.out")) {
-    outputWavefunction(wavefunction, NEQ);
+  try {
+    if (outs.at("psi_start.out")) {
+      outputWavefunction(wavefunction, NEQ);
+    }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
   }
 
   // Give all coefficients a random phase
@@ -630,31 +645,36 @@ int main (int argc, char * argv[]) {
     V[i] = new realtype [NEQ];
   buildCoupling(V, &params, outs);
 
-  if (outs.at("log.out")) {
-    // make a note in the log about system timescales
-    double tau = 0;		// fundamental system timescale
-    if (Nk == 1) {
-      fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
-    }
-    else {
-      if (bridge_on) {
-	if (scale_bubr) {
-	  tau = 1.0/(2*Vbridge[0]*M_PI);
-	}
-	else {
-	  tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*M_PI);
-	}
+  try {
+    if (outs.at("log.out")) {
+      // make a note in the log about system timescales
+      double tau = 0;		// fundamental system timescale
+      if (Nk == 1) {
+	fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
       }
       else {
-	if (scale_buqd) {
-	  tau = 1.0/(2*Vnobridge[0]*M_PI);
+	if (bridge_on) {
+	  if (scale_bubr) {
+	    tau = 1.0/(2*Vbridge[0]*M_PI);
+	  }
+	  else {
+	    tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vbridge[0],2)*M_PI);
+	  }
 	}
 	else {
-	  tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*M_PI);
+	  if (scale_buqd) {
+	    tau = 1.0/(2*Vnobridge[0]*M_PI);
+	  }
+	  else {
+	    tau = ((k_bandtop - k_bandedge)/(Nk - 1))/(2*pow(Vnobridge[0],2)*M_PI);
+	  }
 	}
+	fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
       }
-      fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
     }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
   }
 
   // Create the initial density matrix
@@ -730,8 +750,13 @@ int main (int argc, char * argv[]) {
 #endif
   realtype * H = new realtype [NEQ2];
   buildHamiltonian(H, energy, V, &params);
-  if (outs.at("ham.out")) {
-    outputSquareMatrix(H, NEQ, "ham.out");
+  try {
+    if (outs.at("ham.out")) {
+      outputSquareMatrix(H, NEQ, "ham.out");
+    }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
   }
   // add Hamiltonian to params
   params.H.resize(NEQ2);
@@ -830,11 +855,16 @@ int main (int argc, char * argv[]) {
   // finalize log file //
   time(&endRun);
   currentTime = localtime(&endRun);
-  if (outs.at("log.out")) {
-    fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
-    fprintf(log, "Run ended at %s\n", asctime(currentTime));
-    fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
-    fclose(log);					// note that the log file is opened after variable declaration
+  try {
+    if (outs.at("log.out")) {
+      fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
+      fprintf(log, "Run ended at %s\n", asctime(currentTime));
+      fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
+      fclose(log);					// note that the log file is opened after variable declaration
+    }
+  }
+  catch (const std::out_of_range& oor) {
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
   }
   printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
 
