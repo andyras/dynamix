@@ -501,7 +501,7 @@ int main (int argc, char * argv[]) {
     std::cerr << "ERROR: torsion file " << torsionFile << " does not exist." << std::endl;
   }
   //// create spline
-  //params.torsionV = new Spline(torsionFile.c_str());
+  params->torsionV = new Spline(torsionFile.c_str());
 
   //// Build initial wavefunction
 
