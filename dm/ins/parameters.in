@@ -89,7 +89,7 @@ ham.out
 kprobs.out
 #kprobs_gnuplot.out
 #lprobs.out
-#log.out
+log.out
 #projections.out
 #psi2_start_e.out
 #psi_e_t.out

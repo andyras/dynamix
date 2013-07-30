@@ -501,8 +501,8 @@ int main (int argc, char * argv[]) {
   }
   //// create spline
   //params.torsionV = new Spline(torsionFile.c_str());
-  Spline mySpline(torsionFile.c_str());
-  params.torsionV = &mySpline;
+  //Spline mySpline(torsionFile.c_str());
+  //params.torsionV = &mySpline;
 
   //// Build initial wavefunction
 
@@ -753,10 +753,10 @@ int main (int argc, char * argv[]) {
 #endif
   realtype * H = NULL;
   H = new realtype [NEQ2];
-  buildHamiltonian(H, energy, V, &params);
   for (int ii = 0; ii < NEQ2; ii++) {
     H[ii] = 0.0;
   }
+  buildHamiltonian(H, energy, V, &params);
   try {
     if (outs.at("ham.out")) {
       outputSquareMatrix(H, NEQ, "ham.out");
