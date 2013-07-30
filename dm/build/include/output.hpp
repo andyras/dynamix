@@ -18,8 +18,8 @@
 
 /* structure to hold complex numbers for linear algebra routines */
 typedef struct {
- double re;
- double im;
+  double re;
+  double im;
 } complex16;
 
 /* FUNCTIONS */
@@ -30,7 +30,7 @@ typedef struct {
 void outputFFTWVector(const char * fileName, fftw_complex * vec, double * x, int len);
 
 /* Wrapper to outputFFTWVector, which fftshifts the output.
- */
+*/
 void outputFFTWVectorShift(const char * fileName, fftw_complex * vec, double * x, int len);
 
 /* prints out initial wave function.  Inputs are the wave function array and
@@ -57,10 +57,10 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
-                  struct PARAMETERS * p);
+    struct PARAMETERS * p);
 
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
-                   struct PARAMETERS * p);
+    struct PARAMETERS * p);
 
 void outputDMZ(realtype * dmt, struct PARAMETERS * p);
 
@@ -73,9 +73,9 @@ void outputEnergy(char * fileName, struct PARAMETERS * p);
 void outputTimes(char * fileName, struct PARAMETERS * p);
 
 void outputEnergyExp(char * fileName, realtype * dmt,
-                     struct PARAMETERS * p);
+    struct PARAMETERS * p);
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
-                     struct PARAMETERS * p);
+    struct PARAMETERS * p);
 #endif

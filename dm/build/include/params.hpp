@@ -10,38 +10,38 @@
 
 // Struct of parameters
 struct PARAMETERS {
- int Nk;
- int Nc;
- int Nb;
- int Nl;
- int Ik;
- int Ic;
- int Ib;
- int Il;
- int NEQ;
- int NEQ2;
- int numOutputSteps;
- int bridge_on;
- int scale_bubr;
- int scale_brqd;
- int scale_buqd;
- int parabolicCoupling;
+  int Nk;
+  int Nc;
+  int Nb;
+  int Nl;
+  int Ik;
+  int Ic;
+  int Ib;
+  int Il;
+  int NEQ;
+  int NEQ2;
+  int numOutputSteps;
+  int bridge_on;
+  int scale_bubr;
+  int scale_brqd;
+  int scale_buqd;
+  int parabolicCoupling;
 
- realtype kBandEdge;
- realtype kBandTop;
- realtype kBandWidth;
- realtype tout;
+  realtype kBandEdge;
+  realtype kBandTop;
+  realtype kBandWidth;
+  realtype tout;
 
- realtype gamma1;
- realtype gamma2;
+  realtype gamma1;
+  realtype gamma2;
 
- std::vector<realtype> energies;
- std::vector<realtype> Vbridge;
- std::vector<realtype> Vnobridge;
- std::vector<realtype> H;
- std::vector<realtype> times;
+  std::vector<realtype> energies;
+  std::vector<realtype> Vbridge;
+  std::vector<realtype> Vnobridge;
+  std::vector<realtype> H;
+  std::vector<realtype> times;
 
- Spline torsionV("ins/torsion.in");
+  //Spline torsionV(const char * "ins/torsion.in");
 };
 
 #endif

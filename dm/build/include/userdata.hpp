@@ -2,8 +2,8 @@
 #define __USERDATA__
 
 typedef struct {
- // Hamiltonian
- realtype * H;
+  // Hamiltonian
+  realtype * H;
 } *UserData;
 
 #endif

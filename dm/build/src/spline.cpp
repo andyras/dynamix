@@ -40,7 +40,7 @@ Spline::Spline(const char * dataFile) {
     // check that there are no duplicates
     if (h[ii] == 0.0) {
       std::cout << "ERROR: points number " << ii << " and " << (ii+1)
-	        << " have the same x value." << std::endl;
+	<< " have the same x value." << std::endl;
     }
   }
 

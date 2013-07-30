@@ -13,7 +13,7 @@ BINDIR = ../bin
 CXX = icpc
 CPP = $(CXX)
 # optimized CPPFLAGS
-CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
+#CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div
 # non-optimized CPPFLAGS
 CPPFLAGS = -Wall -g -O0 -openmp --std=c++11
 INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw

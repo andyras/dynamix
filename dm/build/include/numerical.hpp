@@ -79,7 +79,7 @@ int findFirstArrayMaximumIndex(realtype * inputArray, int num);
 int findArrayMaximumIndex(realtype * inputArray, int num);
 
 void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
-                    std::map<const std::string, bool> &outs);
+    std::map<const std::string, bool> &outs);
 
 /* builds a Hamiltonian from site energies and couplings. */
 void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PARAMETERS * p);

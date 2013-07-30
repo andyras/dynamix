@@ -7,19 +7,19 @@
 #include <map>
 
 class outputFile {
- private:
-  // variables
-  bool createMe;
-  char * name;
-  //constructor
-  outputFile() {};
+  private:
+    // variables
+    bool createMe;
+    char * name;
+    //constructor
+    outputFile() {};
 
- public:
-  // public constructor
-  outputFile(char * fileName);
-  // methods
-  void create();
-  char * getName();
+  public:
+    // public constructor
+    outputFile(char * fileName);
+    // methods
+    void create();
+    char * getName();
 };
 
 // initiator for a string->bool map
