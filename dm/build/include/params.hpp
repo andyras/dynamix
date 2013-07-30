@@ -41,7 +41,7 @@ struct PARAMETERS {
   std::vector<realtype> H;
   std::vector<realtype> times;
 
-  //Spline torsionV(const char * "ins/torsion.in");
+  Spline * torsionV;
 };
 
 #endif

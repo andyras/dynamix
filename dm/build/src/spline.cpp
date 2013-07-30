@@ -1,9 +1,14 @@
 #include "spline.hpp"
 
+#define DEBUG_SPLINE
+
 Spline::Spline(const char * dataFile) {
   if (dataFile == NULL) {
     std::cout << "ERROR: specify an input file" << std::endl;
   }
+#ifdef DEBUG_SPLINE
+  std::cout << "Creating spline from data file " << dataFile << "." << std::endl;
+#endif
 
   // placeholders for x and a values
   double xTmp;
@@ -36,6 +41,7 @@ Spline::Spline(const char * dataFile) {
   //// Step 1: compute differences between x points
 
   for (int ii = 0; ii < (s.size() - 1); ii++) {
+  std::cout << "NO BUGS HERE\n";
     h[ii] = s[ii+1].x - s[ii].x;
     // check that there are no duplicates
     if (h[ii] == 0.0) {

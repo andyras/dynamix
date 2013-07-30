@@ -36,8 +36,6 @@ fi
 
 function run {
 ## RUN THE PROGRAM! ##
-module load intel
-module load cvode/2.7.0
 fecho "running dynamix..."
 ./bin/dynamix 2> stderr.log
 if [ $? == 0 ] ; then
@@ -62,7 +60,7 @@ rm -f progress.tmp
 function backup {
 ## BACK UP FILES ##
 fecho "backing things up..."
-durr=backup/dynamix_$(date --iso-8601=sec)
+durr=backup/dynamix_$(date ${timespec})
 mkdir -p $durr
 cp -rf * $durr &> /dev/null
 fecho "all backed up!"
@@ -85,6 +83,15 @@ fi
 fecho "dynamix run starting now..."
 fecho ""
 fecho ""
+
+# if modules are available, try to load them.
+type module &> /dev/null
+if [ $? == 0 ]; then
+  module load intel
+  module load cvode/2.7.0
+else
+  :
+fi
 
 [ $do_compile == 1 ] && compile
 [ $do_run == 1 ] && run

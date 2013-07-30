@@ -25,7 +25,7 @@
 #include "plots.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+//#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
@@ -500,6 +500,8 @@ int main (int argc, char * argv[]) {
   if (!fileExists(torsionFile)) {
     std::cerr << "ERROR: torsion file " << torsionFile << " does not exist." << std::endl;
   }
+  //// create spline
+  //params.torsionV = new Spline(torsionFile.c_str());
 
   //// Build initial wavefunction
 
@@ -834,7 +836,8 @@ int main (int argc, char * argv[]) {
     std::cout << std::endl << "CVode flag at step " << i << ": " << flag << std::endl;
 #endif
     if (i % (numsteps/numOutputSteps) == 0) {
-      fprintf(stderr, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+      fprintf(stdout, "\r%-.2lf percent done", ((double)i/((double)numsteps))*100);
+      fflush(stdout);
       if (progressFile) {
 	std::ofstream progressFile("progress.tmp");
 	progressFile << ((double)i/((double)numsteps))*100 << " percent done." << std::endl;
