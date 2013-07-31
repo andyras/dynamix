@@ -25,7 +25,7 @@
 #include "plots.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+//#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
@@ -61,7 +61,6 @@ int main (int argc, char * argv[]) {
 
   // arrays for energetic parameters
   realtype ** V = NULL;				// pointer to k-c coupling constants
-  realtype * energy = NULL;
   realtype * Vbridge = NULL;			// pointer to array of bridge coupling constants.
   // first element [0] is Vkb1, last [Nb] is VcbN
   realtype * Vnobridge = NULL;			// coupling constant when there is no bridge
@@ -69,7 +68,6 @@ int main (int argc, char * argv[]) {
   //// Setting defaults for parameters to be read from input
   //// done setting defaults
 
-  int i = 0;					// counter!
   int flag;
   realtype * k_pops = NULL;				// pointers to arrays of populations
   realtype * l_pops = NULL;
@@ -388,8 +386,8 @@ int main (int argc, char * argv[]) {
   tbprob = new realtype [p.numOutputSteps+1];
   tlprob = new realtype [p.numOutputSteps+1];
   allprob = new double * [p.numOutputSteps+1];
-  for (i = 0; i <= p.numOutputSteps; i++) {
-    allprob[i] = new double [p.NEQ];
+  for (int ii = 0; ii <= p.numOutputSteps; ii++) {
+    allprob[ii] = new double [p.NEQ];
   }
   // assign times.
   p.times.resize(p.numOutputSteps+1);
@@ -454,8 +452,8 @@ int main (int argc, char * argv[]) {
     initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
 #ifdef DEBUG
     std::cout << "\nThis is k_pops:\n";
-    for (i = 0; i < p.Nk; i++) {
-      std::cout << k_pops[i] << std::endl;
+    for (int ii = 0; ii < p.Nk; ii++) {
+      std::cout << k_pops[ii] << std::endl;
     }
     std::cout << "\n";
 #endif
@@ -484,14 +482,18 @@ int main (int argc, char * argv[]) {
   initializeArray(wavefunction, 2*p.NEQ, 0.0);
 
   // assign real parts of wavefunction coefficients (imaginary are zero)
-  for (i = 0; i < p.Nk; i++)
-    wavefunction[p.Ik + i] = k_pops[i];
-  for (i = 0; i < p.Nc; i++)
-    wavefunction[p.Ic + i] = c_pops[i];
-  for (i = 0; i < p.Nb; i++)
-    wavefunction[p.Ib + i] = b_pops[i];
-  for (i = 0; i < p.Nl; i++)
-    wavefunction[p.Il + i] = l_pops[i];
+  for (int ii = 0; ii < p.Nk; ii++) {
+    wavefunction[p.Ik + ii] = k_pops[ii];
+  }
+  for (int ii = 0; ii < p.Nc; ii++) {
+    wavefunction[p.Ic + ii] = c_pops[ii];
+  }
+  for (int ii = 0; ii < p.Nb; ii++) {
+    wavefunction[p.Ib + ii] = b_pops[ii];
+  }
+  for (int ii = 0; ii < p.Nl; ii++) {
+    wavefunction[p.Il + ii] = l_pops[ii];
+  }
 
   try {
     if (outs.at("psi_start.out")) {
@@ -510,78 +512,75 @@ int main (int argc, char * argv[]) {
     // set the seed
     if (p.random_seed == -1) { srand(time(NULL)); }
     else { srand(p.random_seed); }
-    for (i = 0; i < p.NEQ; i++) {
+    for (int ii = 0; ii < p.NEQ; ii++) {
       phi = 2*3.1415926535*(float)rand()/(float)RAND_MAX;
-      wavefunction[i] = wavefunction[i]*cos(phi);
-      wavefunction[i + p.NEQ] = wavefunction[i + p.NEQ]*sin(phi);
+      wavefunction[ii] = wavefunction[ii]*cos(phi);
+      wavefunction[ii + p.NEQ] = wavefunction[ii + p.NEQ]*sin(phi);
     }
   }
 
 #ifdef DEBUG
   // print out details of wavefunction coefficients
   std::cout << std::endl;
-  for (i = 0; i < p.Nk; i++)
-    std::cout << "starting wavefunction: Re[k(" << i << ")] = " << wavefunction[p.Ik + i] << std::endl;
-  for (i = 0; i < p.Nc; i++)
-    std::cout << "starting wavefunction: Re[c(" << i << ")] = " << wavefunction[p.Ic + i] << std::endl;
-  for (i = 0; i < p.Nb; i++)
-    std::cout << "starting wavefunction: Re[b(" << i << ")] = " << wavefunction[p.Ib + i] << std::endl;
-  for (i = 0; i < p.Nl; i++)
-    std::cout << "starting wavefunction: Re[l(" << i << ")] = " << wavefunction[p.Il + i] << std::endl;
-  for (i = 0; i < p.Nk; i++)
-    std::cout << "starting wavefunction: Im[k(" << i << ")] = " << wavefunction[p.Ik + i + p.NEQ] << std::endl;
-  for (i = 0; i < p.Nc; i++)
-    std::cout << "starting wavefunction: Im[c(" << i << ")] = " << wavefunction[p.Ic + i + p.NEQ] << std::endl;
-  for (i = 0; i < p.Nb; i++)
-    std::cout << "starting wavefunction: Im[b(" << i << ")] = " << wavefunction[p.Ib + i + p.NEQ] << std::endl;
-  for (i = 0; i < p.Nl; i++)
-    std::cout << "starting wavefunction: Im[l(" << i << ")] = " << wavefunction[p.Il + i + p.NEQ] << std::endl;
+  for (int ii = 0; ii < p.Nk; ii++) {
+    std::cout << "starting wavefunction: Re[k(" << ii << ")] = " << wavefunction[p.Ik + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nc; ii++) {
+    std::cout << "starting wavefunction: Re[c(" << ii << ")] = " << wavefunction[p.Ic + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nb; ii++) {
+    std::cout << "starting wavefunction: Re[b(" << ii << ")] = " << wavefunction[p.Ib + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nl; ii++) {
+    std::cout << "starting wavefunction: Re[l(" << ii << ")] = " << wavefunction[p.Il + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nk; ii++) {
+    std::cout << "starting wavefunction: Im[k(" << ii << ")] = " << wavefunction[p.Ik + ii + p.NEQ] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nc; ii++) {
+    std::cout << "starting wavefunction: Im[c(" << ii << ")] = " << wavefunction[p.Ic + ii + p.NEQ] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nb; ii++) {
+    std::cout << "starting wavefunction: Im[b(" << ii << ")] = " << wavefunction[p.Ib + ii + p.NEQ] << std::endl;
+  }
+  for (int ii = 0; ii < p.Nl; ii++) {
+    std::cout << "starting wavefunction: Im[l(" << ii << ")] = " << wavefunction[p.Il + ii + p.NEQ] << std::endl;
+  }
   std::cout << std::endl;
   summ = 0;
-  for (i = 0; i < 2*p.NEQ; i++) {
-    summ += pow(wavefunction[i],2);
+  for (int ii = 0; i < 2*p.NEQ; ii++) {
+    summ += pow(wavefunction[ii],2);
   }
   std::cout << "\nTotal population is " << summ << "\n\n";
 #endif
 
   // Assemble array of energies
   // TODO TODO
-  energy = new realtype [p.NEQ];
-  for (i = 0; i < p.Nk; i++)
-    energy[p.Ik + i] = k_energies[i];
-  for (i = 0; i < p.Nc; i++)
-    energy[p.Ic + i] = c_energies[i];
-  for (i = 0; i < p.Nb; i++)
-    energy[p.Ib + i] = b_energies[i];
-  for (i = 0; i < p.Nl; i++)
-    energy[p.Il + i] = l_energies[i];
-
-#ifdef DEBUG
-  // output energies
-  for (i = 0; i < p.Nk; i++)
-    std::cout << "energy[k(" << i << ")] = " << energy[p.Ik + i] << std::endl;
-  for (i = 0; i < p.Nc; i++)
-    std::cout << "energy[c(" << i << ")] = " << energy[p.Ic + i] << std::endl;
-  for (i = 0; i < p.Nb; i++)
-    std::cout << "energy[b(" << i << ")] = " << energy[p.Ib + i] << std::endl;
-  for (i = 0; i < p.Nl; i++)
-    std::cout << "energy[l(" << i << ")] = " << energy[p.Il + i] << std::endl;
-  std::cout << std::endl;
-#endif
-
-  // feed energies to p
   p.energies.resize(p.NEQ);
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    p.energies[ii] = energy[ii];
-#ifdef DEBUG
-    std::cout << "p.energies[" << ii << "] is " << p.energies[ii] << "\n";
-#endif
+  for (int ii = 0; ii < p.Nk; ii++) {
+std::cout << "NO BUGGS HERE\n";
+    p.energies[p.Ik + ii] = k_energies[ii];
   }
+  for (int ii = 0; ii < p.Nc; ii++) {
+    p.energies[p.Ic + ii] = c_energies[ii];
+  }
+  for (int ii = 0; ii < p.Nb; ii++) {
+    p.energies[p.Ib + ii] = b_energies[ii];
+  }
+  for (int ii = 0; ii < p.Nl; ii++) {
+    p.energies[p.Il + ii] = l_energies[ii];
+  }
+
+#ifdef DEBUG
+  for (int ii = 0; ii < p.NEQ; ii++) {
+    std::cout << "p.energies[" << ii << "] is " << p.energies[ii] << "\n";
+  }
+#endif
 
   // assign coupling constants
   V = new realtype * [p.NEQ];
-  for (i = 0; i < p.NEQ; i++)
-    V[i] = new realtype [p.NEQ];
+  for (int ii = 0; ii < p.NEQ; ii++)
+    V[ii] = new realtype [p.NEQ];
   buildCoupling(V, &p, outs);
 
   try {
@@ -695,7 +694,7 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < p.NEQ2; ii++) {
     H[ii] = 0.0;
   }
-  buildHamiltonian(H, energy, V, &p);
+  buildHamiltonian(H, p.energies, V, &p);
   try {
     if (outs.at("ham.out")) {
       outputSquareMatrix(H, p.NEQ, "ham.out");
@@ -727,8 +726,8 @@ int main (int argc, char * argv[]) {
 
   // print t = 0 information //
   summ = 0;
-  for (i = 0; i < 2*p.NEQ2; i++) {
-    summ += pow(NV_Ith_S(y, i),2);
+  for (int ii = 0; ii < 2*p.NEQ2; ii++) {
+    summ += pow(NV_Ith_S(y, ii),2);
   }
 #ifdef DEBUG
   realImaginary = fopen("real_imaginary.out", "w");
@@ -775,21 +774,21 @@ int main (int argc, char * argv[]) {
   std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
   dmf = fopen("dmf.out", "w");
 #endif
-  for (i = 1; i <= p.numsteps; ++i) {
-    t = (p.tout*((double) i)/((double) p.numsteps));
+  for (int ii = 1; ii <= p.numsteps; ++ii) {
+    t = (p.tout*((double) ii)/((double) p.numsteps));
     flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
-    std::cout << std::endl << "CVode flag at step " << i << ": " << flag << std::endl;
+    std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
 #endif
-    if (i % (p.numsteps/p.numOutputSteps) == 0) {
-      fprintf(stdout, "\r%-.2lf percent done", ((double)i/((double)p.numsteps))*100);
+    if (ii % (p.numsteps/p.numOutputSteps) == 0) {
+      fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
       fflush(stdout);
       if (p.progressFile) {
 	std::ofstream progressFile("progress.tmp");
-	progressFile << ((double)i/((double)p.numsteps))*100 << " percent done." << std::endl;
+	progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
 	progressFile.close();
       }
-      updateDM(yout, dmt, i*p.numOutputSteps/p.numsteps, &p);
+      updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
     }
   }
 #ifdef DEBUGf_DM
@@ -861,7 +860,6 @@ int main (int argc, char * argv[]) {
   delete [] c_pops;
   delete [] b_pops;
   delete [] l_pops;
-  delete [] energy;
   if (p.bridge_on) {
     delete [] Vbridge;
   }

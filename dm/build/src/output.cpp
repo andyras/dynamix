@@ -62,13 +62,12 @@ void outputWavefunction(realtype * psi, int n) {
 
 /* prints a vector W of length N */
 void outputVector(realtype * W, int N, char * fileName) {
-  int i;        // counter
   FILE * out = NULL;   // output file
 
   out = fopen(fileName, "w");
 
-  for (i = 0; i < N; i++) {
-    fprintf(out, "%-.9e\n", W[i]);
+  for (int ii = 0; ii < N; ii++) {
+    fprintf(out, "%-.9e\n", W[ii]);
   }
 
   fclose(out);
@@ -76,13 +75,12 @@ void outputVector(realtype * W, int N, char * fileName) {
 
 /* prints the elementwise square of a complex vector */
 void outputPsiSquare(complex16 * v, realtype * evals,  int N, char * fileName) {
-  int i;		// counter!
   FILE * out = NULL;	// output file
 
   out = fopen(fileName, "w");
 
-  for (i = 0; i < N; i++) {
-    fprintf(out, "%-.9e %-.9e\n", evals[i], (pow(v[i].re,2) + pow(v[i].im,2)));
+  for (int ii = 0; ii < N; ii++) {
+    fprintf(out, "%-.9e %-.9e\n", evals[ii], (pow(v[ii].re,2) + pow(v[ii].im,2)));
   }
 
   fclose(out); 
@@ -90,13 +88,12 @@ void outputPsiSquare(complex16 * v, realtype * evals,  int N, char * fileName) {
 
 /* prints a complex vector v of length N */
 void outputCVector(complex16 * v, int N, char * fileName) {
-  int i;		// counter!
   FILE * out = NULL;	// output file
 
   out = fopen(fileName, "w");
 
-  for (i = 0; i < N; i++) {
-    fprintf(out, "%-.9e %-.9e\n", v[i].re, v[i].im);
+  for (int ii = 0; ii < N; ii++) {
+    fprintf(out, "%-.9e %-.9e\n", v[ii].re, v[ii].im);
   }
 
   fclose(out);
@@ -104,14 +101,13 @@ void outputCVector(complex16 * v, int N, char * fileName) {
 
 /* prints a complex vector v of length N with M time steps */
 void outputCVectorTime(complex16 * v, int N, int M, char * fileName) {
-  int i, j;	// counters!
   FILE * out = NULL;	// output file
 
   out = fopen(fileName, "w");
 
-  for (j = 0; j < M; j++) {
-    for (i = 0; i < N; i++) {
-      fprintf(out, "%-.9e %-.9e\n", v[j*N+i].re, v[j*N+i].im);
+  for (int jj = 0; jj < M; jj++) {
+    for (int ii = 0; ii < N; ii++) {
+      fprintf(out, "%-.9e %-.9e\n", v[jj*N+ii].re, v[jj*N+ii].im);
     }
     fprintf(out, "\n");
   }
@@ -121,18 +117,17 @@ void outputCVectorTime(complex16 * v, int N, int M, char * fileName) {
 
 /* prints a square matrix M of dimension N */
 void outputSquareMatrix(realtype * M, int N, char * fileName) {
-  int i, j;     // counters
   FILE * out = NULL; // output file
 
   out = fopen(fileName, "w");
 
-  for (i = 0; i < N; i++) {
-    for (j = 0; j < N; j++) {
-      if (j == 0) {
-	fprintf(out, "%-.9e", M[i*N + j]);
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      if (jj == 0) {
+	fprintf(out, "%-.9e", M[ii*N + jj]);
       }
       else {
-	fprintf(out, " %-.9e", M[i*N + j]);
+	fprintf(out, " %-.9e", M[ii*N + jj]);
       }
     }
     fprintf(out, "\n");
@@ -147,10 +142,10 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
 
   out = fopen(fileName, "w");
 
-  for (int i = 0; i < N; i++) {
-    fprintf(out, "%-.9e", M[i][0]);
-    for (int j = 1; j < N; j++) {
-      fprintf(out, " %-.9e", M[i][j]);
+  for (int ii = 0; ii < N; ii++) {
+    fprintf(out, "%-.9e", M[ii][0]);
+    for (int jj = 1; jj < N; jj++) {
+      fprintf(out, " %-.9e", M[ii][jj]);
     }
     fprintf(out, "\n");
   }

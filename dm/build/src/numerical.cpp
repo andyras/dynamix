@@ -76,10 +76,8 @@ void initializeArray(realtype * array, int n, realtype initializeValue) {
   std::cout << "initializeValue is " << initializeValue << std::endl;
 #endif
 
-  int i;
-
-  for (i = 0; i < n; i++) {
-    array[i] = initializeValue;
+  for (int ii = 0; ii < n; ii++) {
+    array[ii] = initializeValue;
   }
 
   return;
@@ -91,13 +89,11 @@ void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, 
     return;
   }
 
-  int i;
-
   Energies[0] = BandEdge;	// the bottom of the conduction band is set
 
   // loop over the remaining states.  This way the top of the band will be at BandTop
-  for (i = 1; i < numberOfStates; i++) {
-    Energies[i] = Energies[i-1] + (BandTop-BandEdge)/(numberOfStates-1);
+  for (int ii = 1; ii < numberOfStates; ii++) {
+    Energies[ii] = Energies[ii-1] + (BandTop-BandEdge)/(numberOfStates-1);
   }
 
   return;
@@ -109,13 +105,11 @@ void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, 
  */
 void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk) {
 
-  int i;
-
-  for (i = 0; i < Nk; i++) {
-    kPops[i] = sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
+  for (int ii = 0; ii < Nk; ii++) {
+    kPops[ii] = sqrt(1.0/(1.0 + exp((kEnergies[ii]-kBandEdge+0.01)*3.185e5/(temp))));
 #ifdef DEBUG
-    std::cout << "\nk population at state " << i << " is: "
-      << sqrt(1.0/(1.0 + exp((kEnergies[i]-kBandEdge+0.01)*3.185e5/(temp))));
+    std::cout << "\nk population at state " << ii << " is: "
+      << sqrt(1.0/(1.0 + exp((kEnergies[ii]-kBandEdge+0.01)*3.185e5/(temp))));
 #endif
   }
 #ifdef DEBUG
@@ -126,13 +120,11 @@ void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, real
 /* populates a set of states according to a Gaussian distribution. */
 void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
 
-  int i;
-
-  for (i = 0; i < Nk; i++) {
-    kPops[i] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+  for (int ii = 0; ii < Nk; ii++) {
+    kPops[ii] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #ifdef DEBUG
-    std::cout << "\nk population at state " << i << " is: "
-      << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+    std::cout << "\nk population at state " << ii << " is: "
+      << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #endif
   }
 #ifdef DEBUG
@@ -172,15 +164,14 @@ realtype pump(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, dou
  * normalized to value 'total'
  */
 int Normalize_NV(N_Vector nv, realtype total) {
-  int i;
   realtype summ = 0;
 
-  for (i = 0; i < NV_LENGTH_S(nv); i++) {
-    summ += (NV_Ith_S(nv, i)*NV_Ith_S(nv, i));
+  for (int ii = 0; ii < NV_LENGTH_S(nv); ii++) {
+    summ += (NV_Ith_S(nv, ii)*NV_Ith_S(nv, ii));
   }
   summ = sqrt(summ);
-  for (i = 0; i < NV_LENGTH_S(nv); i++) {
-    NV_Ith_S(nv, i) = total*NV_Ith_S(nv,i)/summ;
+  for (int ii = 0; ii < NV_LENGTH_S(nv); ii++) {
+    NV_Ith_S(nv, ii) = total*NV_Ith_S(nv,ii)/summ;
   }
 
   return 0;
@@ -191,20 +182,18 @@ int Normalize_NV(N_Vector nv, realtype total) {
  * Output array is six elements shorter than input.
  */
 int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep) {
-  int i;		// counter
-
   if (inputLength < 6 ) {
     fprintf(stderr, "ERROR [Derivative]: array has length less than 6 elements, cannot proceed");
     return -1;
   }
 
-  for (i = 2; i < inputLength-3; i++) {
-    outputArray[i-2] = (2* inputArray[i+3]
-	-15*inputArray[i+2]
-	+60*inputArray[i+1]
-	-20*inputArray[i]
-	-30*inputArray[i-1]
-	+3 *inputArray[i-2])/(60*timestep);
+  for (int ii = 2; ii < inputLength-3; ii++) {
+    outputArray[ii-2] = (2* inputArray[ii+3]
+	-15*inputArray[ii+2]
+	+60*inputArray[ii+1]
+	-20*inputArray[ii]
+	-30*inputArray[ii-1]
+	+3 *inputArray[ii-2])/(60*timestep);
   }
 
   return 0;
@@ -214,23 +203,21 @@ int Derivative(double *inputArray, int inputLength, double *outputArray, double 
  * Does not assume equal spacing in time.
  */
 realtype integrateArray(realtype * values, realtype * time, int num) {
-  int i;
   realtype riemann = 0;
 
-  for (i = 0; i < num-1; i++)
-    riemann += (values[i+1] + values[i])*(time[i+1]-time[i])/2;
+  for (int ii = 0; ii < num-1; ii++)
+    riemann += (values[ii+1] + values[ii])*(time[ii+1]-time[ii])/2;
 
   return riemann;
 }
 
 /* Returns maximum element in an array. */
 realtype findArrayMaximum(realtype * inputArray, int num) {
-  int i;
   realtype currentMax = inputArray[0];
 
-  for (i = 1; i < num; i++)
-    if (inputArray[i] > currentMax)
-      currentMax = inputArray[i];
+  for (int ii = 1; ii < num; ii++)
+    if (inputArray[ii] > currentMax)
+      currentMax = inputArray[ii];
 
   return currentMax;
 }
@@ -239,13 +226,12 @@ realtype findArrayMaximum(realtype * inputArray, int num) {
  * point is smaller in value).
  */
 realtype findFirstArrayMaximum(realtype * inputArray, int num) {
-  int i;
   realtype currentMax = inputArray[0];
 
-  for (i = 1; i < num; i++) {
-    if (inputArray[i] > currentMax)
-      currentMax = inputArray[i];
-    if (inputArray[i] < currentMax)
+  for (int ii = 1; ii < num; ii++) {
+    if (inputArray[ii] > currentMax)
+      currentMax = inputArray[ii];
+    if (inputArray[ii] < currentMax)
       break;
   }
 
@@ -257,16 +243,15 @@ realtype findFirstArrayMaximum(realtype * inputArray, int num) {
  * is less than the first.  This may not be what you want.
  */
 int findFirstArrayMaximumIndex(realtype * inputArray, int num) {
-  int i;
   realtype currentMax = inputArray[0];
   int currentMax_index = 0;
 
-  for (i = 1; i < num; i++) {
-    if (inputArray[i] > currentMax) {
-      currentMax = inputArray[i];
-      currentMax_index = i;
+  for (int ii = 1; ii < num; ii++) {
+    if (inputArray[ii] > currentMax) {
+      currentMax = inputArray[ii];
+      currentMax_index = ii;
     }
-    if (inputArray[i] < currentMax)
+    if (inputArray[ii] < currentMax)
       break;
   }
 
@@ -275,14 +260,13 @@ int findFirstArrayMaximumIndex(realtype * inputArray, int num) {
 
 /* returns index of first maximum in an array. */
 int findArrayMaximumIndex(realtype * inputArray, int num) {
-  int i;
   realtype currentMax = inputArray[0];
   int currentMax_index = 0;
 
-  for (i = 1; i < num; i++) {
-    if (inputArray[i] > currentMax) {
-      currentMax = inputArray[i];
-      currentMax_index = i;
+  for (int ii = 1; ii < num; ii++) {
+    if (inputArray[ii] > currentMax) {
+      currentMax = inputArray[ii];
+      currentMax_index = ii;
     }
   }
 
@@ -293,15 +277,14 @@ int findArrayMaximumIndex(realtype * inputArray, int num) {
 void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
     std::map<const std::string, bool> &outs) {
 
-  int i, j;	// counters
   double Vkc;	// coupling between bulk and QD
   double Vkb1;	// coupling between bulk and first bridge
   double VbNc;	// coupling between last bridge and QD
 
   // initialize the coupling array
-  for (i = 0; i < p->NEQ; i++) {
-    for (j = 0; j < p->NEQ; j++) {
-      vArray[i][j] = 0.0;
+  for (int ii = 0; ii < p->NEQ; ii++) {
+    for (int jj = 0; jj < p->NEQ; jj++) {
+      vArray[ii][jj] = 0.0;
     }
   }
 
@@ -322,15 +305,15 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
       Vkb1 = p->Vbridge[0];
     }
     if (p->parabolicCoupling) {
-      for (i = 0; i < p->Nk; i++) {
-	vArray[p->Ik+i][p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
-	vArray[p->Ib][p->Ik+i] = parabolicV(Vkb1, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
+      for (int ii = 0; ii < p->Nk; ii++) {
+	vArray[p->Ik+ii][p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+	vArray[p->Ib][p->Ik+ii] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
       }
     }
     else {
-      for (i = 0; i < p->Nk; i++) {
-	vArray[p->Ik+i][p->Ib] = Vkb1;
-	vArray[p->Ib][p->Ik+i] = Vkb1;
+      for (int ii = 0; ii < p->Nk; ii++) {
+	vArray[p->Ik+ii][p->Ib] = Vkb1;
+	vArray[p->Ib][p->Ik+ii] = Vkb1;
       }
     }
 
@@ -341,15 +324,15 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
     else {
       VbNc = p->Vbridge[p->Nb];
     }
-    for (i = 0; i < p->Nc; i++) {
-      vArray[p->Ic+i][p->Ib+p->Nb-1] = VbNc;
-      vArray[p->Ib+p->Nb-1][p->Ic+i] = VbNc;
+    for (int ii = 0; ii < p->Nc; ii++) {
+      vArray[p->Ic+ii][p->Ib+p->Nb-1] = VbNc;
+      vArray[p->Ib+p->Nb-1][p->Ic+ii] = VbNc;
     }
 
     // coupling between bridge states
-    for (i = 0; i < p->Nb - 1; i++) {
-      vArray[p->Ib+i][p->Ib+i+1] = p->Vbridge[i+1];
-      vArray[p->Ib+i+1][p->Ib+i] = p->Vbridge[i+1];
+    for (int ii = 0; ii < p->Nb - 1; ii++) {
+      vArray[p->Ib+ii][p->Ib+ii+1] = p->Vbridge[ii+1];
+      vArray[p->Ib+ii+1][p->Ib+ii] = p->Vbridge[ii+1];
     }
   }
   // no bridge
@@ -364,18 +347,18 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 
     // parabolic coupling of bulk band to QD
     if (p->parabolicCoupling) {
-      for (i = 0; i < p->Nk; i++) {
-	for (j = 0; j < p->Nc; j++) {
-	  vArray[p->Ik+i][p->Ic+j] = parabolicV(Vkc, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
-	  vArray[p->Ic+j][p->Ik+i] = parabolicV(Vkc, p->energies[p->Ik+i], p->kBandEdge, p->kBandTop);
+      for (int ii = 0; ii < p->Nk; ii++) {
+	for (int jj = 0; jj < p->Nc; jj++) {
+	  vArray[p->Ik+ii][p->Ic+jj] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+	  vArray[p->Ic+jj][p->Ik+ii] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
 	}
       }
     }
     else {
-      for (i = 0; i < p->Nk; i++) {
-	for (j = 0; j < p->Nc; j++) {
-	  vArray[p->Ik+i][p->Ic+j] = Vkc;
-	  vArray[p->Ic+j][p->Ik+i] = Vkc;
+      for (int ii = 0; ii < p->Nk; ii++) {
+	for (int jj = 0; jj < p->Nc; jj++) {
+	  vArray[p->Ik+ii][p->Ic+jj] = Vkc;
+	  vArray[p->Ic+jj][p->Ik+ii] = Vkc;
 	}
       }
     }
@@ -383,9 +366,9 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 
 #ifdef DEBUG
   std::cout << "\nCoupling matrix:\n";
-  for (i = 0; i < p->NEQ; i++) {
-    for (j = 0; j < p->NEQ; j++)
-      std::cout << std::scientific << vArray[i][j] << " ";
+  for (ii = 0; ii < p->NEQ; ii++) {
+    for (jj = 0; jj < p->NEQ; jj++)
+      std::cout << std::scientific << vArray[ii][jj] << " ";
     std::cout << std::endl;
   }
 #endif
@@ -394,9 +377,9 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
   try {
     if (outs.at("couplings.out")) {
       couplings = fopen("couplings.out","w");
-      for (i = 0; i < p->NEQ; i++) {
-	for (j = 0; j < p->NEQ; j++) {
-	  fprintf(couplings,"%.7g ",vArray[i][j]);
+      for (int ii = 0; ii < p->NEQ; ii++) {
+	for (int jj = 0; jj < p->NEQ; jj++) {
+	  fprintf(couplings,"%.7g ",vArray[ii][jj]);
 	}
 	fprintf(couplings,"\n");
       }
@@ -411,7 +394,7 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 }
 
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, realtype * energy, realtype ** V, struct PARAMETERS * p) {
+void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** V, struct PARAMETERS * p) {
   // indices
   int idx1, idx2;
   int N = p->NEQ;
