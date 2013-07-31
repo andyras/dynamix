@@ -498,9 +498,11 @@ int main (int argc, char * argv[]) {
     //// torsion error checking
     if (torsionSite > Nb) {
       std::cerr << "ERROR: torsion site is larger than number of bridge sites." << std::endl;
+      return -1;
     }
     else if (torsionSite < 0) {
       std::cerr << "ERROR: torsion site is less than zero." << std::endl;
+      return -1;
     }
 
     if (!fileExists(torsionFile)) {

@@ -1,5 +1,56 @@
 #include "rhs.hpp"
 
+//#define DEBUG_RHS
+
+/* Updates the Hamiltonian with the time-dependent torsional coupling */
+void updateTorsionV(PARAMETERS * p, realtype t) {
+  double torsionValue = p->torsionV->value(t);
+
+  // bridge is off, coupling is between k and c states
+  if (!(p->bridge_on)) {
+#ifdef DEBUG_RHS
+    std::cout << "torsion between k and c states" << std::endl;
+#endif
+    for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+      for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
+	p->H[ii*p->NEQ + jj] = torsionValue;
+	p->H[jj*p->NEQ + ii] = torsionValue;
+      }
+    }
+  }
+  // torsion is at first bridge coupling
+  else if (p->torsionSite == 0) {
+#ifdef DEBUG_RHS
+    std::cout << "torsion between k states and bridge" << std::endl;
+#endif
+    for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+      p->H[ii*p->NEQ + p->Ib] = torsionValue;
+      p->H[p->Ib*p->NEQ + ii] = torsionValue;
+    }
+  }
+  // torsion is at last bridge coupling
+  else if (p->torsionSite == p->Nb) {
+#ifdef DEBUG_RHS
+    std::cout << "torsion between bridge and c states" << std::endl;
+#endif
+    for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
+      p->H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
+      p->H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+    }
+  }
+  // torsion is between bridge sites
+  else {
+#ifdef DEBUG_RHS
+    std::cout << "torsion between bridge sites " << p->torsionSite - 1
+              << " and " << p->torsionSite << "." << std::endl;
+#endif
+    p->H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
+    p->H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
+  }
+
+  return;
+}
+
 /* Right-hand-side equation for density matrix */
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
@@ -8,9 +59,15 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   p = (PARAMETERS *) data;
 
   // extract parameters from p
+  // TODO see if this copy is wasteful
   std::vector<realtype> H = p->H;
   int N = p->NEQ;
   int N2 = p->NEQ2;
+  
+  // if torsion is on, update Hamiltonian
+  if (p->torsion) {
+    updateTorsionV(p, t);
+  }
 
   // initialize ydot
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
@@ -72,6 +129,11 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N = p->NEQ;
   int N2 = p->NEQ2;
   realtype g2 = p->gamma2;
+
+  // if torsion is on, update Hamiltonian
+  if (p->torsion) {
+    updateTorsionV(p, t);
+  }
 
   // initialize ydot
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
