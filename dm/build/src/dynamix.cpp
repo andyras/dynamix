@@ -101,7 +101,6 @@ int main (int argc, char * argv[]) {
   realtype * times = NULL;
   realtype * qd_est = NULL;
   realtype * qd_est_diag = NULL;
-  realtype * energy_expectation = NULL;			// expectation value of energy at each timestep
   const char * inputFile = "ins/parameters.in";			// name of input file
   std::map<const std::string, bool> outs;	// map of output file names to bool
   // END VARIABLES //
@@ -399,7 +398,6 @@ int main (int argc, char * argv[]) {
   }
   qd_est = new realtype [p.numOutputSteps+1];
   qd_est_diag = new realtype [p.numOutputSteps+1];
-  energy_expectation = new realtype [p.numOutputSteps+1];	// expectation value of energy; for sanity checking
   p.Ik = 0;					// set index start positions for each type of state
   p.Ic = p.Nk;
   p.Ib = p.Ic+p.Nc;
@@ -408,36 +406,6 @@ int main (int argc, char * argv[]) {
   buildContinuum(k_energies, p.Nk, p.kBandEdge, p.kBandTop);
   // assign bulk valence band energies
   buildContinuum(l_energies, p.Nl, p.kBandEdge - p.valenceBand - p.bulk_gap, p.kBandEdge - p.bulk_gap);
-
-  //// feed parameters to struct
-  /*
-  p.Nk = Nk;
-  p.Nc = Nc;
-  p.Nb = Nb;
-  p.Nl = Nl;
-  p.Ik = Ik;
-  p.Ic = Ic;
-  p.Ib = Ib;
-  p.Il = Il;
-  p.NEQ = NEQ;
-  p.NEQ2 = NEQ2;
-  p.numOutputSteps = numOutputSteps;
-  p.bridge_on = bridge_on;
-  p.tout = tout;
-  p.kBandEdge = kBandEdge;
-  p.kBandTop = kBandTop;
-  p.kBandWidth = p.kBandTop - p.kBandEdge;
-  p.gamma1 = gamma1;
-  p.gamma2 = gamma2;
-  p.scale_bubr = scale_bubr;
-  p.scale_brqd = scale_brqd;
-  p.scale_buqd = scale_buqd;
-  p.parabolicCoupling = parabolicCoupling;
-  p.times.resize(numOutputSteps+1);
-  for (int ii = 0; ii <= numOutputSteps; ii++) {
-    p.times[ii] = times[ii];
-  }
-  */
 
   if (p.torsion) {
 #ifdef DEBUG
@@ -915,7 +883,6 @@ int main (int argc, char * argv[]) {
   delete [] times;
   delete [] qd_est;
   delete [] qd_est_diag;
-  delete [] energy_expectation;
   fprintf(stderr, "\nwhoo\n");
 
   return 0;
