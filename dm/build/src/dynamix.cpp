@@ -25,7 +25,7 @@
 #include "plots.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-//#define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
@@ -358,6 +358,11 @@ int main (int argc, char * argv[]) {
     p.Vbridge.resize(p.Nb+1);
     readArrayFromFile(b_energies, "ins/b_energies.in", p.Nb);
     readVectorFromFile(p.Vbridge, "ins/Vbridge.in", p.Nb + 1);
+    std::cout << "COUPLINGS:";
+    for (int ii = 0; ii < p.Nb+1; ii++) {
+      std::cout << " " << p.Vbridge[ii];
+    }
+    std::cout << std::endl;
   }
   else {
     p.Nb = 0;

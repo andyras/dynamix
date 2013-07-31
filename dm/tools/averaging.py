@@ -101,8 +101,8 @@ def do_runs(infile, w, timesteps, redo=False):
 ## parameters of FDD distribution
 infile = 'ins/parameters.in'
 Ef = -0.01				# Fermi level in Hartree
-BE = read_param('k_bandedge', infile)	# band edge in Hartree
-BT = read_param('k_bandtop', infile)	# band top in Hartree
+BE = read_param('kBandEdge', infile)	# band edge in Hartree
+BT = read_param('kBandTop', infile)	# band top in Hartree
 T = read_param('temp', infile)		# temperature in Kelvin
 Nk = int(read_param('Nk', infile))	# number of states in bulk
 timesteps = int(read_param('numOutputSteps', infile)) + 1 # timesteps
