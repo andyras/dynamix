@@ -21,6 +21,8 @@ int numberOfValuesInFile(const char * nameOfFile);
  */
 void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfValues);
 
+void readVectorFromFile(std::vector<realtype> & v, const char * fileName, int n);
+
 /* Returns an array of length n with all values set to initializeValue. */
 void initializeArray(realtype * array, int n, realtype initializeValue);
 

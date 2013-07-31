@@ -53,6 +53,23 @@ void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfVa
   return;
 }
 
+/* reads in values from a file to a vector. */
+void readVectorFromFile(std::vector<realtype> & v, const char * fileName, int n) {
+  // resize vector according to number of lines in file
+  v.resize(numberOfValuesInFile(fileName));
+
+  // read in the file
+  std::ifstream in(fileName);
+
+  for (int ii = 0; ii < n; ii++) {
+    in >> v[ii];
+  }
+
+  in.close();
+
+  return;
+}
+
 /* Returns an array of length n with all values set to initializeValue. */
 void initializeArray(realtype * array, int n, realtype initializeValue) {
 #ifdef DEBUG
@@ -387,7 +404,9 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 }
 

@@ -10,32 +10,62 @@
 
 // Struct of parameters
 struct PARAMETERS {
-  int Nk;
-  int Nc;
-  int Nb;
-  int Nl;
-  int Ik;
-  int Ic;
-  int Ib;
-  int Il;
-  int NEQ;
-  int NEQ2;
-  int numOutputSteps;
-  bool bridge_on;
-  bool scale_bubr;
-  bool scale_brqd;
-  bool scale_buqd;
-  bool parabolicCoupling;
-  bool torsion;
-  int torsionSite;
+  int nproc = 0;				// number of processors
+  bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
+  bool analytical = false;		// turn on analytical propagation
+  bool rta = true;			// turn on relaxation time approximation (RTA)
+  bool progressFile = false;		// create a file to show progress of the run
+  realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
+  realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
+  realtype tout = 10000;			// final time reached by solver in atomic units
+  int numsteps = 10000;			// number of time steps
+  int numOutputSteps = 1000;		// number of timesteps
+  int NEQ = 1;				// total number of states
+  int NEQ2 = 1;				// total number of coefficients in density matrix
+  realtype kBandEdge = 0.0;		// lower edge of bulk conduction band
+  realtype kBandTop = 0.01;		// upper edge of bulk conduction band
+  int Nk_first = 1;			// first k state initially populated
+  int Nk_final = 1;			// final k state initially populated
+  realtype bulk_gap = 0.001;		// bulk band gap
+  double valenceBand = 0.01;		// valence band width
+  double bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
+  double bulkGaussMu = 0.01;		// position of initial Gaussian above band edge
+  realtype temperature = 3e2;		// temperature of the system
+  realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
+  realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
+  double muLK = 1.0;                     // transition dipole moment from l to k (energy a.u.)
+  double pumpFWHM = 1000;                // FWHM of pump pulse (time a.u.)
+  double pumpPeak = 2000;                // time of peak of pump pulse (a.u.)
+  double pumpFreq = 0.01;                // frequency of pump pulse (energy a.u.)
+  double pumpAmpl = 1.0;                 // intensity of pump pulse (electric field a.u.)
+  double pumpPhase = 0.0;                // pump pulse phase (in units of radians)
+  bool bulk_FDD = false;			// switches for starting conditions
+  bool bulk_Gauss = false;
+  bool bulk_constant = false;
+  bool qd_pops = false;
+  bool laser_on = false;
+  bool parabolicCoupling = false;
+  bool scale_bubr = false;
+  bool scale_brqd = false;
+  bool scale_buqd = false;
+  bool scale_laser = false;
+  bool bridge_on = false;
+  bool random_phase = false;
+  int random_seed = 0;
+  bool torsion = false;
+  std::string torsionFile;
+  int torsionSite = 0;
 
-  realtype kBandEdge;
-  realtype kBandTop;
+  int Nk = 1;				// number of each type of state
+  int Nc = 0;				// number of each type of state
+  int Nb = 0;				// number of each type of state
+  int Nl = 0;				// number of each type of state
+  int Ik = 0;				// index starters for each type of state
+  int Ic = 0;				// index starters for each type of state
+  int Ib = 0;				// index starters for each type of state
+  int Il = 0;				// index starters for each type of state
+
   realtype kBandWidth;
-  realtype tout;
-
-  realtype gamma1;
-  realtype gamma2;
 
   std::vector<realtype> energies;
   std::vector<realtype> Vbridge;

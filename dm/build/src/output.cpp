@@ -355,7 +355,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -365,7 +367,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
   try {
     if (outs.at("tkprob.out")) {
@@ -373,7 +377,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -383,7 +389,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
   try {
     if (outs.at("tcprob.out")) {
@@ -391,7 +399,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -401,7 +411,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
   try {
     if (outs.at("tbprob.out")) {
@@ -409,7 +421,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -419,7 +433,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
   try {
     if (outs.at("tlprob.out")) {
@@ -427,7 +443,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -437,7 +455,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -447,7 +467,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -457,7 +479,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -467,7 +491,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -477,7 +503,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -487,7 +515,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   return;
