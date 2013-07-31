@@ -21,11 +21,13 @@ struct PARAMETERS {
   int NEQ;
   int NEQ2;
   int numOutputSteps;
-  int bridge_on;
-  int scale_bubr;
-  int scale_brqd;
-  int scale_buqd;
-  int parabolicCoupling;
+  bool bridge_on;
+  bool scale_bubr;
+  bool scale_brqd;
+  bool scale_buqd;
+  bool parabolicCoupling;
+  bool torsion;
+  int torsionSite;
 
   realtype kBandEdge;
   realtype kBandTop;

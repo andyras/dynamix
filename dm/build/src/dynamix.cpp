@@ -488,21 +488,35 @@ int main (int argc, char * argv[]) {
     params.times[ii] = times[ii];
   }
 
-  //// torsion error checking
-  if (torsionSite > Nb) {
-    std::cerr << "ERROR: torsion site is larger than number of bridge sites." << std::endl;
-  }
-  else if (torsionSite < 0) {
-    std::cerr << "ERROR: torsion site is less than zero." << std::endl;
-  }
+  if (torsion) {
+#ifdef DEBUG
+    std::cout << "Torsion is on." << std::endl;
+#endif
+    params.torsion = torsion;
+    params.torsionSite = torsionSite;
 
-  if (!fileExists(torsionFile)) {
-    std::cerr << "ERROR: torsion file " << torsionFile << " does not exist." << std::endl;
+    //// torsion error checking
+    if (torsionSite > Nb) {
+      std::cerr << "ERROR: torsion site is larger than number of bridge sites." << std::endl;
+    }
+    else if (torsionSite < 0) {
+      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
+    }
+
+    if (!fileExists(torsionFile)) {
+      std::cerr << "ERROR: torsion file " << torsionFile << " does not exist." << std::endl;
+    }
+    //// create spline
+    params.torsionV = new Spline(torsionFile.c_str());
+    if (params.torsionV->getFirstX() != 0.0) {
+      std::cerr << "ERROR: time in " << torsionFile << " should start at 0.0." << std::endl;
+      return -1;
+    }
+    if (params.torsionV->getLastX() < tout) {
+      std::cerr << "ERROR: time in " << torsionFile << " should be >= tout." << std::endl;
+      return -1;
+    }
   }
-  //// create spline
-  params.torsionV = new Spline(torsionFile.c_str());
-  //Spline mySpline(torsionFile.c_str());
-  //params.torsionV = &mySpline;
 
   //// Build initial wavefunction
 

@@ -1,6 +1,6 @@
 #include "spline.hpp"
 
-#define DEBUG_SPLINE
+//#define DEBUG_SPLINE
 
 Spline::Spline(const char * dataFile) {
   if (dataFile == NULL) {
@@ -41,7 +41,6 @@ Spline::Spline(const char * dataFile) {
   //// Step 1: compute differences between x points
 
   for (int ii = 0; ii < (s.size() - 1); ii++) {
-  std::cout << "NO BUGS HERE\n";
     h[ii] = s[ii+1].x - s[ii].x;
     // check that there are no duplicates
     if (h[ii] == 0.0) {
@@ -81,7 +80,9 @@ Spline::Spline(const char * dataFile) {
     s[ii].d = (s[ii+1].c - s[ii].c)/(3.0*h[ii]);
   }
 
+#ifdef DEBUG_SPLINE
   print();
+#endif
 }
 
 // used with std::sort, gives vector with smallest x first
@@ -131,4 +132,12 @@ void Spline::print() {
     std::cout << std::setw(13) << std::scientific << s[ii].d;
     std::cout << std::endl;
   }
+}
+
+double Spline::getFirstX() {
+  return s.front().x;
+}
+
+double Spline::getLastX() {
+  return s.back().x;
 }

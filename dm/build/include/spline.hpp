@@ -25,6 +25,8 @@ class Spline {
     Spline(const char * dataFile = NULL);
     // method to get the value at a certain point
     double value(double x);
+    double getFirstX();
+    double getLastX();
     // method to print the contents of the spline (for debug)
     void print();
   private:
