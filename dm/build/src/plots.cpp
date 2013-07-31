@@ -10,7 +10,9 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -20,7 +22,9 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -30,7 +34,9 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -40,7 +46,9 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   try {
@@ -50,7 +58,9 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
     }
   }
   catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   return;

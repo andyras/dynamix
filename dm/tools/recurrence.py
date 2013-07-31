@@ -33,8 +33,8 @@ def readParam(paramName, fileName):
 
 inputFile = '../ins/parameters.in'
 
-bandEdge = readParam('k_bandedge', inputFile)
-bandTop = readParam('k_bandtop', inputFile)
+bandEdge = readParam('kBandEdge', inputFile)
+bandTop = readParam('kBandTop', inputFile)
 N = readParam('Nk', inputFile)
 
 delta = float(bandTop - bandEdge)/(N-1)
