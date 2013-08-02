@@ -120,7 +120,9 @@ double Spline::value(double x) {
   }
 
   // this is how we get the cubic interpolated value
-  return ((((s[index].d*x) + s[index].c)*x + s[index].b)*x + s[index].a);
+  // xp is the shifted x value
+  double xp = x - s[index].x;
+  return ((((s[index].d*xp) + s[index].c)*xp + s[index].b)*xp + s[index].a);
 }
 
 void Spline::print() {
