@@ -108,6 +108,7 @@ tcprob.out
 tkprob.out
 #tkrate.out
 #tlprob.out
+torsion.out
 totprob.out
 # PLOT FILES
 projections.plt

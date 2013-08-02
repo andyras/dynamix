@@ -75,7 +75,12 @@ void outputTimes(char * fileName, struct PARAMETERS * p);
 void outputEnergyExp(char * fileName, realtype * dmt,
     struct PARAMETERS * p);
 
-/* Computes outputs from \rho(t) */
+void outputTorsion(std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p, char * fileName);
+
+void computeGeneralOutputs(std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p);
+
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 #endif

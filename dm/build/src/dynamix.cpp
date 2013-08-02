@@ -827,6 +827,9 @@ std::cout << "NO BUGGS HERE\n";
   std::cout << "done.";
 #endif
 
+  // Make outputs independent of DM or wavefunction
+  computeGeneralOutputs(outs, &p);
+
   // Make plot files
   makePlots(outs, &p);
 

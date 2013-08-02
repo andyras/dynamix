@@ -339,6 +339,36 @@ void outputEnergyExp(char * fileName, realtype * dmt,
   return;
 }
 
+/* Outputs torsional potential at simulation time points */
+void outputTorsion(std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p, char * fileName) {
+  std::ofstream output(fileName);
+
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+    output << std::setw(8) << std::scientific
+      << p->times[ii] << " "
+      << std::setw(8) << std::scientific
+      << p->torsionV->value(p->times[ii]) << std::endl;
+  }
+  return;
+}
+
+/* Computes outputs independent of DM or wavefunction */
+void computeGeneralOutputs(std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p) {
+  try {
+    if ((p->torsion) && (outs.at("torsion.out"))) {
+      outputTorsion(outs, p, "torsion.out");
+    }
+  }
+  catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+  return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
