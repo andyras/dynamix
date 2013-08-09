@@ -14,6 +14,7 @@ struct PARAMETERS {
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
   bool rta = true;			// turn on relaxation time approximation (RTA)
+  bool dephasing = false;		// turn on dephasing
   bool progressFile = false;		// create a file to show progress of the run
   realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
   realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)

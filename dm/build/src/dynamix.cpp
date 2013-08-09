@@ -757,6 +757,9 @@ std::cout << "NO BUGGS HERE\n";
   if (p.rta) {
     flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
   }
+  else if (p.dephasing) {
+    flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
+  }
   else {
     flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
   }
