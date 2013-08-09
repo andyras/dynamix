@@ -21,7 +21,6 @@ numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.05				# upper band edge of bulk conduction band (a.u.)
-#k_bandtop=0.0				# upper band edge of bulk conduction band (a.u.)
 Nk=7					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
@@ -30,6 +29,8 @@ valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
 bulkGaussSigma=0.008217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
+me=0.01					# effective mass of electron
+mh=0.02					# effective mass of hole
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 gamma1=1e-3				# \gamma_1 in RTA (relaxation rate)
