@@ -191,6 +191,7 @@ int main (int argc, char * argv[]) {
     else if (input_param == "nproc") { p.nproc = atoi(param_val.c_str()); }
     else if (input_param == "analytical") { p.analytical = atoi(param_val.c_str()); }
     else if (input_param == "rta") { p.rta = atoi(param_val.c_str()); }
+    else if (input_param == "dephasing") { p.dephasing = atoi(param_val.c_str()); }
     else if (input_param == "progressFile") { p.progressFile = atoi(param_val.c_str()); }
     else if (input_param == "abstol") { p.abstol = atof(param_val.c_str()); }
     else if (input_param == "reltol" ) { p.reltol = atof(param_val.c_str()); }
@@ -243,6 +244,7 @@ int main (int argc, char * argv[]) {
   std::cout << "timedepH is " << p.timedepH << std::endl;
   std::cout << "analytical is " << p.analytical << std::endl;
   std::cout << "rta is " << p.rta << std::endl;
+  std::cout << "dephasing is " << p.dephasing << std::endl;
   std::cout << "progressFile is " << p.progressFile << std::endl;
   std::cout << "nproc is " << p.nproc << std::endl;
   std::cout << "abstol is " << p.abstol << std::endl;

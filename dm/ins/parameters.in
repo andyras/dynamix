@@ -11,6 +11,7 @@ nproc=1
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 rta=1					# use relaxation time approximation (RTA)
+dephasing=0				# turn on dephasing (gamma2)
 progressFile=1				# create file to show progress of run
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
