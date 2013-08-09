@@ -115,6 +115,11 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   return 0;
 }
 
+/* gives the equilibrated FDD for the system */
+double fk(double t) {
+  return 1.0;
+}
+
 /* Right-hand-side equation for density matrix
  * using relaxation time approximation (RTA) */
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
@@ -127,6 +132,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
   int N = p->NEQ;
   int N2 = p->NEQ2;
+  realtype g1 = p->gamma1;
   realtype g2 = p->gamma2;
 
   // if torsion is on, update Hamiltonian
@@ -145,7 +151,8 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
+      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2)
+	- g1*(NV_Ith_S(y, ii*N + ii) - fk(t));
     }
   }
 

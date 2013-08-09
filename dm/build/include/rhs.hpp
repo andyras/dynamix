@@ -14,6 +14,8 @@ void updateTorsionV(PARAMETERS * p);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
+double fk(double t);
+
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data);
