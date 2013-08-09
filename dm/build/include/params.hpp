@@ -24,12 +24,15 @@ struct PARAMETERS {
   int NEQ2 = 1;				// total number of coefficients in density matrix
   realtype kBandEdge = 0.0;		// lower edge of bulk conduction band
   realtype kBandTop = 0.01;		// upper edge of bulk conduction band
+  realtype lBandTop = -0.01;		// upper edge of bulk valence band
   int Nk_first = 1;			// first k state initially populated
   int Nk_final = 1;			// final k state initially populated
   realtype bulk_gap = 0.001;		// bulk band gap
   double valenceBand = 0.01;		// valence band width
   double bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
   double bulkGaussMu = 0.01;		// position of initial Gaussian above band edge
+  double me = 1.0;			// effective mass of electron
+  double mh = 1.0;			// effective mass of hole
   realtype temperature = 3e2;		// temperature of the system
   realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
   realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)

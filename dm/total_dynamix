@@ -24,7 +24,8 @@ if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
 which icpc &> /dev/null
 if [ $? == 0 ] ; then CPP=icpc ; fi
 cd build
-make -j 12 CPP=$CPP
+ncores=$(grep processor /proc/cpuinfo | wc -l)
+make -j ${ncores} CPP=$CPP
 if [ $? == 0 ] ; then
   fecho "done compiling!" && make install
   cd ..

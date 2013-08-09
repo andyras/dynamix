@@ -199,6 +199,7 @@ int main (int argc, char * argv[]) {
     else if (input_param == "numOutputSteps" ) { p.numOutputSteps = atoi(param_val.c_str()); }
     else if (input_param == "kBandEdge" ) { p.kBandEdge = atof(param_val.c_str()); }
     else if (input_param == "kBandTop" ) { p.kBandTop = atof(param_val.c_str()); }
+    else if (input_param == "lBandTop" ) { p.lBandTop = atof(param_val.c_str()); }
     else if (input_param == "bulk_gap" ) { p.bulk_gap = atof(param_val.c_str()); }
     else if (input_param == "Nk" ) { p.Nk = atoi(param_val.c_str()); }
     else if (input_param == "Nk_first" ) { p.Nk_first = atoi(param_val.c_str()); }
@@ -207,6 +208,8 @@ int main (int argc, char * argv[]) {
     else if (input_param == "Nl" ) { p.Nl = atoi(param_val.c_str()); }
     else if (input_param == "bulkGaussSigma" ) { p.bulkGaussSigma = atof(param_val.c_str()); }
     else if (input_param == "bulkGaussMu" ) { p.bulkGaussMu = atof(param_val.c_str()); }
+    else if (input_param == "me" ) { p.me = atof(param_val.c_str()); }
+    else if (input_param == "mh" ) { p.mh = atof(param_val.c_str()); }
     else if (input_param == "temperature" ) { p.temperature = atof(param_val.c_str()); }
     else if (input_param == "gamma1" ) { p.gamma1 = atof(param_val.c_str()); }
     else if (input_param == "gamma2" ) { p.gamma2 = atof(param_val.c_str()); }
@@ -249,6 +252,7 @@ int main (int argc, char * argv[]) {
   std::cout << "numOutputSteps is " << p.numOutputSteps << std::endl;
   std::cout << "kBandEdge is " << p.kBandEdge << std::endl;
   std::cout << "kBandTop is " << p.kBandTop << std::endl;
+  std::cout << "lBandTop is " << p.lBandTop << std::endl;
   std::cout << "bulk_gap is " << p.bulk_gap << std::endl;
   std::cout << "Nk is " << p.Nk << std::endl;
   std::cout << "Nk_first is " << p.Nk_first << std::endl;
@@ -257,6 +261,8 @@ int main (int argc, char * argv[]) {
   std::cout << "Nl is " << p.Nl << std::endl;
   std::cout << "bulkGaussSigma is " << p.bulkGaussSigma << std::endl;
   std::cout << "bulkGaussMu is " << p.bulkGaussMu << std::endl;
+  std::cout << "me is " << p.me << std::endl;
+  std::cout << "mh is " << p.mh << std::endl;
   std::cout << "temperature is " << p.temperature << std::endl;
   std::cout << "gamma1 is " << p.gamma1 << std::endl;
   std::cout << "gamma2 is " << p.gamma2 << std::endl;
