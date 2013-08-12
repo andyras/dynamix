@@ -118,30 +118,37 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 /* gives the equilibrated FDD for the system */
 void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   //// "fine structure constant" -- conversion from index to wave vector
-  double x2 = 8e-8;
+  double x2 = 8e-8/5.29e-11;	// convert from meters to au
+  std::cout << "x2   " << x2 << std::endl;
 
   //// calculate n_e and e_kin
   double ne = 0.0;
   double ekin = 0.0;
   double factor = 1.0/(M_PI*M_PI*pow(x2,3));
+  std::cout << "factor   " << factor << std::endl;
   for (int ii = 0; ii < p->Nk; ii++) {
     ne += factor*pow(ii,2)*NV_Ith_S(y, ii*p->NEQ + ii);
+    std::cout << "population " << NV_Ith_S(y, ii*p->NEQ + ii) << std::endl;
     ekin += factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(x2,2));
   }
+  std::cout << "ne   " << ne << std::endl;
+  std::cout << "ekin " << ekin << std::endl;
   
   //// find the inverse temperature (beta)
   int iter = 0;
   int maxiter = 200;
-  double tol = 1e-12;
+  double tol = 1e-18;
   double K1 = 4.8966851;		// constants
   double K2 = 0.04496457;
   double K3 = 0.133376;
-  double X = 4*p->me*pow(M_PI/(2*p->me),1.5);
-  double bn = 1.0;		// intermediate values of beta; bn is higher iteration
-  double bm = 0.0;
+  double X = 4*ne*pow(M_PI/(2*p->me),1.5);
+  double bn = 1e-10;		// intermediate values of beta; bn is higher iteration
+  double bm = 0e-10;
   double f = 0.0;		// value of function (f)
   double fp = 0.0;		// value of function derivative (f')
-  // loop applies Newton-Rhapson method to get zero of function
+  // loop applies Newton-Raphson method to get zero of function
+  std::cout << "Newton-Raphson to find inverse temperature" << std::endl;
+  std::cout << "X " << X << std::endl;
   while ((fabs(bn - bm) > tol) && (iter < maxiter)) {
     bm = bn;
     f = -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
@@ -151,12 +158,16 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
     std::cout << "Iteration " << iter << std::endl;
     std::cout << "f  " << f << std::endl;
     std::cout << "f' " << fp << std::endl;
+    std::cout << "bn " << bn << std::endl;
+    std::cout << "bm " << bm << std::endl;
   }
   std::cout << std::endl;
 
   //// use beta to find chemical potential
   double mue = 0.0;
-  mue = pow(3*ne,2.0/3.0)*pow(M_PI,4.0/3.0)/(2*p->me) - 2*pow(M_PI,2.0/3.0)*p->me/(pow(3*ne,2.0/3.0)*6*pow(bn,2));
+  double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
+  mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
+  std::cout << "Chemical potential " << mue << std::endl;
 
   // TODO account for temperature dropping in time
   std::cout << "inverse temp is " << bn << std::endl;
@@ -164,7 +175,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   for (int ii = 0; ii < p->Nk; ii++) {
     fdd[ii] = 1.0/(1.0 + exp((ekin - mue)*bn));
     std::cout << 1.0/(1.0 + exp((ekin - mue)*bn)) << " ";
-    std::cout << "FDD[" << ii << "]: " << fdd[ii] << std::endl;
+    std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
   }
 
   return;
@@ -200,6 +211,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   //// diagonal; no need to calculate the imaginary part
   //   get equilibrium FDD populations
   std::vector<double> fdd(p->Nk);
+  std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
   buildFDD(p, y, fdd);
 
 #pragma omp parallel for
