@@ -1,6 +1,6 @@
 ## FLAGS FOR RUN ##
 do_compile=1
-do_run=0
+do_run=1
 do_plot=0
 do_backup=0
 

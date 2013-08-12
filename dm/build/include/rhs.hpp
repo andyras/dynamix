@@ -14,7 +14,7 @@ void updateTorsionV(PARAMETERS * p);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
-double fk(double t);
+void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd);
 
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data);
 
