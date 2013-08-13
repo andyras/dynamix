@@ -69,6 +69,9 @@ struct PARAMETERS {
   int Ib = 0;				// index starters for each type of state
   int Il = 0;				// index starters for each type of state
 
+  // inverse spacing in k-space
+  double X2 = 8e-8/5.29e-11;
+
   realtype kBandWidth;
 
   std::vector<realtype> energies;

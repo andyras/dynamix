@@ -23,6 +23,7 @@
 #include "userdata.hpp"
 #include "rhs.hpp"
 #include "plots.hpp"
+#include "constants.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 #define DEBUG
@@ -408,10 +409,17 @@ int main (int argc, char * argv[]) {
   p.Ic = p.Nk;
   p.Ib = p.Ic+p.Nc;
   p.Il = p.Ib+p.Nb;
-  // assign bulk conduction band energies
-  buildContinuum(k_energies, p.Nk, p.kBandEdge, p.kBandTop);
-  // assign bulk valence band energies
-  buildContinuum(l_energies, p.Nl, p.kBandEdge - p.valenceBand - p.bulk_gap, p.kBandEdge - p.bulk_gap);
+
+  // assign bulk conduction and valence band energies
+  // for RTA, bulk and valence bands have parabolic energies
+  if (p.rta) {
+    buildParabolicBand(k_energies, p.Nk, p.kBandEdge, CONDUCTION, &p);
+    buildParabolicBand(l_energies, p.Nl, p.lBandTop, VALENCE, &p);
+  }
+  else {
+    buildContinuum(k_energies, p.Nk, p.kBandEdge, p.kBandTop);
+    buildContinuum(l_energies, p.Nl, p.kBandEdge - p.valenceBand - p.bulk_gap, p.kBandEdge - p.bulk_gap);
+  }
 
   if (p.torsion) {
 #ifdef DEBUG
@@ -449,22 +457,15 @@ int main (int argc, char * argv[]) {
   initializeArray(b_pops, p.Nb, 0.0);
 
   // coefficients in bulk and other states depend on input conditions in bulk
-  if (p.bulk_constant) {
 #ifdef DEBUG
-    std::cout << "\ninitializing k_pops\n";
+  std::cout << "\ninitializing k_pops\n";
 #endif
+  if (p.bulk_constant) {
     initializeArray(k_pops, p.Nk, 0.0);
 #ifdef DEBUG
     std::cout << "\ninitializing k_pops with constant probability in range of states\n";
 #endif
     initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
-#ifdef DEBUG
-    std::cout << "\nThis is k_pops:\n";
-    for (int ii = 0; ii < p.Nk; ii++) {
-      std::cout << k_pops[ii] << std::endl;
-    }
-    std::cout << "\n";
-#endif
     initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
     initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
   }
@@ -484,6 +485,13 @@ int main (int argc, char * argv[]) {
     initializeArray(l_pops, p.Nl, 1.0);		// populate l states (all populated to start off)
     initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
   }
+#ifdef DEBUG
+    std::cout << "\nThis is k_pops:\n";
+    for (int ii = 0; ii < p.Nk; ii++) {
+      std::cout << k_pops[ii] << std::endl;
+    }
+    std::cout << "\n";
+#endif
 
   // create empty wavefunction
   wavefunction = new realtype [2*p.NEQ];

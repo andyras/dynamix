@@ -99,6 +99,28 @@ void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, 
   return;
 }
 
+void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, PARAMETERS * p) {
+  int s;	// sign +/-
+  double m;	// mass of electron/hole
+
+  // determine conduction vs. valence band, electron/hole masses
+  if (flag == CONDUCTION) {
+    s = 1;
+    m = p->me;
+  }
+  else if (flag == VALENCE) {
+    s = -1;
+    m = p->mh;
+  }
+
+  // assign energies
+  for (int ii = 0; ii < n; ii++) {
+    energies[ii] = bandEdge + s*ii*ii/(2*m*pow(p->X2,2));
+  }
+
+  return;
+}
+
 /* populates a set of states according to a Fermi-Dirac distribution.
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
  * below the lowest-energy state in the set of states being populated.

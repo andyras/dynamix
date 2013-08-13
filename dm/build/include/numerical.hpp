@@ -10,6 +10,7 @@
 #include <nvector/nvector_serial.h>
 
 #include "params.hpp"
+#include "constants.hpp"
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
@@ -28,6 +29,8 @@ void initializeArray(realtype * array, int n, realtype initializeValue);
 
 /* builds energies for a quasicontinuum (evenly spaced) */
 void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop);
+
+void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, PARAMETERS * p);
 
 /* populates a set of states according to a Fermi-Dirac distribution.
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
