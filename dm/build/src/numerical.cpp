@@ -516,4 +516,3 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) 
 
   return;
 }
-

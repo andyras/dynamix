@@ -9,12 +9,15 @@
 #include <nvector/nvector_serial.h>
 
 #include "params.hpp"
+#include "numerical.hpp"
 
 void updateTorsionV(PARAMETERS * p);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd);
+
+double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X);
 
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data);
 

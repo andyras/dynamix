@@ -144,6 +144,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   double X = 4*ne*pow(M_PI/(2*p->me),1.5);
   double bn = 1e-10;		// intermediate values of beta; bn is higher iteration
   double bm = 0e-10;
+  /*
   double f = 0.0;		// value of function (f)
   double fp = 0.0;		// value of function derivative (f')
   // loop applies Newton-Raphson method to get zero of function
@@ -162,6 +163,31 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
     std::cout << "bm " << bm << std::endl;
   }
   std::cout << std::endl;
+  */
+  
+  double high = 1.0;
+  double low = 1.0e-100;	// zero is a no-no because the function is a log
+  double newVal = 0.5;		// intermediate value
+
+  // check that f(high) and f(low) have opposite sign
+  if (sgn<double>(b13(low, ekin, ne, K1, K2, K3, X))*sgn<double>(b13(high, ekin, ne, K1, K2, K3, X) > 0)) {
+    std::cout << "ERROR: f(high) and f(low) have same sign!!!!" << std::endl;
+    std::cout << "f(" << high << "): " << b13(high, ekin, ne, K1, K2, K3, X) << std::endl;
+    std::cout << "f(" << low << "): " << b13(low, ekin, ne, K1, K2, K3, X) << std::endl;
+  }
+
+  // loop does binary search to find zero of function
+  while ((iter < maxiter) && ((high-low) > tol)) {
+    newVal = (high + low)/2.0;
+    if (sgn<double>(b13(newVal, ekin, ne, K1, K2, K3, X)) == sgn<double>(b13(low, ekin, ne, K1, K2, K3, X))) {
+      low = newVal;
+    }
+    else {
+      high = newVal;
+    }
+    iter++;
+  }
+  bm = newVal;
 
   //// use beta to find chemical potential
   double mue = 0.0;
@@ -179,6 +205,11 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   }
 
   return;
+}
+
+/* implements equation B13 from Binder et. al, PRB 1991 */
+double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X) {
+  return -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
 }
 
 /* Right-hand-side equation for density matrix

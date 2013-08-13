@@ -88,6 +88,12 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 
 /* builds a Hamiltonian from site energies and couplings. */
 void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** V, struct PARAMETERS * p);
-#endif
 
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
+
+/* returns sign of number (+1/-1/0) */
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
+#endif
