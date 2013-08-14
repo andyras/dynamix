@@ -43,6 +43,9 @@ struct PARAMETERS {
   double pumpFreq = 0.01;                // frequency of pump pulse (energy a.u.)
   double pumpAmpl = 1.0;                 // intensity of pump pulse (electric field a.u.)
   double pumpPhase = 0.0;                // pump pulse phase (in units of radians)
+  int CBPopFlag = 0;			// flag for starting condition in conduction band
+  int VBPopFlag = 0;			// flag for starting condition in valence band
+  int QDPopFlag = 0;			// flag for starting condition in QD
   bool bulk_FDD = false;			// switches for starting conditions
   bool bulk_Gauss = false;
   bool bulk_constant = false;

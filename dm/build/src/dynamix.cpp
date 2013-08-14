@@ -221,6 +221,9 @@ int main (int argc, char * argv[]) {
     else if (input_param == "pumpFreq" ) { p.pumpFreq = atof(param_val.c_str()); }
     else if (input_param == "pumpAmpl" ) { p.pumpAmpl = atof(param_val.c_str()); }
     else if (input_param == "pumpPhase" ) { p.pumpPhase = atof(param_val.c_str()); }
+    else if (input_param == "CBPopFlag" ) { p.CBPopFlag = atoi(param_val.c_str()); }
+    else if (input_param == "VBPopFlag" ) { p.VBPopFlag = atoi(param_val.c_str()); }
+    else if (input_param == "QDPopFlag" ) { p.QDPopFlag = atoi(param_val.c_str()); }
     else if (input_param == "bulk_FDD" ) { p.bulk_FDD = atoi(param_val.c_str()); }
     else if (input_param == "bulk_Gauss" ) { p.bulk_Gauss = atoi(param_val.c_str()); }
     else if (input_param == "bulk_constant" ) { p.bulk_constant = atoi(param_val.c_str()); }
@@ -275,6 +278,9 @@ int main (int argc, char * argv[]) {
   std::cout << "pumpFreq is " << p.pumpFreq << std::endl;
   std::cout << "pumpAmpl is " << p.pumpAmpl << std::endl;
   std::cout << "pumpPhase is " << p.pumpPhase << std::endl;
+  std::cout << "CBPopFlag is " << p.CBPopFlag << std::endl;
+  std::cout << "VBPopFlag is " << p.VBPopFlag << std::endl;
+  std::cout << "QDPopFlag is " << p.QDPopFlag << std::endl;
   std::cout << "bulk_FDD is " << p.bulk_FDD << std::endl;
   std::cout << "bulk_Gauss is " << p.bulk_Gauss << std::endl;
   std::cout << "bulk_constant is " << p.bulk_constant << std::endl;
@@ -636,6 +642,7 @@ std::cout << "NO BUGGS HERE\n";
   // Create the initial density matrix
   dm = new realtype [2*p.NEQ2];
   initializeArray(dm, 2*p.NEQ2, 0.0);
+#pragma omp parallel for
   for (int ii = 0; ii < p.NEQ; ii++) {
     // diagonal part
     dm[p.NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + p.NEQ],2);
@@ -658,7 +665,7 @@ std::cout << "NO BUGGS HERE\n";
 
 #ifdef DEBUG
   // print out density matrix
-  std::cout << "\nDensity matrix before normalization:\n\n";
+  std::cout << "\nDensity matrix without normalization:\n\n";
   for (int ii = 0; ii < p.NEQ; ii++) {
     for (int jj = 0; jj < p.NEQ; jj++) {
       fprintf(stdout, "(%+.1e,%+.1e) ", dm[p.NEQ*ii + jj], dm[p.NEQ*ii + jj + p.NEQ2]);
@@ -668,25 +675,28 @@ std::cout << "NO BUGGS HERE\n";
 #endif
 
   // Normalize the DM so that populations add up to 1.
-  summ = 0.0;
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    // assume here that diagonal elements are all real
-    summ += dm[p.NEQ*ii + ii];
-  }
-  if ( summ == 0.0 ) {
-    std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-    return -1;
-  }
-  if (summ != 1.0) {
-    // the variable 'summ' is now a multiplicative normalization factor
-    summ = 1.0/summ;
-    for (int ii = 0; ii < 2*p.NEQ2; ii++) {
-      dm[ii] *= summ;
+  // No normalization if RTA is on.
+  if (!p.rta) {
+    summ = 0.0;
+    for (int ii = 0; ii < p.NEQ; ii++) {
+      // assume here that diagonal elements are all real
+      summ += dm[p.NEQ*ii + ii];
     }
-  }
+    if ( summ == 0.0 ) {
+      std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+      return -1;
+    }
+    if (summ != 1.0) {
+      // the variable 'summ' is now a multiplicative normalization factor
+      summ = 1.0/summ;
+      for (int ii = 0; ii < 2*p.NEQ2; ii++) {
+	dm[ii] *= summ;
+      }
+    }
 #ifdef DEBUG
-  std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+    std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
 #endif
+  }
 
   // Error checking for total population; recount population first
   summ = 0.0;
