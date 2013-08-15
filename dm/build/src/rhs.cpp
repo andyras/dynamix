@@ -178,16 +178,20 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
 
   // loop does binary search to find zero of function
   while ((iter < maxiter) && ((high-low) > tol)) {
+    std::cout << "---ITERATION " << iter << "---" << std::endl;
     newVal = (high + low)/2.0;
     if (sgn<double>(b13(newVal, ekin, ne, K1, K2, K3, X)) == sgn<double>(b13(low, ekin, ne, K1, K2, K3, X))) {
+      std::cout << "   new low is " << newVal << std::endl;
       low = newVal;
     }
     else {
+      std::cout << "   new high is " << newVal << std::endl;
       high = newVal;
     }
     iter++;
   }
   bm = newVal;
+  bn = newVal;
 
   //// use beta to find chemical potential
   double mue = 0.0;

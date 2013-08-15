@@ -463,34 +463,35 @@ int main (int argc, char * argv[]) {
   initializeArray(b_pops, p.Nb, 0.0);
 
   // coefficients in bulk and other states depend on input conditions in bulk
+  if (!p.rta) {
 #ifdef DEBUG
-  std::cout << "\ninitializing k_pops\n";
+    std::cout << "\ninitializing k_pops\n";
 #endif
-  if (p.bulk_constant) {
-    initializeArray(k_pops, p.Nk, 0.0);
+    if (p.bulk_constant) {
+      initializeArray(k_pops, p.Nk, 0.0);
 #ifdef DEBUG
-    std::cout << "\ninitializing k_pops with constant probability in range of states\n";
+      std::cout << "\ninitializing k_pops with constant probability in range of states\n";
 #endif
-    initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
-    initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
-    initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
-  }
-  else if (p.bulk_Gauss) {
-    buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
-	p.bulkGaussSigma, p.bulkGaussMu, p.Nk);   // populate k states with FDD
-    initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
-    initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
-  }
-  else if (p.qd_pops) {
-    readArrayFromFile(c_pops, "ins/c_pops.in", p.Nc);	// QD populations from file
-    initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
-    initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
-  }
-  else {
-    initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
-    initializeArray(l_pops, p.Nl, 1.0);		// populate l states (all populated to start off)
-    initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
-  }
+      initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
+      initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
+      initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
+    }
+    else if (p.bulk_Gauss) {
+      buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
+	  p.bulkGaussSigma, p.bulkGaussMu, p.Nk);   // populate k states with FDD
+      initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
+      initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
+    }
+    else if (p.qd_pops) {
+      readArrayFromFile(c_pops, "ins/c_pops.in", p.Nc);	// QD populations from file
+      initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
+      initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
+    }
+    else {
+      initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
+      initializeArray(l_pops, p.Nl, 1.0);		// populate l states (all populated to start off)
+      initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
+    }
 #ifdef DEBUG
     std::cout << "\nThis is k_pops:\n";
     for (int ii = 0; ii < p.Nk; ii++) {
@@ -498,6 +499,67 @@ int main (int argc, char * argv[]) {
     }
     std::cout << "\n";
 #endif
+  }
+  // with RTA, use different set of switches
+  else {
+    //// bulk valence band
+    if (p.VBPopFlag == POP_EMPTY) {
+#ifdef DEBUG
+      std::cout << "Initializing empty valence band" << std::endl;
+#endif
+      initializeArray(l_pops, p.Nl, 0.0);
+    }
+    else if (p.VBPopFlag == POP_FULL) {
+#ifdef DEBUG
+      std::cout << "Initializing full valence band" << std::endl;
+#endif
+      initializeArray(l_pops, p.Nl, 1.0);
+    }
+    else {
+      std::cerr << "ERROR: unrecognized VBPopFlag " << p.VBPopFlag << std::endl;
+    }
+
+    //// bulk conduction band
+    if (p.CBPopFlag == POP_EMPTY) {
+#ifdef DEBUG
+      std::cout << "Initializing empty conduction band" << std::endl;
+#endif
+      initializeArray(k_pops, p.Nk, 0.0);
+    }
+    else if (p.CBPopFlag == POP_FULL) {
+#ifdef DEBUG
+      std::cout << "Initializing full conduction band" << std::endl;
+#endif
+      initializeArray(k_pops, p.Nk, 1.0);
+    }
+    else if (p.CBPopFlag == POP_CONSTANT) {
+#ifdef DEBUG
+      std::cout << "Initializing constant distribution in conduction band" << std::endl;
+#endif
+      initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
+    }
+    else if (p.CBPopFlag == POP_GAUSSIAN) {
+#ifdef DEBUG
+      std::cout << "Initializing Gaussian in conduction band" << std::endl;
+#endif
+      buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
+	  p.bulkGaussSigma, p.bulkGaussMu, p.Nk);
+    }
+    else {
+      std::cerr << "ERROR: unrecognized CBPopFlag " << p.CBPopFlag << std::endl;
+    }
+
+    //// QD
+    if (p.QDPopFlag == POP_EMPTY) {
+      initializeArray(c_pops, p.Nc, 0.0);
+    }
+    else if (p.QDPopFlag == POP_FULL) {
+      initializeArray(c_pops, p.Nc, 1.0);
+    }
+    else {
+      std::cerr << "ERROR: unrecognized QDPopFlag " << p.QDPopFlag << std::endl;
+    }
+  }
 
   // create empty wavefunction
   wavefunction = new realtype [2*p.NEQ];
@@ -580,7 +642,6 @@ int main (int argc, char * argv[]) {
   // TODO TODO
   p.energies.resize(p.NEQ);
   for (int ii = 0; ii < p.Nk; ii++) {
-std::cout << "NO BUGGS HERE\n";
     p.energies[p.Ik + ii] = k_energies[ii];
   }
   for (int ii = 0; ii < p.Nc; ii++) {

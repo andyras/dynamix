@@ -45,9 +45,9 @@ pumpFreq=3.5e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
-CBPopFlag=1				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
+CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 VBPopFlag=1				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
-QDPopFlag=1				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
+QDPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 bulk_FDD=0
 bulk_Gauss=1
 bulk_constant=0
