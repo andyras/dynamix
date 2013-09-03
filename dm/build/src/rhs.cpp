@@ -203,6 +203,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << "inverse temp is " << bn << std::endl;
   std::cout << std::endl;
   for (int ii = 0; ii < p->Nk; ii++) {
+    // TODO factor in Boltzmann constant?
     fdd[ii] = 1.0/(1.0 + exp((ekin - mue)*bn));
     std::cout << 1.0/(1.0 + exp((ekin - mue)*bn)) << " ";
     std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
@@ -211,7 +212,13 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   return;
 }
 
-/* implements equation B13 from Binder et. al, PRB 1991 */
+/* implements equation B13 from Binder et. al, PRB 1991.
+ * bm is the beta (1/kT) value.
+ * ekin is the kinetic energy
+ * ne is the carrier density
+ * K1-3 are constants
+ * X is a constant
+ */
 double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X) {
   return -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
 }
