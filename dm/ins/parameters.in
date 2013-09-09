@@ -33,6 +33,7 @@ bulkGaussSigma=0.008217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.025			# position of initial Gaussian above band edge (a.u.)
 me=0.078				# effective mass of electron
 mh=0.11					# effective mass of hole
+X2=1512.2873345935727			# "Bohr radius" for material, inverse spacing in k-space
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 gamma1=1e-3				# \gamma_1 in RTA (relaxation rate)
@@ -45,7 +46,7 @@ pumpFreq=3.5e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
-CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
+CBPopFlag=2				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 VBPopFlag=1				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 QDPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 bulk_FDD=0

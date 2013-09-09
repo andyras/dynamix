@@ -212,6 +212,7 @@ int main (int argc, char * argv[]) {
     else if (input_param == "bulkGaussMu" ) { p.bulkGaussMu = atof(param_val.c_str()); }
     else if (input_param == "me" ) { p.me = atof(param_val.c_str()); }
     else if (input_param == "mh" ) { p.mh = atof(param_val.c_str()); }
+    else if (input_param == "X2" ) { p.X2 = atof(param_val.c_str()); }
     else if (input_param == "temperature" ) { p.temperature = atof(param_val.c_str()); }
     else if (input_param == "gamma1" ) { p.gamma1 = atof(param_val.c_str()); }
     else if (input_param == "gamma2" ) { p.gamma2 = atof(param_val.c_str()); }
@@ -269,6 +270,7 @@ int main (int argc, char * argv[]) {
   std::cout << "bulkGaussMu is " << p.bulkGaussMu << std::endl;
   std::cout << "me is " << p.me << std::endl;
   std::cout << "mh is " << p.mh << std::endl;
+  std::cout << "X2 is " << p.X2 << std::endl;
   std::cout << "temperature is " << p.temperature << std::endl;
   std::cout << "gamma1 is " << p.gamma1 << std::endl;
   std::cout << "gamma2 is " << p.gamma2 << std::endl;
@@ -307,7 +309,7 @@ int main (int argc, char * argv[]) {
   }
   catch (const std::out_of_range& oor) {
 #ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cerr << "Out of Range error: Warning: no log file will be created" << oor.what() << std::endl;
 #endif
   }
 
@@ -536,6 +538,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
       std::cout << "Initializing constant distribution in conduction band" << std::endl;
 #endif
+      initializeArray(k_pops, p.Nk, 0.0);
       initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
     }
     else if (p.CBPopFlag == POP_GAUSSIAN) {

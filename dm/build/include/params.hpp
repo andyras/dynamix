@@ -34,6 +34,7 @@ struct PARAMETERS {
   double bulkGaussMu = 0.01;		// position of initial Gaussian above band edge
   double me = 1.0;			// effective mass of electron
   double mh = 1.0;			// effective mass of hole
+  double X2 = 1512.2873345935727;	// "Bohr radius" of material, inverse spacing in k-space
   realtype temperature = 3e2;		// temperature of the system
   realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
   realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
@@ -71,9 +72,6 @@ struct PARAMETERS {
   int Ic = 0;				// index starters for each type of state
   int Ib = 0;				// index starters for each type of state
   int Il = 0;				// index starters for each type of state
-
-  // inverse spacing in k-space
-  double X2 = 8e-8/5.29e-11;
 
   realtype kBandWidth;
 

@@ -118,18 +118,17 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 /* gives the equilibrated FDD for the system */
 void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   //// "fine structure constant" -- conversion from index to wave vector
-  double x2 = 8e-8/5.29e-11;	// convert from meters to au
-  std::cout << "x2   " << x2 << std::endl;
+  std::cout << "p->X2   " << p->X2 << std::endl;
 
   //// calculate n_e and e_kin
   double ne = 0.0;
   double ekin = 0.0;
-  double factor = 1.0/(M_PI*M_PI*pow(x2,3));
+  double factor = 1.0/(M_PI*M_PI*pow(p->X2,3));
   std::cout << "factor   " << factor << std::endl;
   for (int ii = 0; ii < p->Nk; ii++) {
     ne += factor*pow(ii,2)*NV_Ith_S(y, ii*p->NEQ + ii);
     std::cout << "population " << NV_Ith_S(y, ii*p->NEQ + ii) << std::endl;
-    ekin += factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(x2,2));
+    ekin += factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
   }
   std::cout << "ne   " << ne << std::endl;
   std::cout << "ekin " << ekin << std::endl;
@@ -165,7 +164,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << std::endl;
   */
   
-  double high = 1.0;
+  double high = 1e10;
   double low = 1.0e-100;	// zero is a no-no because the function is a log
   double newVal = 0.5;		// intermediate value
 
