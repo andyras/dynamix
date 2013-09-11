@@ -9,18 +9,18 @@ OBJDIR = ./obj
 SRCDIR = ./src
 BINDIR = ../bin
 
-# flags for compiler and linker
-CXX = icpc
-CPP = $(CXX)
+# compiler
+CPP = icpc
+
+# flags for compiler
 # optimized CPPFLAGS
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div --std=c++11 -openmp
 # non-optimized CPPFLAGS
 #CPPFLAGS = -Wall -g -O0 -openmp --std=c++11
+
+# flags for linker
 INCLUDES = -I$(INCDIR) -I$(MKLROOT)/include/fftw
-# addition for radon
-#INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib
-# addition for quest
-#INCLUDES += -I/home/ara132/bin/include -I/home/ara132/bin/include/cvode -L/home/ara132/bin/lib
+# includes for CVODE
 INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
