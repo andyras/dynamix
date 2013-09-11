@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <stdexcept>
 #include <nvector/nvector_serial.h>
 
 #include "params.hpp"

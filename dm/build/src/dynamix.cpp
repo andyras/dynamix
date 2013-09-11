@@ -7,6 +7,7 @@
 #include <time.h>
 #include <numeric>
 #include <complex>
+#include <stdexcept>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
