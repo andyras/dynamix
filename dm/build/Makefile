@@ -16,11 +16,12 @@ CPP = $(CXX)
 CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div --std=c++11 -openmp
 # non-optimized CPPFLAGS
 #CPPFLAGS = -Wall -g -O0 -openmp --std=c++11
-INCLUDES = -I./$(INCDIR) -I$(MKLROOT)/include/fftw
+INCLUDES = -I$(INCDIR) #-I$(MKLROOT)/include/fftw
 # addition for radon
-INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib
+#INCLUDES += -I/home/andyras/bin/include -I/home/andyras/bin/include/cvode -L/home/andyras/bin/lib
 # addition for quest
-INCLUDES += -I/home/ara132/bin/include -I/home/ara132/bin/include/cvode -L/home/ara132/bin/lib
+#INCLUDES += -I/home/ara132/bin/include -I/home/ara132/bin/include/cvode -L/home/ara132/bin/lib
+INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -I$(HOME)/bin/lib
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 
 # make will look for .cpp files in $(SRCDIR)
