@@ -125,13 +125,38 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   double ekin = 0.0;
   double factor = 1.0/(M_PI*M_PI*pow(p->X2,3));
   std::cout << "factor   " << factor << std::endl;
+
+  // Riemann method
+  /*
   for (int ii = 0; ii < p->Nk; ii++) {
     ne += factor*pow(ii,2)*NV_Ith_S(y, ii*p->NEQ + ii);
     std::cout << "population " << NV_Ith_S(y, ii*p->NEQ + ii) << std::endl;
     ekin += factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
   }
-  std::cout << "ne   " << ne << std::endl;
-  std::cout << "ekin " << ekin << std::endl;
+  */
+
+  // Simpson's Rule method
+  // ignore the first point because the value will be zero
+  double SF = 4.0;	// Simpson's factor
+  int sign = -1;	// sign
+  for (int ii = 1; ii < (p->Nk-1); ii++) {
+    ne += SF*factor*ii*ii*NV_Ith_S(y, ii*p->NEQ + ii);
+    ekin += SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
+    std::cout << "Ne " << ii*ii << "*" << SF/3.0 << "*" << NV_Ith_S(y, ii*p->NEQ + ii) << "/" << pow(5.29e-11,3)/factor << std::endl;
+    SF += sign*2.0;
+    sign *= -1;
+  }
+  // add last point
+  ne += factor*pow(p->Nk-1,2)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1);
+  ekin += SF*factor*pow(p->Nk-1,4)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1)/(2*p->me*pow(p->X2,2));
+  // divide by three
+  ne /= 3.0;
+  ekin /= 3.0;
+
+  std::cout << "ne        " << ne << std::endl;
+  std::cout << "ne (SI)   " << ne/pow(5.29e-11,3) << std::endl;
+  std::cout << "ekin      " << ekin << std::endl;
+  std::cout << "ekin (SI) " << ekin/pow(5.29e-11,3)*4.3597482e-18 << std::endl;
   
   //// find the inverse temperature (beta)
   int iter = 0;

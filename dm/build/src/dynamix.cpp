@@ -728,7 +728,7 @@ int main (int argc, char * argv[]) {
   dmt = new realtype [2*p.NEQ2*(p.numOutputSteps+1)];
   initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
 
-#ifdef DEBUG
+#ifdef DEBUG2
   // print out density matrix
   std::cout << "\nDensity matrix without normalization:\n\n";
   for (int ii = 0; ii < p.NEQ; ii++) {
