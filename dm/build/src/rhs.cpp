@@ -136,13 +136,15 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   */
 
   // Simpson's Rule method
-  // ignore the first point because the value will be zero
+  // skip the first point because the value will be zero
   double SF = 4.0;	// Simpson's factor
   int sign = -1;	// sign
   for (int ii = 1; ii < (p->Nk-1); ii++) {
     ne += SF*factor*ii*ii*NV_Ith_S(y, ii*p->NEQ + ii);
     ekin += SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
+#ifdef DEBUG_RHS
     std::cout << "Ne " << ii*ii << "*" << SF/3.0 << "*" << NV_Ith_S(y, ii*p->NEQ + ii) << "/" << pow(5.29e-11,3)/factor << std::endl;
+#endif
     SF += sign*2.0;
     sign *= -1;
   }
@@ -153,10 +155,12 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   ne /= 3.0;
   ekin /= 3.0;
 
+//#ifdef DEBUG_RHS
   std::cout << "ne        " << ne << std::endl;
   std::cout << "ne (SI)   " << ne/pow(5.29e-11,3) << std::endl;
   std::cout << "ekin      " << ekin << std::endl;
   std::cout << "ekin (SI) " << ekin/pow(5.29e-11,3)*4.3597482e-18 << std::endl;
+//#endif
   
   //// find the inverse temperature (beta)
   int iter = 0;
@@ -188,6 +192,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   }
   std::cout << std::endl;
   */
+  std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
   
   double high = 1e10;
   double low = 1.0e-100;	// zero is a no-no because the function is a log
