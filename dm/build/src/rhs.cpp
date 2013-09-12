@@ -170,29 +170,27 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   double K2 = 0.04496457;
   double K3 = 0.133376;
   double X = 4*ne*pow(M_PI/(2*p->me),1.5);
-  double bn = 1e-10;		// intermediate values of beta; bn is higher iteration
+  std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
+  double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
   double bm = 0e-10;
-  /*
+
+  // loop applies Newton-Raphson method to get zero of function
   double f = 0.0;		// value of function (f)
   double fp = 0.0;		// value of function derivative (f')
-  // loop applies Newton-Raphson method to get zero of function
   std::cout << "Newton-Raphson to find inverse temperature" << std::endl;
-  std::cout << "X " << X << std::endl;
   while ((fabs(bn - bm) > tol) && (iter < maxiter)) {
     bm = bn;
     f = -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
-    fp = -ekin + 2.25*ne*(K1/(K2*X*pow(bm,2.5))*log(1 + K2*X*pow(bm,1.5)) - K1/(bm*(1 + K2*X*pow(bm,1.5))) + 0.5*K3*pow(bm,0.5));
+    fp = -ekin + 2.25*ne*(K1/(K2*X*pow(bm,2.5))*log(1 + K2*X*pow(bm,1.5)) - K1/(bm*(1 + K2*X*pow(bm,1.5))) + 0.5*K3*X*pow(bm,0.5));
     bn = bm - f/fp;
     iter++;
     std::cout << "Iteration " << iter << std::endl;
-    std::cout << "f  " << f << std::endl;
-    std::cout << "f' " << fp << std::endl;
+    std::cout << "f  " << f*pow(1.0/5.29e-11,3) << std::endl;
+    std::cout << "f' " << fp*pow(1.0/5.29e-11,3)*4.3597482e-18 << std::endl;
     std::cout << "bn " << bn << std::endl;
     std::cout << "bm " << bm << std::endl;
   }
   std::cout << std::endl;
-  */
-  std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
   
   double high = 1e10;
   double low = 1.0e-100;	// zero is a no-no because the function is a log
