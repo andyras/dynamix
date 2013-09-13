@@ -1,6 +1,7 @@
 #include "rhs.hpp"
 
 //#define DEBUG_RHS
+#define DEBUG_RTA
 
 /* Updates the Hamiltonian with the time-dependent torsional coupling */
 void updateTorsionV(PARAMETERS * p, realtype t) {
@@ -135,6 +136,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   }
   */
 
+  std::cout << std::setprecision(8);
   // Simpson's Rule method
   // skip the first point because the value will be zero
   double SF = 4.0;	// Simpson's factor
@@ -142,25 +144,29 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   for (int ii = 1; ii < (p->Nk-1); ii++) {
     ne += SF*factor*ii*ii*NV_Ith_S(y, ii*p->NEQ + ii);
     ekin += SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
-#ifdef DEBUG_RHS
-    std::cout << "Ne " << ii*ii << "*" << SF/3.0 << "*" << NV_Ith_S(y, ii*p->NEQ + ii) << "/" << pow(5.29e-11,3)/factor << std::endl;
+#ifdef DEBUG_RTA
+    std::cout << "Ne " << ii*ii << "*" << SF << "/3.0*" << NV_Ith_S(y, ii*p->NEQ + ii) << "/" << pow(5.29e-11,3)/factor << std::endl;
+    std::cout << "ekin " << pow(ii,4) << "*" << SF << "/3.0*" << NV_Ith_S(y, ii*p->NEQ + ii) << "*" << 4.3597482e-18/(2*p->me*pow(p->X2,2)) << "/" << pow(5.29e-11,3)/factor << std::endl;
+    //std::cout << "ekin += " << pow(ii,4)*SF/3.0*NV_Ith_S(y, ii*p->NEQ + ii)*4.3597482e-18/(2*p->me*pow(p->X2,2))/pow(5.29e-11,3)/factor << std::endl;
+    std::cout << "ekin " << ekin/pow(5.29e-11,3)*4.3597482e-18/3.0 
+      << " += " << SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2))/pow(5.29e-11,3)*4.3597482e-18/3.0 << std::endl;
 #endif
     SF += sign*2.0;
     sign *= -1;
   }
   // add last point
   ne += factor*pow(p->Nk-1,2)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1);
-  ekin += SF*factor*pow(p->Nk-1,4)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1)/(2*p->me*pow(p->X2,2));
+  ekin += factor*pow(p->Nk-1,4)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1)/(2*p->me*pow(p->X2,2));
   // divide by three
   ne /= 3.0;
   ekin /= 3.0;
 
-//#ifdef DEBUG_RHS
+#ifdef DEBUG_RTA
   std::cout << "ne        " << ne << std::endl;
   std::cout << "ne (SI)   " << ne/pow(5.29e-11,3) << std::endl;
   std::cout << "ekin      " << ekin << std::endl;
   std::cout << "ekin (SI) " << ekin/pow(5.29e-11,3)*4.3597482e-18 << std::endl;
-//#endif
+#endif
   
   //// find the inverse temperature (beta)
   int iter = 0;
@@ -169,10 +175,11 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   double K1 = 4.8966851;		// constants
   double K2 = 0.04496457;
   double K3 = 0.133376;
-  double X = 4*ne*pow(M_PI/(2*p->me),1.5);
+  double X = 4*ne*pow(M_PI/(2*p->me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
   std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
   double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
   double bm = 0e-10;
+  double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
 
   // loop applies Newton-Raphson method to get zero of function
   double f = 0.0;		// value of function (f)
@@ -182,16 +189,22 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
     bm = bn;
     f = -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
     fp = -ekin + 2.25*ne*(K1/(K2*X*pow(bm,2.5))*log(1 + K2*X*pow(bm,1.5)) - K1/(bm*(1 + K2*X*pow(bm,1.5))) + 0.5*K3*X*pow(bm,0.5));
+#ifdef DEBUG_RTA
+    std::cout << "Iteration     " << std::setw(15) << iter << std::endl;
+    std::cout << "bm            " << std::setw(15) << bm/4.3597482e-18 << std::endl;
+    std::cout << "f(bm) term 1: " << std::setw(15) << vol*-bm*ekin << std::endl;
+    std::cout << "f(bm) term 2: " << std::setw(15) << vol*1.5*ne*(1 + K1) << std::endl;
+    std::cout << "f(bm) term 3: " << std::setw(15) << vol*1.5*ne*(-1*K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5))) << std::endl;
+    std::cout << "f(bm) term 4: " << std::setw(15) << vol*1.5*ne*(0.5*K3*X*pow(bm,1.5)) << std::endl;
+    std::cout << "f(bm)         " << std::setw(15) << f*pow(1.0/5.29e-11,3) << std::endl;
+    std::cout << "f'(bm)        " << std::setw(15) << fp*pow(1.0/5.29e-11,3)*4.3597482e-18 << std::endl;
+#endif
     bn = bm - f/fp;
     iter++;
-    std::cout << "Iteration " << iter << std::endl;
-    std::cout << "f  " << f*pow(1.0/5.29e-11,3) << std::endl;
-    std::cout << "f' " << fp*pow(1.0/5.29e-11,3)*4.3597482e-18 << std::endl;
-    std::cout << "bn " << bn << std::endl;
-    std::cout << "bm " << bm << std::endl;
   }
   std::cout << std::endl;
   
+  /*
   double high = 1e10;
   double low = 1.0e-100;	// zero is a no-no because the function is a log
   double newVal = 0.5;		// intermediate value
@@ -219,12 +232,13 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   }
   bm = newVal;
   bn = newVal;
+  */
 
   //// use beta to find chemical potential
   double mue = 0.0;
   double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
   mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
-  std::cout << "Chemical potential " << mue << std::endl;
+  std::cout << "Chemical potential " << mue*4.3597482e-18 << std::endl;
 
   // TODO account for temperature dropping in time
   std::cout << "inverse temp is " << bn << std::endl;

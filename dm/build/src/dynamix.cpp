@@ -540,6 +540,7 @@ int main (int argc, char * argv[]) {
       std::cout << "Initializing constant distribution in conduction band" << std::endl;
 #endif
       initializeArray(k_pops, p.Nk, 0.0);
+      initializeArray(k_pops, p.Nk, 1e-1); // FIXME
       initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
     }
     else if (p.CBPopFlag == POP_GAUSSIAN) {
