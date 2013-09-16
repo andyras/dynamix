@@ -126,6 +126,11 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   double ekin = 0.0;
   double factor = 1.0/(M_PI*M_PI*pow(p->X2,3));
   std::cout << "factor   " << factor << std::endl;
+  // assign vector of energies
+  std::vector<double> E (p->Nk,0.0);
+  for (int ii = 0; ii < p->Nk; ii++) {
+    E[ii] = pow(ii,2)/(2*p->me*pow(p->X2,2));
+  }
 
   // Riemann method
   /*
@@ -143,11 +148,10 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   int sign = -1;	// sign
   for (int ii = 1; ii < (p->Nk-1); ii++) {
     ne += SF*factor*ii*ii*NV_Ith_S(y, ii*p->NEQ + ii);
-    ekin += SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
+    ekin += SF*factor*pow(ii,2)*NV_Ith_S(y, ii*p->NEQ + ii)*E[ii];
 #ifdef DEBUG_RTA
     std::cout << "Ne " << ii*ii << "*" << SF << "/3.0*" << NV_Ith_S(y, ii*p->NEQ + ii) << "/" << pow(5.29e-11,3)/factor << std::endl;
     std::cout << "ekin " << pow(ii,4) << "*" << SF << "/3.0*" << NV_Ith_S(y, ii*p->NEQ + ii) << "*" << 4.3597482e-18/(2*p->me*pow(p->X2,2)) << "/" << pow(5.29e-11,3)/factor << std::endl;
-    //std::cout << "ekin += " << pow(ii,4)*SF/3.0*NV_Ith_S(y, ii*p->NEQ + ii)*4.3597482e-18/(2*p->me*pow(p->X2,2))/pow(5.29e-11,3)/factor << std::endl;
     std::cout << "ekin " << ekin/pow(5.29e-11,3)*4.3597482e-18/3.0 
       << " += " << SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2))/pow(5.29e-11,3)*4.3597482e-18/3.0 << std::endl;
 #endif
@@ -156,7 +160,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   }
   // add last point
   ne += factor*pow(p->Nk-1,2)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1);
-  ekin += factor*pow(p->Nk-1,4)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1)/(2*p->me*pow(p->X2,2));
+  ekin += factor*pow(p->Nk-1,2)*NV_Ith_S(y, (p->Nk - 1)*p->NEQ + p->Nk - 1)*E[p->Nk - 1];
   // divide by three
   ne /= 3.0;
   ekin /= 3.0;
@@ -243,12 +247,14 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   // TODO account for temperature dropping in time
   std::cout << "inverse temp is " << bn << std::endl;
   std::cout << std::endl;
+  std::ofstream fddout("fdd.out");
   for (int ii = 0; ii < p->Nk; ii++) {
     // TODO factor in Boltzmann constant?
-    fdd[ii] = 1.0/(1.0 + exp((ekin - mue)*bn));
-    std::cout << 1.0/(1.0 + exp((ekin - mue)*bn)) << " ";
+    fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
+    fddout << E[ii]*27.211 << " " << fdd[ii] << std::endl;
     std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
   }
+  fddout.close();
 
   return;
 }
