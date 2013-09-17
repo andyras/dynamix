@@ -30,26 +30,7 @@
 #define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-//#define DEBUG2
-
-/* DEBUGf flags: creates output within the CVode RHS function.
- * WARNING: Only turn on DEBUGf for small test runs, otherwise output is
- * enormous (many GB).
- */
-
-// DEBUGf flag: general output at each CVode step
-//#define DEBUGf
-// DEBUGf_DM flag: DEBUGf for density matrix EOM
-//#define DEBUGf_DM
-
-//using namespace std;
-
-//// GLOBAL VARIABLES
-#ifdef DEBUGf_DM
-// file for density matrix coeff derivatives in time
-FILE * dmf;
-#endif
-//// END GLOBAL VARIABLES
+#define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -865,10 +846,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   std::cout << "\nAdvancing the solution in time.\n";
 #endif
-#ifdef DEBUGf_DM
-  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
-#endif
   for (int ii = 1; ii <= p.numsteps; ++ii) {
     t = (p.tout*((double) ii)/((double) p.numsteps));
     flag = CVode(cvode_mem, t, yout, &tret, 1);
@@ -886,10 +863,6 @@ int main (int argc, char * argv[]) {
       updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
     }
   }
-#ifdef DEBUGf_DM
-  std::cout << "Closing output file for density matrix coefficients in time.\n";
-  fclose(dmf);
-#endif
 
 #ifdef DEBUG
   fclose(realImaginary);

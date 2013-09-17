@@ -1,7 +1,14 @@
 #include "rhs.hpp"
 
-//#define DEBUG_RHS
+#define DEBUG_RHS
 #define DEBUG_RTA
+//
+// DEBUGf flag: general output at each CVode step
+//#define DEBUGf
+//
+// DEBUGf_DM flag: DEBUGf for density matrix EOM
+#define DEBUGf_DM
+
 
 /* Updates the Hamiltonian with the time-dependent torsional coupling */
 void updateTorsionV(PARAMETERS * p, realtype t) {
@@ -54,6 +61,13 @@ void updateTorsionV(PARAMETERS * p, realtype t) {
 
 /* Right-hand-side equation for density matrix */
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+  dmf = fopen("dmf.out", "w");
+#endif
 
   // data is a pointer to the params struct
   PARAMETERS * p;
@@ -111,6 +125,9 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
   fprintf(dmf, "\n");
+
+  std::cout << "Closing output file for density matrix coefficients in time.\n";
+  fclose(dmf);
 #endif
 
   return 0;
@@ -119,29 +136,26 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 /* gives the equilibrated FDD for the system */
 void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   //// "fine structure constant" -- conversion from index to wave vector
+#ifdef DEBUG_RTA
   std::cout << "p->X2   " << p->X2 << std::endl;
+#endif
 
   //// calculate n_e and e_kin
   double ne = 0.0;
   double ekin = 0.0;
   double factor = 1.0/(M_PI*M_PI*pow(p->X2,3));
+#ifdef DEBUG_RTA
   std::cout << "factor   " << factor << std::endl;
+#endif
   // assign vector of energies
   std::vector<double> E (p->Nk,0.0);
   for (int ii = 0; ii < p->Nk; ii++) {
     E[ii] = pow(ii,2)/(2*p->me*pow(p->X2,2));
   }
 
-  // Riemann method
-  /*
-  for (int ii = 0; ii < p->Nk; ii++) {
-    ne += factor*pow(ii,2)*NV_Ith_S(y, ii*p->NEQ + ii);
-    std::cout << "population " << NV_Ith_S(y, ii*p->NEQ + ii) << std::endl;
-    ekin += factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2));
-  }
-  */
-
+#ifdef DEBUG_RTA
   std::cout << std::setprecision(8);
+#endif
   // Simpson's Rule method
   // skip the first point because the value will be zero
   double SF = 4.0;	// Simpson's factor
@@ -180,7 +194,9 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   double K2 = 0.04496457;
   double K3 = 0.133376;
   double X = 4*ne*pow(M_PI/(2*p->me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
+#ifdef DEBUG_RTA
   std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
+#endif
   double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
   double bm = 0e-10;
   double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
@@ -188,7 +204,9 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   // loop applies Newton-Raphson method to get zero of function
   double f = 0.0;		// value of function (f)
   double fp = 0.0;		// value of function derivative (f')
+#ifdef DEBUG_RTA
   std::cout << "Newton-Raphson to find inverse temperature" << std::endl;
+#endif
   while ((fabs(bn - bm) > tol) && (iter < maxiter)) {
     bm = bn;
     f = -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
@@ -206,53 +224,31 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
     bn = bm - f/fp;
     iter++;
   }
+#ifdef DEBUG_RTA
   std::cout << std::endl;
+#endif
   
-  /*
-  double high = 1e10;
-  double low = 1.0e-100;	// zero is a no-no because the function is a log
-  double newVal = 0.5;		// intermediate value
-
-  // check that f(high) and f(low) have opposite sign
-  if (sgn<double>(b13(low, ekin, ne, K1, K2, K3, X))*sgn<double>(b13(high, ekin, ne, K1, K2, K3, X) > 0)) {
-    std::cout << "ERROR: f(high) and f(low) have same sign!!!!" << std::endl;
-    std::cout << "f(" << high << "): " << b13(high, ekin, ne, K1, K2, K3, X) << std::endl;
-    std::cout << "f(" << low << "): " << b13(low, ekin, ne, K1, K2, K3, X) << std::endl;
-  }
-
-  // loop does binary search to find zero of function
-  while ((iter < maxiter) && ((high-low) > tol)) {
-    std::cout << "---ITERATION " << iter << "---" << std::endl;
-    newVal = (high + low)/2.0;
-    if (sgn<double>(b13(newVal, ekin, ne, K1, K2, K3, X)) == sgn<double>(b13(low, ekin, ne, K1, K2, K3, X))) {
-      std::cout << "   new low is " << newVal << std::endl;
-      low = newVal;
-    }
-    else {
-      std::cout << "   new high is " << newVal << std::endl;
-      high = newVal;
-    }
-    iter++;
-  }
-  bm = newVal;
-  bn = newVal;
-  */
-
   //// use beta to find chemical potential
   double mue = 0.0;
   double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
   mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
+#ifdef DEBUG_RTA
   std::cout << "Chemical potential " << mue*4.3597482e-18 << std::endl;
+#endif
 
   // TODO account for temperature dropping in time
+#ifdef DEBUG_RTA
   std::cout << "inverse temp is " << bn << std::endl;
   std::cout << std::endl;
+#endif
   std::ofstream fddout("fdd.out");
   for (int ii = 0; ii < p->Nk; ii++) {
     // TODO factor in Boltzmann constant?
     fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
     fddout << E[ii]*27.211 << " " << fdd[ii] << std::endl;
+#ifdef DEBUG_RTA
     std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
+#endif
   }
   fddout.close();
 
@@ -273,6 +269,15 @@ double b13(double bm, double ekin, double ne, double K1, double K2, double K3, d
 /* Right-hand-side equation for density matrix
  * using relaxation time approximation (RTA) */
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+  dmf = fopen("dmf.out", "w");
+#endif
+
+  std::cout << "Time " << t << std::endl;
 
   // data is a pointer to the params struct
   PARAMETERS * p;
@@ -300,7 +305,9 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   //// diagonal; no need to calculate the imaginary part
   //   get equilibrium FDD populations
   std::vector<double> fdd(p->Nk);
+#ifdef DEBUG_RTA
   std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
+#endif
   buildFDD(p, y, fdd);
 
 #pragma omp parallel for
@@ -352,6 +359,14 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 /* Right-hand-side equation for density matrix
  * using dephasing */
 int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+  dmf = fopen("dmf.out", "w");
+#endif
+
 
   // data is a pointer to the params struct
   PARAMETERS * p;
