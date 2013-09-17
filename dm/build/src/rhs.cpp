@@ -154,7 +154,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   }
 
 #ifdef DEBUG_RTA
-  std::cout << std::setprecision(8);
+  std::cout << std::setprecision(28);
 #endif
   // Simpson's Rule method
   // skip the first point because the value will be zero
@@ -188,8 +188,8 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   
   //// find the inverse temperature (beta)
   int iter = 0;
-  int maxiter = 200;
-  double tol = 1e-18;
+  int maxiter = 61;
+  double tol = 1e-12;
   double K1 = 4.8966851;		// constants
   double K2 = 0.04496457;
   double K3 = 0.133376;
@@ -207,7 +207,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
 #ifdef DEBUG_RTA
   std::cout << "Newton-Raphson to find inverse temperature" << std::endl;
 #endif
-  while ((fabs(bn - bm) > tol) && (iter < maxiter)) {
+  while ((fabs(bn - bm)/bm > tol) && (iter < maxiter)) {
     bm = bn;
     f = -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
     fp = -ekin + 2.25*ne*(K1/(K2*X*pow(bm,2.5))*log(1 + K2*X*pow(bm,1.5)) - K1/(bm*(1 + K2*X*pow(bm,1.5))) + 0.5*K3*X*pow(bm,0.5));
