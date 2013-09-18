@@ -27,10 +27,10 @@
 #include "constants.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+//#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-#define DEBUG2
+//#define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -142,8 +142,6 @@ int main (int argc, char * argv[]) {
     return -1;
   }
 
-  std::cout << std::endl;
-
   // read first line of input file
   getline (bash_in,line);
 
@@ -176,6 +174,7 @@ int main (int argc, char * argv[]) {
     else if (input_param == "rta") { p.rta = atoi(param_val.c_str()); }
     else if (input_param == "dephasing") { p.dephasing = atoi(param_val.c_str()); }
     else if (input_param == "progressFile") { p.progressFile = atoi(param_val.c_str()); }
+    else if (input_param == "progressStdout") { p.progressStdout = atoi(param_val.c_str()); }
     else if (input_param == "abstol") { p.abstol = atof(param_val.c_str()); }
     else if (input_param == "reltol" ) { p.reltol = atof(param_val.c_str()); }
     else if (input_param == "tout" ) { p.tout = atof(param_val.c_str()); }
@@ -233,6 +232,7 @@ int main (int argc, char * argv[]) {
   std::cout << "rta is " << p.rta << std::endl;
   std::cout << "dephasing is " << p.dephasing << std::endl;
   std::cout << "progressFile is " << p.progressFile << std::endl;
+  std::cout << "progressStdout is " << p.progressStdout << std::endl;
   std::cout << "nproc is " << p.nproc << std::endl;
   std::cout << "abstol is " << p.abstol << std::endl;
   std::cout << "reltol is " << p.reltol << std::endl;
@@ -324,8 +324,6 @@ int main (int argc, char * argv[]) {
     return -1;
   }
 
-  std::cout << std::endl;
-
   bash_in.close();
 
   // DONE ASSIGNING VARIABLES FROM RUN SCRIPT //
@@ -354,11 +352,13 @@ int main (int argc, char * argv[]) {
     p.Vbridge.resize(p.Nb+1);
     readArrayFromFile(b_energies, "ins/b_energies.in", p.Nb);
     readVectorFromFile(p.Vbridge, "ins/Vbridge.in", p.Nb + 1);
+#ifdef DEBUG
     std::cout << "COUPLINGS:";
     for (int ii = 0; ii < p.Nb+1; ii++) {
       std::cout << " " << p.Vbridge[ii];
     }
     std::cout << std::endl;
+#endif
   }
   else {
     p.Nb = 0;
@@ -750,7 +750,7 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < p.NEQ; ii++) {
     summ += dm[p.NEQ*ii + ii];
   }
-  if ( fabs(summ-1.0) > 1e-12 ) {
+  if ( fabs(summ-1.0) > 1e-12  && (!p.rta)) {
     std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
   }
 #ifdef DEBUG
@@ -853,8 +853,12 @@ int main (int argc, char * argv[]) {
     std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
 #endif
     if (ii % (p.numsteps/p.numOutputSteps) == 0) {
-      fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
-      fflush(stdout);
+      // show progress in stdout
+      if (p.progressStdout) {
+	fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
+	fflush(stdout);
+      }
+      // show progress in a file
       if (p.progressFile) {
 	std::ofstream progressFile("progress.tmp");
 	progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
@@ -884,7 +888,9 @@ int main (int argc, char * argv[]) {
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
 #endif
   }
-  printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
+  if (p.progressStdout) {
+    printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
+  }
 
   // Compute density matrix outputs.
 #ifdef DEBUG
@@ -952,7 +958,8 @@ int main (int argc, char * argv[]) {
   delete [] times;
   delete [] qd_est;
   delete [] qd_est_diag;
-  fprintf(stderr, "\nwhoo\n");
+
+  std::cout << "whoo" << std::endl;
 
   return 0;
 }

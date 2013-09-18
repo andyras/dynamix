@@ -1,13 +1,13 @@
 #include "rhs.hpp"
 
-#define DEBUG_RHS
-#define DEBUG_RTA
+//#define DEBUG_RHS
+//#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 //#define DEBUGf
 //
 // DEBUGf_DM flag: DEBUGf for density matrix EOM
-#define DEBUGf_DM
+//#define DEBUGf_DM
 
 
 /* Updates the Hamiltonian with the time-dependent torsional coupling */
@@ -98,7 +98,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-  //// off-diagonal
+  //// off-diagonalI hadn't t
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
@@ -188,7 +188,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   
   //// find the inverse temperature (beta)
   int iter = 0;
-  int maxiter = 61;
+  const int maxiter = 60;
   double tol = 1e-12;
   double K1 = 4.8966851;		// constants
   double K2 = 0.04496457;
@@ -198,7 +198,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
 #endif
   double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
-  double bm = 0e-10;
+  double bm = 0.0;
   double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
 
   // loop applies Newton-Raphson method to get zero of function
@@ -218,8 +218,10 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
     std::cout << "f(bm) term 2: " << std::setw(15) << vol*1.5*ne*(1 + K1) << std::endl;
     std::cout << "f(bm) term 3: " << std::setw(15) << vol*1.5*ne*(-1*K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5))) << std::endl;
     std::cout << "f(bm) term 4: " << std::setw(15) << vol*1.5*ne*(0.5*K3*X*pow(bm,1.5)) << std::endl;
-    std::cout << "f(bm)         " << std::setw(15) << f*pow(1.0/5.29e-11,3) << std::endl;
-    std::cout << "f'(bm)        " << std::setw(15) << fp*pow(1.0/5.29e-11,3)*4.3597482e-18 << std::endl;
+    std::cout << "f(bm) (SI)    " << std::setw(15) << f*pow(1.0/5.29e-11,3) << std::endl;
+    std::cout << "f(bm) (a.u)   " << std::setw(15) << f << std::endl;
+    std::cout << "f'(bm) (SI)   " << std::setw(15) << fp*pow(1.0/5.29e-11,3)*4.3597482e-18 << std::endl;
+    std::cout << "f'(bm) (a.u)  " << std::setw(15) << fp << std::endl;
 #endif
     bn = bm - f/fp;
     iter++;
@@ -277,7 +279,9 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   dmf = fopen("dmf.out", "w");
 #endif
 
+#ifdef DEBUG_RHS
   std::cout << "Time " << t << std::endl;
+#endif
 
   // data is a pointer to the params struct
   PARAMETERS * p;
@@ -313,9 +317,12 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2)
-	- g1*(NV_Ith_S(y, ii*N + ii) - fdd[ii]);
+      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
     }
+  }
+  // force conduction band toward Fermi-Dirac distribution
+  for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+    NV_Ith_S(ydot, ii*N + ii) -= g1*(NV_Ith_S(y, ii*N + ii) - fdd[ii]);
   }
 
   //// off-diagonal
