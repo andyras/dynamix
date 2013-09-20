@@ -1,6 +1,6 @@
 #include "output.hpp"
 
-//#define DEBUG_OUTPUT
+#define DEBUG_OUTPUT
 //#define DEBUG_OUTPUTTXPROB
 
 /* prints out array of fftw_complex values.  The 'x' array is
@@ -174,6 +174,10 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
     output << "\n";
   }
 
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
   return;
 }
 
@@ -196,6 +200,10 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
     }
     output << std::setw(8) << std::scientific << summ << "\n";
   }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
 
   return;
 }
@@ -226,6 +234,10 @@ void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
     output << "\n";
   }
 
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
   return;
 }
 
@@ -252,6 +264,10 @@ void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
     }
     output << "\n";
   }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
 
   return;
 }
@@ -280,6 +296,10 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
     output << "\n";
   }
 
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
   return;
 }
 
@@ -294,6 +314,10 @@ void outputEnergy(char * fileName, struct PARAMETERS * p) {
     output << std::setw(8) << std::scientific << p->energies[ii] << "\n";
   }
 
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
   return;
 }
 
@@ -307,6 +331,10 @@ void outputTimes(char * fileName, struct PARAMETERS * p) {
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     output << std::setw(8) << std::scientific << p->times[ii] << "\n";
   }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
 
   return;
 }
@@ -335,6 +363,10 @@ void outputEnergyExp(char * fileName, realtype * dmt,
       << std::setw(8) << std::scientific
       << summ << std::endl;
   }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
 
   return;
 }
@@ -380,10 +412,11 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
   double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
 
   // vectors for time-dependent quantities
-  std::vector<double> mu_t (p->numOutputSteps, 0.0);
-  std::vector<double> temp_t (p->numOutputSteps, 0.0);
-  std::vector<double> ne_t (p->numOutputSteps, 0.0);
-  std::vector<double> ekin_t (p->numOutputSteps, 0.0);
+  std::vector<double> mu_t (p->numOutputSteps + 1, 0.0);
+  std::vector<double> temp_t (p->numOutputSteps + 1, 0.0);
+  std::vector<double> ne_t (p->numOutputSteps + 1, 0.0);
+  std::vector<double> ekin_t (p->numOutputSteps + 1, 0.0);
+  std::vector<double> fdd_t ((p->numOutputSteps + 1)*p->Nk, 0.0);
 
   // loop over timesteps
   for (int kk = 0; kk <= p->numOutputSteps; kk++) {
@@ -434,94 +467,112 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
     //// use beta to find chemical potential
     nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
     mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
+    //std::cout << mue << std::endl;
     mu_t[kk] = mue;
 
-    try {
-      if (outs.at("mu.out")) {
-	std::ofstream mu_out("mu.out");
-	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	  mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
-	}
-	mu_out.close();
-      }
+    // update FDD
+    for (int ii = 0; ii < p->Nk; ii++) {
+      fdd_t[kk*p->Nk + ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
     }
-    catch (const std::out_of_range& oor) {
+  }
+  try {
+    if (outs.at("mu.out")) {
+      std::ofstream mu_out("mu.out");
+    std::cout << "WHOOO " << std::endl << std::endl;
+      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
+      }
+      mu_out.close();
+
 #ifdef DEBUG_OUTPUT
-      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+      std::cout << "\nDone making mu.out" << std::endl;
 #endif
     }
-
-    try {
-      if (outs.at("temp.out")) {
-	std::ofstream temp_out("temp.out");
-	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	  temp_out << p->times[kk] << " " << temp_t[kk] << std::endl;
-	}
-	temp_out.close();
-      }
-    }
-    catch (const std::out_of_range& oor) {
+  }
+  catch (const std::out_of_range& oor) {
 #ifdef DEBUG_OUTPUT
-      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
+  try {
+    if (outs.at("temp.out")) {
+      std::ofstream temp_out("temp.out");
+      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	temp_out << p->times[kk] << " " << temp_t[kk] << std::endl;
+      }
+      temp_out.close();
+
+#ifdef DEBUG_OUTPUT
+      std::cout << "\nDone making temp.out" << std::endl;
 #endif
     }
-
-    try {
-      if (outs.at("ne.out")) {
-	std::ofstream ne_out("ne.out");
-	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	  ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
-	}
-	ne_out.close();
-      }
-    }
-    catch (const std::out_of_range& oor) {
+  }
+  catch (const std::out_of_range& oor) {
 #ifdef DEBUG_OUTPUT
-      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
+  try {
+    if (outs.at("ne.out")) {
+      std::ofstream ne_out("ne.out");
+      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
+      }
+      ne_out.close();
+
+#ifdef DEBUG_OUTPUT
+      std::cout << "\nDone making ne.out" << std::endl;
 #endif
     }
-
-    try {
-      if (outs.at("ekin.out")) {
-	std::ofstream ekin_out("ekin.out");
-	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	  ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
-	}
-	ekin_out.close();
-      }
-    }
-    catch (const std::out_of_range& oor) {
+  }
+  catch (const std::out_of_range& oor) {
 #ifdef DEBUG_OUTPUT
-      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
+  try {
+    if (outs.at("ekin.out")) {
+      std::ofstream ekin_out("ekin.out");
+      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
+      }
+      ekin_out.close();
+
+#ifdef DEBUG_OUTPUT
+      std::cout << "\nDone making ekin.out" << std::endl;
 #endif
     }
-
-    /*
-    try {
-      if (outs.at("fdd.out")) {
-	std::ofstream fdd_out("fdd.out");
-	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	  fdd_out << p->times[kk] << " " << fdd_t[kk] << std::endl;
-	}
-	fdd_out.close();
-      }
-    }
-    catch (const std::out_of_range& oor) {
+  }
+  catch (const std::out_of_range& oor) {
 #ifdef DEBUG_OUTPUT
-      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
+  try {
+    if (outs.at("fdd.out")) {
+      std::ofstream fdd_out("fdd.out");
+      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	fdd_out << p->times[kk];
+	for (int ii = 0; ii < p->Nk; ii++) {
+	  fdd_out << " " << fdd_t[kk*p->Nk + ii];
+	}
+	fdd_out << std::endl;
+      }
+      fdd_out.close();
+
+#ifdef DEBUG_OUTPUT
+      std::cout << "\nDone making fdd.out" << std::endl;
 #endif
     }
-    */
-
-
-    /*
-       std::ofstream fddout("fdd.out");
-       for (int ii = 0; ii < p->Nk; ii++) {
-       fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
-       fddout << E[ii]*27.211 << " " << fdd[ii] << std::endl;
-       }
-       fddout.close();
-       */
+  }
+  catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
   }
 
   return;

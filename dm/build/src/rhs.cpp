@@ -243,16 +243,6 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << "inverse temp is " << bn << std::endl;
   std::cout << std::endl;
 #endif
-  std::ofstream fddout("fdd.out");
-  for (int ii = 0; ii < p->Nk; ii++) {
-    // TODO factor in Boltzmann constant?
-    fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
-    fddout << E[ii]*27.211 << " " << fdd[ii] << std::endl;
-#ifdef DEBUG_RTA
-    std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
-#endif
-  }
-  fddout.close();
 
   return;
 }

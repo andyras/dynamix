@@ -14,7 +14,7 @@ CPP = icpc
 
 # flags for compiler
 # optimized CPPFLAGS
-CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div --std=c++11 -openmp
+CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div --std=c++11 -openmp -debug
 # non-optimized CPPFLAGS
 #CPPFLAGS = -Wall -g -O0 -openmp --std=c++11
 
