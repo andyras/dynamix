@@ -10,7 +10,8 @@
 
 // Struct of parameters
 struct PARAMETERS {
-  int nproc = 0;				// number of processors
+  int nproc = 0;			// number of processors
+  bool justPlots = false;		// just make plots, no propagation or other output
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
   bool rta = true;			// turn on relaxation time approximation (RTA)
@@ -19,7 +20,7 @@ struct PARAMETERS {
   bool progressStdout = false;		// show progress in stdout
   realtype abstol = 1e-10;		// absolute tolerance (for SUNDIALS)
   realtype reltol = 1e-10;		// relative tolerance (for SUNDIALS)
-  realtype tout = 10000;			// final time reached by solver in atomic units
+  realtype tout = 10000;		// final time reached by solver in atomic units
   int numsteps = 10000;			// number of time steps
   int numOutputSteps = 1000;		// number of timesteps
   int NEQ = 1;				// total number of states
@@ -31,7 +32,7 @@ struct PARAMETERS {
   int Nk_final = 1;			// final k state initially populated
   realtype bulk_gap = 0.001;		// bulk band gap
   double valenceBand = 0.01;		// valence band width
-  double bulkGaussSigma = 0.001;		// width of initial Gaussian in bulk
+  double bulkGaussSigma = 0.001;	// width of initial Gaussian in bulk
   double bulkGaussMu = 0.01;		// position of initial Gaussian above band edge
   double me = 1.0;			// effective mass of electron
   double mh = 1.0;			// effective mass of hole
@@ -39,16 +40,16 @@ struct PARAMETERS {
   realtype temperature = 3e2;		// temperature of the system
   realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
   realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
-  double muLK = 1.0;                     // transition dipole moment from l to k (energy a.u.)
-  double pumpFWHM = 1000;                // FWHM of pump pulse (time a.u.)
-  double pumpPeak = 2000;                // time of peak of pump pulse (a.u.)
-  double pumpFreq = 0.01;                // frequency of pump pulse (energy a.u.)
-  double pumpAmpl = 1.0;                 // intensity of pump pulse (electric field a.u.)
-  double pumpPhase = 0.0;                // pump pulse phase (in units of radians)
+  double muLK = 1.0;                    // transition dipole moment from l to k (energy a.u.)
+  double pumpFWHM = 1000;               // FWHM of pump pulse (time a.u.)
+  double pumpPeak = 2000;               // time of peak of pump pulse (a.u.)
+  double pumpFreq = 0.01;               // frequency of pump pulse (energy a.u.)
+  double pumpAmpl = 1.0;                // intensity of pump pulse (electric field a.u.)
+  double pumpPhase = 0.0;               // pump pulse phase (in units of radians)
   int CBPopFlag = 0;			// flag for starting condition in conduction band
   int VBPopFlag = 0;			// flag for starting condition in valence band
   int QDPopFlag = 0;			// flag for starting condition in QD
-  bool bulk_FDD = false;			// switches for starting conditions
+  bool bulk_FDD = false;		// switches for starting conditions
   bool bulk_Gauss = false;
   bool bulk_constant = false;
   bool qd_pops = false;

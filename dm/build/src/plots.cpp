@@ -339,11 +339,10 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
   o << "set output sprintf(\"img/%.5d.png\", ii)" << std::endl;
   o << "set multiplot layout 2,1" << std::endl;
   o << std::endl;
-  o << "set autoscale y" << std::endl;
   o << "set xrange [0:" << p->kBandWidth << "]" << std::endl;
+  o << "set yrange [0:]" << std::endl;
   o << "set xlabel 'Energy above band edge (a.u.)'" << std::endl;
   o << "set ylabel 'Population in state'" << std::endl;
-  o << "set title 'Bulk populations at time = 8333.3333 a.u.'" << std::endl;
   o << "set title sprintf(\"Bulk Populations at t = %.6f a.u.\", ii*"
     << p->tout << "/" << p->numOutputSteps << ")" << std::endl;
   o << "plot 'outs/kprobs_t.out' u ($0*" << p->kBandWidth << "/" << (p->Nk - 1)

@@ -27,10 +27,10 @@
 #include "constants.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-//#define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-//#define DEBUG2
+#define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -169,6 +169,7 @@ int main (int argc, char * argv[]) {
     std::cout << "Parameter: " << input_param << std::endl << "New value: " << atof(param_val.c_str()) << std::endl;
 #endif
     if (input_param == "timedepH") { p.timedepH = atoi(param_val.c_str()); }
+    else if (input_param == "justPlots") { p.justPlots = atoi(param_val.c_str()); }
     else if (input_param == "nproc") { p.nproc = atoi(param_val.c_str()); }
     else if (input_param == "analytical") { p.analytical = atoi(param_val.c_str()); }
     else if (input_param == "rta") { p.rta = atoi(param_val.c_str()); }
@@ -227,13 +228,14 @@ int main (int argc, char * argv[]) {
   }
 #ifdef DEBUG
   std::cout << std::endl;
+  std::cout << "justPlots is " << p.justPlots << std::endl;
   std::cout << "timedepH is " << p.timedepH << std::endl;
+  std::cout << "nproc is " << p.nproc << std::endl;
   std::cout << "analytical is " << p.analytical << std::endl;
   std::cout << "rta is " << p.rta << std::endl;
   std::cout << "dephasing is " << p.dephasing << std::endl;
   std::cout << "progressFile is " << p.progressFile << std::endl;
   std::cout << "progressStdout is " << p.progressStdout << std::endl;
-  std::cout << "nproc is " << p.nproc << std::endl;
   std::cout << "abstol is " << p.abstol << std::endl;
   std::cout << "reltol is " << p.reltol << std::endl;
   std::cout << "tout is " << p.tout << std::endl;
@@ -410,6 +412,8 @@ int main (int argc, char * argv[]) {
     buildContinuum(k_energies, p.Nk, p.kBandEdge, p.kBandTop);
     buildContinuum(l_energies, p.Nl, p.kBandEdge - p.valenceBand - p.bulk_gap, p.kBandEdge - p.bulk_gap);
   }
+  // calculate band width
+  p.kBandWidth = k_energies[p.Nk - 1] - k_energies[0];
 
   if (p.torsion) {
 #ifdef DEBUG
@@ -521,6 +525,7 @@ int main (int argc, char * argv[]) {
       std::cout << "Initializing constant distribution in conduction band" << std::endl;
 #endif
       initializeArray(k_pops, p.Nk, 0.0);
+      initializeArray(k_pops, p.Nk, 1e-1); // FIXME
       initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
     }
     else if (p.CBPopFlag == POP_GAUSSIAN) {
@@ -805,103 +810,106 @@ int main (int argc, char * argv[]) {
   realImaginary = fopen("real_imaginary.out", "w");
 #endif
 
-  // create CVode object
-  // this is a stiff problem, I guess?
+  // only do propagation if not just making plots
+  if (!p.justPlots) {
+    // create CVode object
+    // this is a stiff problem, I guess?
 #ifdef DEBUG
-  std::cout << "\nCreating cvode_mem object.\n";
+    std::cout << "\nCreating cvode_mem object.\n";
 #endif
-  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
-  flag = CVodeSetUserData(cvode_mem, (void *) &p);
+    cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+    flag = CVodeSetUserData(cvode_mem, (void *) &p);
 
 #ifdef DEBUG
-  std::cout << "\nInitializing CVode solver.\n";
+    std::cout << "\nInitializing CVode solver.\n";
 #endif
-  // initialize CVode solver //
+    // initialize CVode solver //
 
-  if (p.rta) {
-    flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
-  }
-  else if (p.dephasing) {
-    flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
-  }
-  else {
-    flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
-  }
-
-#ifdef DEBUG
-  std::cout << "\nSpecifying integration tolerances.\n";
-#endif
-  // specify integration tolerances //
-  flag = CVodeSStolerances(cvode_mem, p.reltol, p.abstol);
+    if (p.rta) {
+      flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+    }
+    else if (p.dephasing) {
+      flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
+    }
+    else {
+      flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+    }
 
 #ifdef DEBUG
-  std::cout << "\nAttaching linear solver module.\n";
+    std::cout << "\nSpecifying integration tolerances.\n";
 #endif
-  // attach linear solver module //
-  flag = CVDense(cvode_mem, 2*p.NEQ2);
+    // specify integration tolerances //
+    flag = CVodeSStolerances(cvode_mem, p.reltol, p.abstol);
 
-  // advance the solution in time! //
-  // use CVODE for time-dependent H
 #ifdef DEBUG
-  std::cout << "\nAdvancing the solution in time.\n";
+    std::cout << "\nAttaching linear solver module.\n";
 #endif
-  for (int ii = 1; ii <= p.numsteps; ++ii) {
-    t = (p.tout*((double) ii)/((double) p.numsteps));
-    flag = CVode(cvode_mem, t, yout, &tret, 1);
+    // attach linear solver module //
+    flag = CVDense(cvode_mem, 2*p.NEQ2);
+
+    // advance the solution in time! //
+    // use CVODE for time-dependent H
+#ifdef DEBUG
+    std::cout << "\nAdvancing the solution in time.\n";
+#endif
+    for (int ii = 1; ii <= p.numsteps; ++ii) {
+      t = (p.tout*((double) ii)/((double) p.numsteps));
+      flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
-    std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
+      std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
 #endif
-    if (ii % (p.numsteps/p.numOutputSteps) == 0) {
-      // show progress in stdout
-      if (p.progressStdout) {
-	fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
-	fflush(stdout);
+      if (ii % (p.numsteps/p.numOutputSteps) == 0) {
+	// show progress in stdout
+	if (p.progressStdout) {
+	  fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
+	  fflush(stdout);
+	}
+	// show progress in a file
+	if (p.progressFile) {
+	  std::ofstream progressFile("progress.tmp");
+	  progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
+	  progressFile.close();
+	}
+	updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
       }
-      // show progress in a file
-      if (p.progressFile) {
-	std::ofstream progressFile("progress.tmp");
-	progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
-	progressFile.close();
+    }
+
+#ifdef DEBUG
+    fclose(realImaginary);
+#endif
+
+    // finalize log file //
+    time(&endRun);
+    currentTime = localtime(&endRun);
+    try {
+      if (outs.at("log.out")) {
+	fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
+	fprintf(log, "Run ended at %s\n", asctime(currentTime));
+	fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
+	fclose(log);					// note that the log file is opened after variable declaration
       }
-      updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
     }
-  }
-
+    catch (const std::out_of_range& oor) {
 #ifdef DEBUG
-  fclose(realImaginary);
+      std::cerr << "Out of Range error: " << oor.what() << std::endl;
 #endif
-
-  // finalize log file //
-  time(&endRun);
-  currentTime = localtime(&endRun);
-  try {
-    if (outs.at("log.out")) {
-      fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
-      fprintf(log, "Run ended at %s\n", asctime(currentTime));
-      fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
-      fclose(log);					// note that the log file is opened after variable declaration
     }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  if (p.progressStdout) {
-    printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
-  }
+    if (p.progressStdout) {
+      printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
+    }
 
-  // Compute density matrix outputs.
+    // Compute density matrix outputs.
 #ifdef DEBUG
-  std::cout << "Computing outputs...";
+    std::cout << "Computing outputs...";
 #endif
-  computeDMOutput(dmt, outs, &p);
+    computeDMOutput(dmt, outs, &p);
 #ifdef DEBUG
-  std::cout << "done.";
+    std::cout << "done.";
 #endif
 
-  // Make outputs independent of DM or wavefunction
-  computeGeneralOutputs(outs, &p);
+    // Make outputs independent of DM or wavefunction
+    computeGeneralOutputs(outs, &p);
+  }
 
   // Make plot files
   makePlots(outs, &p);
@@ -909,7 +917,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   fprintf(stdout, "Deallocating N_Vectors.\n");
 #endif
-  //  TODO why does this block break?
   // deallocate memory for N_Vectors //
   N_VDestroy_Serial(y);
   N_VDestroy_Serial(yout);

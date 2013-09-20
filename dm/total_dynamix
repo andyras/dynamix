@@ -46,7 +46,9 @@ else
   exit
 fi
 # move outputs
-[ -d outs ] && rm -rf outs
+if [ justPlots == 0 ]; then
+  [ -d outs ] && rm -rf outs
+fi
 mkdir -p outs
 mv *.out outs/
 # move plot files

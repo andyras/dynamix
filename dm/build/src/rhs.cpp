@@ -1,6 +1,6 @@
 #include "rhs.hpp"
 
-//#define DEBUG_RHS
+#define DEBUG_RHS
 //#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
