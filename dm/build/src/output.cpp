@@ -364,59 +364,44 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
   double SF = 4.0;	// Simpson's factor
   int sign = -1;	// sign
   // variables for calculating mu_e and beta
-    int iter = 0;
-    const int maxiter = 60;
-    const double tol = 1e-12;
-    const double K1 = 4.8966851;		// constants
-    const double K2 = 0.04496457;
-    const double K3 = 0.133376;
-    const double X = 4*ne*pow(M_PI/(2*p->me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
-    //#ifdef DEBUG_RTA
-    //std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
-    //#endif
-    double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
-    double bm = 0.0;
-    const double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
-    double f = 0.0;		// value of function (f)
-    double fp = 0.0;		// value of function derivative (f')
-    double mue = 0.0;
-    double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
-  
+  int iter = 0;
+  const int maxiter = 60;
+  const double tol = 1e-12;
+  const double K1 = 4.8966851;		// constants
+  const double K2 = 0.04496457;
+  const double K3 = 0.133376;
+  const double X = 4*ne*pow(M_PI/(2*p->me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
+  double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
+  double bm = 0.0;
+  const double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
+  double f = 0.0;		// value of function (f)
+  double fp = 0.0;		// value of function derivative (f')
+  double mue = 0.0;
+  double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
+
+  // vectors for time-dependent quantities
+  std::vector<double> mu_t (p->numOutputSteps, 0.0);
+  std::vector<double> temp_t (p->numOutputSteps, 0.0);
+  std::vector<double> ne_t (p->numOutputSteps, 0.0);
+  std::vector<double> ekin_t (p->numOutputSteps, 0.0);
+
   // loop over timesteps
   for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-    //#ifdef DEBUG_RTA
-    //std::cout << "p->X2   " << p->X2 << std::endl;
-    //#endif
-
     //// calculate n_e and e_kin
-    //
-    //#ifdef DEBUG_RTA
-    //std::cout << "factor   " << factor << std::endl;
-    //#endif
+
     // assign vector of energies
     std::vector<double> E (p->Nk,0.0);
     for (int ii = 0; ii < p->Nk; ii++) {
       E[ii] = pow(ii,2)/(2*p->me*pow(p->X2,2));
     }
 
-    //#ifdef DEBUG_RTA
-    //std::cout << std::setprecision(28);
-    //#endif
     // Simpson's Rule method
     SF = 4.0;
     sign = -1;
     // skip the first point because the value will be zero
     for (int ii = 1; ii < (p->Nk-1); ii++) {
-      //ne += SF*factor*ii*ii*NV_Ith_S(y, ii*p->NEQ + ii);
       ne += SF*factor*ii*ii*dmt[kk*p->NEQ2*2 + ii*p->NEQ + ii];
-      //ekin += SF*factor*pow(ii,2)*NV_Ith_S(y, ii*p->NEQ + ii)*E[ii];
       ekin += SF*factor*pow(ii,2)*dmt[kk*p->NEQ2*2 + ii*p->NEQ + ii]*E[ii];
-      //#ifdef DEBUG_RTA
-      //std::cout << "Ne " << ii*ii << "*" << SF << "/3.0*" << NV_Ith_S(y, ii*p->NEQ + ii) << "/" << pow(5.29e-11,3)/factor << std::endl;
-      //std::cout << "ekin " << pow(ii,4) << "*" << SF << "/3.0*" << NV_Ith_S(y, ii*p->NEQ + ii) << "*" << 4.3597482e-18/(2*p->me*pow(p->X2,2)) << "/" << pow(5.29e-11,3)/factor << std::endl;
-      //std::cout << "ekin " << ekin/pow(5.29e-11,3)*4.3597482e-18/3.0 
-      //<< " += " << SF*factor*pow(ii,4)*NV_Ith_S(y, ii*p->NEQ + ii)/(2*p->me*pow(p->X2,2))/pow(5.29e-11,3)*4.3597482e-18/3.0 << std::endl;
-      //#endif
       SF += sign*2.0;
       sign *= -1;
     }
@@ -427,12 +412,8 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
     ne /= 3.0;
     ekin /= 3.0;
 
-    //#ifdef DEBUG_RTA
-    std::cout << "ne   (" << kk << ") " << ne << std::endl;
-    //std::cout << "ne (SI)   " << ne/pow(5.29e-11,3) << std::endl;
-    std::cout << "ekin (" << kk << ") " << ekin << std::endl;
-    //std::cout << "ekin (SI) " << ekin/pow(5.29e-11,3)*4.3597482e-18 << std::endl;
-    //#endif
+    ne_t[kk] = ne;
+    ekin_t[kk] = ekin;
 
     //// find the inverse temperature (beta)
     bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
@@ -441,54 +422,106 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
     // loop applies Newton-Raphson method to get zero of function
     f = 0.0;		// value of function (f)
     fp = 0.0;		// value of function derivative (f')
-    //#ifdef DEBUG_RTA
-    //std::cout << "Newton-Raphson to find inverse temperature" << std::endl;
-    //#endif
     while ((fabs(bn - bm)/bm > tol) && (iter < maxiter)) {
       bm = bn;
       f = -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
       fp = -ekin + 2.25*ne*(K1/(K2*X*pow(bm,2.5))*log(1 + K2*X*pow(bm,1.5)) - K1/(bm*(1 + K2*X*pow(bm,1.5))) + 0.5*K3*X*pow(bm,0.5));
-      //#ifdef DEBUG_RTA
-      //std::cout << "Iteration     " << std::setw(15) << iter << std::endl;
-      //std::cout << "bm            " << std::setw(15) << bm/4.3597482e-18 << std::endl;
-      //std::cout << "f(bm) term 1: " << std::setw(15) << vol*-bm*ekin << std::endl;
-      //std::cout << "f(bm) term 2: " << std::setw(15) << vol*1.5*ne*(1 + K1) << std::endl;
-      //std::cout << "f(bm) term 3: " << std::setw(15) << vol*1.5*ne*(-1*K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5))) << std::endl;
-      //std::cout << "f(bm) term 4: " << std::setw(15) << vol*1.5*ne*(0.5*K3*X*pow(bm,1.5)) << std::endl;
-      //std::cout << "f(bm) (SI)    " << std::setw(15) << f*pow(1.0/5.29e-11,3) << std::endl;
-      //std::cout << "f(bm) (a.u)   " << std::setw(15) << f << std::endl;
-      //std::cout << "f'(bm) (SI)   " << std::setw(15) << fp*pow(1.0/5.29e-11,3)*4.3597482e-18 << std::endl;
-      //std::cout << "f'(bm) (a.u)  " << std::setw(15) << fp << std::endl;
-      //#endif
       bn = bm - f/fp;
       iter++;
     }
-    //#ifdef DEBUG_RTA
-    //std::cout << std::endl;
-    //#endif
 
+    temp_t[kk] = 1.0/bn;// FIXME: Boltzmann constant
     //// use beta to find chemical potential
     nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
     mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
-    //#ifdef DEBUG_RTA
-    //std::cout << "Chemical potential " << mue*4.3597482e-18 << std::endl;
-    //#endif
+    mu_t[kk] = mue;
 
-    //#ifdef DEBUG_RTA
-    //std::cout << "inverse temp is " << bn << std::endl;
-    //std::cout << std::endl;
-    //#endif
-    /*
-    std::ofstream fddout("fdd.out");
-    for (int ii = 0; ii < p->Nk; ii++) {
-      fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
-      fddout << E[ii]*27.211 << " " << fdd[ii] << std::endl;
-      //#ifdef DEBUG_RTA
-      //std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
-      //#endif
+    try {
+      if (outs.at("mu.out")) {
+	std::ofstream mu_out("mu.out");
+	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	  mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
+	}
+	mu_out.close();
+      }
     }
-    fddout.close();
+    catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+    }
+
+    try {
+      if (outs.at("temp.out")) {
+	std::ofstream temp_out("temp.out");
+	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	  temp_out << p->times[kk] << " " << temp_t[kk] << std::endl;
+	}
+	temp_out.close();
+      }
+    }
+    catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+    }
+
+    try {
+      if (outs.at("ne.out")) {
+	std::ofstream ne_out("ne.out");
+	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	  ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
+	}
+	ne_out.close();
+      }
+    }
+    catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+    }
+
+    try {
+      if (outs.at("ekin.out")) {
+	std::ofstream ekin_out("ekin.out");
+	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	  ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
+	}
+	ekin_out.close();
+      }
+    }
+    catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+    }
+
+    /*
+    try {
+      if (outs.at("fdd.out")) {
+	std::ofstream fdd_out("fdd.out");
+	for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+	  fdd_out << p->times[kk] << " " << fdd_t[kk] << std::endl;
+	}
+	fdd_out.close();
+      }
+    }
+    catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+      std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+    }
     */
+
+
+    /*
+       std::ofstream fddout("fdd.out");
+       for (int ii = 0; ii < p->Nk; ii++) {
+       fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
+       fddout << E[ii]*27.211 << " " << fdd[ii] << std::endl;
+       }
+       fddout.close();
+       */
   }
 
   return;

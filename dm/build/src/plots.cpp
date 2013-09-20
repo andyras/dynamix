@@ -340,7 +340,7 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
   o << "set multiplot layout 2,1" << std::endl;
   o << std::endl;
   o << "set xrange [0:" << p->kBandWidth << "]" << std::endl;
-  o << "set yrange [0:]" << std::endl;
+  o << "set yrange [0:*]" << std::endl;
   o << "set xlabel 'Energy above band edge (a.u.)'" << std::endl;
   o << "set ylabel 'Population in state'" << std::endl;
   o << "set title sprintf(\"Bulk Populations at t = %.6f a.u.\", ii*"
