@@ -78,6 +78,9 @@ void outputEnergyExp(char * fileName, realtype * dmt,
 void outputTorsion(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p, char * fileName);
 
+void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p);
+
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 

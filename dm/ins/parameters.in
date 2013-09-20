@@ -8,7 +8,7 @@ do_backup=0
 # number of processors to use with OpenMP
 nproc=4
 # method parameters #
-justPlots=1				# just make plots, no propagation or other output
+justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 rta=1					# use relaxation time approximation (RTA)
@@ -18,7 +18,7 @@ progressStdout=0			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=5000				# final time reached by solver (a.u.)
+tout=2000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
@@ -88,8 +88,10 @@ cprobs.out
 dmt_z.out
 #dmt_re.out
 #dmt_im.out
+ekin.out
 energies.out
 energyexp.out
+fdd.out
 #FTtcprob.out
 ham.out
 #Icprob.out
@@ -99,6 +101,8 @@ kprobs.out
 #kprobs_gnuplot.out
 #lprobs.out
 log.out
+mu.out
+ne.out
 #projections.out
 #psi2_start_e.out
 #psi_e_t.out
@@ -110,6 +114,7 @@ log.out
 #tbprob.out
 #tcderiv.out
 #tcrate.out
+temp.out
 times.out
 #tkderiv.out
 tbprob.out
