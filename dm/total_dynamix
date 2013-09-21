@@ -12,17 +12,18 @@ echo "### $(date ${timespec}) ${1}"
 
 function compile {
 ## COMPILE ##
+
 fecho "compiling dynamix.cpp..."
-CPP=g++
-# check if better compilers are installed
-which g++-4.7.0 &> /dev/null
-if [ $? == 0 ] ; then CPP=g++-4.7.0 ; fi
-which g++-4.7.1 &> /dev/null
-if [ $? == 0 ] ; then CPP=g++-4.7.1 ; fi
-which g++-4.7.2 &> /dev/null
-if [ $? == 0 ] ; then CPP=g++-4.7.2 ; fi
-which icpc &> /dev/null
-if [ $? == 0 ] ; then CPP=icpc ; fi
+
+# select a compiler
+if ! command -v icpc &> /dev/null; then
+  CPP=icpc
+elif ! command -v g++ &> /dev/null;then
+  CPP=g++
+else
+  CPP=c++
+fi
+
 cd build
 ncores=$(grep processor /proc/cpuinfo | wc -l)
 make -j ${ncores} CPP=$CPP
@@ -88,8 +89,7 @@ fecho ""
 fecho ""
 
 # if modules are available, try to load them.
-type module &> /dev/null
-if [ $? == 0 ]; then
+if ! command -v module &> /dev/null; then
   module load intel
   module load cvode/2.7.0
 else

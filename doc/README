@@ -1,0 +1,21 @@
+### Required Software/Libraries
+ 
+## icpc or g++
+For compiling the main executable.
+
+## FFTW
+Vanilla or Intel versions are OK.
+
+## Intel MKL or BLAS
+For linear algebra.
+
+## CVODE
+For integrating ODEs.
+
+### Optional Software/Libraries
+## mencoder
+For creating movie files.
+
+## transpose
+Useful for some plotting scripts.
+Available at https://github.com/andyras/transpose
