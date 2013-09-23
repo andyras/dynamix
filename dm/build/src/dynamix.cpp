@@ -27,10 +27,10 @@
 #include "constants.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+//#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-#define DEBUG2
+//#define DEBUG2
 
 
 int main (int argc, char * argv[]) {

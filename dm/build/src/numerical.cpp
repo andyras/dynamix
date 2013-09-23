@@ -143,10 +143,10 @@ void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, real
 void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
 
   for (int ii = 0; ii < Nk; ii++) {
-    kPops[ii] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+    kPops[ii] = exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
 #ifdef DEBUG
     std::cout << "\nk population at state " << ii << " is: "
-      << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+      << exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #endif
   }
 #ifdef DEBUG
