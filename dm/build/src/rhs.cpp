@@ -1,7 +1,7 @@
 #include "rhs.hpp"
 
 #define DEBUG_RHS
-//#define DEBUG_RTA
+#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 //#define DEBUGf
@@ -244,6 +244,15 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << std::endl;
 #endif
 
+  //// assign Fermi-Dirac function
+  for (int ii = 0; ii < p->Nk; ii++) {
+    // TODO factor in Boltzmann constant?
+    fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
+#ifdef DEBUG_RTA
+    std::cout << "FDD[" << ii << "]: " << std::scientific << fdd[ii] << std::endl;
+#endif
+  }
+
   return;
 }
 
@@ -261,6 +270,9 @@ double b13(double bm, double ekin, double ne, double K1, double K2, double K3, d
 /* Right-hand-side equation for density matrix
  * using relaxation time approximation (RTA) */
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+  std::cout << "Before time " << t << std::endl;
+  N_VPrint_Serial(ydot);
 
 #ifdef DEBUGf_DM
   // file for density matrix coeff derivatives in time
@@ -303,6 +315,21 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
 #endif
   buildFDD(p, y, fdd);
+
+  //// normalize FDD to amount of population in conduction band
+  double fddSum = 0.0;
+  double CBSum = 0.0;
+  for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+    // sum population in FDD
+    fddSum += fdd[ii - p->Ik];
+    // sum population in CB
+    CBSum += NV_Ith_S(y, ii*N + ii);
+  }
+  double fddNorm = CBSum/fddSum;
+  std::cout << "Normalization constant is " << fddNorm << std::endl;
+  for (int ii = 0; ii < p->Nk; ii++) {
+    fdd[ii] *= fddNorm;
+  }
 
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
@@ -349,6 +376,9 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
   fprintf(dmf, "\n");
 #endif
+
+  std::cout << "After time " << t << std::endl;
+  N_VPrint_Serial(ydot);
 
   return 0;
 }
