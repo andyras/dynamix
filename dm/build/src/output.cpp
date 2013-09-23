@@ -1,6 +1,7 @@
 #include "output.hpp"
+#include "conversions.hpp"
 
-#define DEBUG_OUTPUT
+//#define DEBUG_OUTPUT
 //#define DEBUG_OUTPUTTXPROB
 
 /* prints out array of fftw_complex values.  The 'x' array is
@@ -465,8 +466,8 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
 
     temp_t[kk] = 1.0/bn;// FIXME: Boltzmann constant
     //// use beta to find chemical potential
-    nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
-    mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
+    nue = 4*ne*pow(M_PI*bn/(2*p->me),1.5);	// constant to simplify
+    mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bn;
     //std::cout << mue << std::endl;
     mu_t[kk] = mue;
 
@@ -499,7 +500,7 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
     if (outs.at("temp.out")) {
       std::ofstream temp_out("temp.out");
       for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	temp_out << p->times[kk] << " " << temp_t[kk] << std::endl;
+	temp_out << p->times[kk] << " " << temp_t[kk]*AU2K << std::endl;
       }
       temp_out.close();
 

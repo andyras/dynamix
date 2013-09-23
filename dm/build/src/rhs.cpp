@@ -232,8 +232,8 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   
   //// use beta to find chemical potential
   double mue = 0.0;
-  double nue = 4*ne*pow(M_PI*bm/(2*p->me),1.5);	// constant to simplify
-  mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bm;
+  double nue = 4*ne*pow(M_PI*bn/(2*p->me),1.5);	// constant to simplify
+  mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bn;
 #ifdef DEBUG_RTA
   std::cout << "Chemical potential " << mue*4.3597482e-18 << std::endl;
 #endif
