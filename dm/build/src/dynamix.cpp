@@ -25,6 +25,7 @@
 #include "rhs.hpp"
 #include "plots.hpp"
 #include "constants.hpp"
+#include "conversions.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 //#define DEBUG
