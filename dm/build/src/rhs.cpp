@@ -271,9 +271,6 @@ double b13(double bm, double ekin, double ne, double K1, double K2, double K3, d
  * using relaxation time approximation (RTA) */
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
-  std::cout << "Before time " << t << std::endl;
-  N_VPrint_Serial(ydot);
-
 #ifdef DEBUGf_DM
   // file for density matrix coeff derivatives in time
   FILE * dmf;
@@ -326,7 +323,9 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
     CBSum += NV_Ith_S(y, ii*N + ii);
   }
   double fddNorm = CBSum/fddSum;
-  std::cout << "Normalization constant is " << fddNorm << std::endl;
+#ifdef DEBUG_RTA
+  std::cout << "FDD normalization constant is " << fddNorm << std::endl;
+#endif
   for (int ii = 0; ii < p->Nk; ii++) {
     fdd[ii] *= fddNorm;
   }
@@ -376,9 +375,6 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
   fprintf(dmf, "\n");
 #endif
-
-  std::cout << "After time " << t << std::endl;
-  N_VPrint_Serial(ydot);
 
   return 0;
 }
