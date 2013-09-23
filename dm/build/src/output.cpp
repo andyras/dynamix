@@ -464,10 +464,13 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
       iter++;
     }
 
-    temp_t[kk] = 1.0/bn;// FIXME: Boltzmann constant
+    temp_t[kk] = 1.0/bn;
     //// use beta to find chemical potential
     nue = 4*ne*pow(M_PI*bn/(2*p->me),1.5);	// constant to simplify
+    std::cout << "nue is " << nue << std::endl;
     mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bn;
+    std::cout << "(log(" << nue << ") + " << K1 << "*log(" << K2 << "*" << nue << " + 1) + " << K3 << "*" << nue << ")/" << bn << std::endl;
+    std::cout << "mue is " << mue << std::endl;
     //std::cout << mue << std::endl;
     mu_t[kk] = mue;
 
