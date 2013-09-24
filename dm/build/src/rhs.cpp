@@ -1,7 +1,7 @@
 #include "rhs.hpp"
 
 #define DEBUG_RHS
-#define DEBUG_RTA
+//#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 //#define DEBUGf
@@ -17,6 +17,9 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   //// first handle torsion
   if (p->torsion) {
     double torsionValue = p->torsionV->value(t);
+#ifdef DEBUG_RHS
+    std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
+#endif
 
     // bridge is off, coupling is between k and c states
     if (!(p->bridge_on)) {
@@ -65,6 +68,9 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   double laserCoupling = 0.0;
   if (p->laser_on) {
     laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFWHM, p->pumpPhase);
+#ifdef DEBUG_RHS
+    std::cout << "Value of laser coupling between valence and conduction bands is " << laserCoupling << std::endl;
+#endif
     // coupling is between valence and conduction bands
     for (int ii = p->Il; ii < (p->Il + p->Nl); ii++) {
       for (int jj = p->Ik; jj < (p->Ik + p->Nk); jj++) {

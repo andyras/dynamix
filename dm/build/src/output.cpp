@@ -582,9 +582,10 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
   return;
 }
 
-/* Computes outputs independent of DM or wavefunction */
+/* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
+  // torsion-mediated coupling
   try {
     if ((p->torsion) && (outs.at("torsion.out"))) {
       outputTorsion(outs, p, "torsion.out");
@@ -592,6 +593,19 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
   }
   catch (const std::out_of_range& oor) {
 #ifdef DEBUG_OUTPUT
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+  
+  // hamiltonian at time zero
+  try {
+    if (outs.at("ham.out")) {
+      // &(p->H)[0] is address of first element of array in vector
+      outputSquareMatrix(&(p->H)[0], p->NEQ, "ham.out");
+    }
+  }
+  catch (const std::out_of_range& oor) {
+#ifdef DEBUG
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
 #endif
   }

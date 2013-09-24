@@ -773,16 +773,6 @@ int main (int argc, char * argv[]) {
     H[ii] = 0.0;
   }
   buildHamiltonian(H, p.energies, V, &p);
-  try {
-    if (outs.at("ham.out")) {
-      outputSquareMatrix(H, p.NEQ, "ham.out");
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
   // add Hamiltonian to p
   p.H.resize(p.NEQ2);
   for (int ii = 0; ii < p.NEQ2; ii++) {
@@ -813,6 +803,9 @@ int main (int argc, char * argv[]) {
 
   // only do propagation if not just making plots
   if (!p.justPlots) {
+    // Make outputs independent of time propagation
+    computeGeneralOutputs(outs, &p);
+
     // create CVode object
     // this is a stiff problem, I guess?
 #ifdef DEBUG
@@ -907,9 +900,6 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
     std::cout << "done.";
 #endif
-
-    // Make outputs independent of DM or wavefunction
-    computeGeneralOutputs(outs, &p);
   }
 
   // Make plot files

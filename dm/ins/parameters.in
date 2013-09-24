@@ -18,7 +18,7 @@ progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=5000				# final time reached by solver (a.u.)
+tout=10000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
@@ -30,7 +30,7 @@ Nk_first=1				# first k state initially populated
 Nk_final=4				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
-Nl=0					# number of bulk valence band states
+Nl=1					# number of bulk valence band states
 bulkGaussSigma=0.002217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.005			# position of initial Gaussian above band edge (a.u.)
 me=0.078				# effective mass of electron
@@ -44,7 +44,7 @@ gamma2=1e-3				# \gamma_2 in RTA (dephasing rate)
 muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)
 pumpPeak=6000				# time of peak of pump pulse (a.u.)
-pumpFreq=3.5e-2				# frequency of pump pulse (energy a.u.)
+pumpFreq=1.0e-2				# frequency of pump pulse (energy a.u.)
 pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
@@ -55,7 +55,7 @@ bulk_FDD=0
 bulk_Gauss=1
 bulk_constant=0
 qd_pops=0
-laser_on=0
+laser_on=1
 parabolicCoupling=0
 scale_bubr=0
 scale_brqd=0
