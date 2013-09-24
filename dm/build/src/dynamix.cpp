@@ -326,6 +326,9 @@ int main (int argc, char * argv[]) {
     std::cerr << "\nERROR: random_phase must be -1 or greater.\n";
     return -1;
   }
+  if ((p.Nk < 2) && (p.rta)) {
+    std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
+  }
 
   bash_in.close();
 

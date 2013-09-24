@@ -394,25 +394,6 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
     std::cout << std::endl;
   }
 #endif
-
-  FILE * couplings;
-  try {
-    if (outs.at("couplings.out")) {
-      couplings = fopen("couplings.out","w");
-      for (int ii = 0; ii < p->NEQ; ii++) {
-	for (int jj = 0; jj < p->NEQ; jj++) {
-	  fprintf(couplings,"%.7g ",vArray[ii][jj]);
-	}
-	fprintf(couplings,"\n");
-      }
-      fclose(couplings);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
 }
 
 /* builds a Hamiltonian from site energies and couplings. */

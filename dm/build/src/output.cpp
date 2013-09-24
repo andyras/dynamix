@@ -594,6 +594,39 @@ void outputRTA(std::map<const std::string, bool> &outs,
     return;
   }
 
+/* output couplings as a matrix */
+void outputCouplings(struct PARAMETERS * p, char * fileName) {
+  std::ofstream o(fileName);
+  //// This output is the same as the Hamiltonian, but with diagonal elements zero.
+  
+  // first element of first row will be zero
+  o << 0;
+  // rest of first row
+  for (int jj = 1; jj < p->NEQ; jj++) {
+    o << " " << p->H[jj];
+  }
+  o << std::endl;
+
+  // remaining rows
+  for (int ii = 1; ii < p->NEQ; ii++) {
+    // first element in row
+    o << p->H[ii*p->NEQ];
+    // rest of row
+    for (int jj = 1; jj < p->NEQ; jj++) {
+      if (ii == jj) {
+	o << " " << 0;
+      }
+      else {
+	o << " " << p->H[ii*p->NEQ + jj];
+      }
+    }
+    o << std::endl;
+  }
+  o.close();
+
+  return;
+}
+
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
@@ -626,6 +659,29 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
   try {
     if (outs.at("pump_intensity.out")) {
       outputPumpIntensity(p, "pump_intensity.out");
+    }
+  }
+  catch (const std::out_of_range& oor) {
+#ifdef DEBUG
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
+  try {
+    // energies of all states
+    if (outs.at("energies.out")) {
+      outputEnergy("energies.out", p);
+    }
+  }
+  catch (const std::out_of_range& oor) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
+  try {
+    if (outs.at("couplings.out")) {
+      outputCouplings(p, "couplings.out");
     }
   }
   catch (const std::out_of_range& oor) {
@@ -769,18 +825,6 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     // norm of DM elements
     if (outs.at("dmt_im.out")) {
       outputDMIm("dmt_im.out", dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-
-  try {
-    // energies of all states
-    if (outs.at("energies.out")) {
-      outputEnergy("energies.out", p);
     }
   }
   catch (const std::out_of_range& oor) {

@@ -80,6 +80,8 @@ void outputTorsion(struct PARAMETERS * p, char * fileName);
 void outputRTA(std::map<const std::string, bool> &outs,
     realtype * dmt, struct PARAMETERS * p);
 
+void outputCouplings(struct PARAMETERS * p, char * fileName);
+
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 
