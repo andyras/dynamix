@@ -75,11 +75,10 @@ void outputTimes(char * fileName, struct PARAMETERS * p);
 void outputEnergyExp(char * fileName, realtype * dmt,
     struct PARAMETERS * p);
 
-void outputTorsion(std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p, char * fileName);
+void outputTorsion(struct PARAMETERS * p, char * fileName);
 
-void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p);
+void outputRTA(std::map<const std::string, bool> &outs,
+    realtype * dmt, struct PARAMETERS * p);
 
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);

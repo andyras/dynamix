@@ -373,8 +373,7 @@ void outputEnergyExp(char * fileName, realtype * dmt,
 }
 
 /* Outputs torsional potential at simulation time points */
-void outputTorsion(std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p, char * fileName) {
+void outputTorsion(struct PARAMETERS * p, char * fileName) {
   std::ofstream output(fileName);
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -387,8 +386,8 @@ void outputTorsion(std::map<const std::string, bool> &outs,
 }
 
 /* Outputs quantities from RTA */
-void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p) {
+void outputRTA(std::map<const std::string, bool> &outs,
+    realtype * dmt, struct PARAMETERS * p) {
 
   double ne = 0.0;
   double ekin = 0.0;
@@ -582,13 +581,26 @@ void outputRTA(realtype * dmt, std::map<const std::string, bool> &outs,
   return;
 }
 
+/* Outputs the laser pump intensity over time */
+  void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
+    std::ofstream o(fileName);
+    for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+      o << p->times[ii] << " "
+	<< gaussPulse(p->times[ii], p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase)
+       	<< std::endl;
+    }
+    o.close();
+
+    return;
+  }
+
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
   // torsion-mediated coupling
   try {
     if ((p->torsion) && (outs.at("torsion.out"))) {
-      outputTorsion(outs, p, "torsion.out");
+      outputTorsion(p, "torsion.out");
     }
   }
   catch (const std::out_of_range& oor) {
@@ -609,6 +621,19 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     std::cerr << "Out of Range error: " << oor.what() << std::endl;
 #endif
   }
+  
+  // pump intensity
+  try {
+    if (outs.at("pump_intensity.out")) {
+      outputPumpIntensity(p, "pump_intensity.out");
+    }
+  }
+  catch (const std::out_of_range& oor) {
+#ifdef DEBUG
+    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+#endif
+  }
+
   return;
 }
 
@@ -789,7 +814,7 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   }
 
   // RTA outputs are tied together
-  outputRTA(dmt, outs, p);
+  outputRTA(outs, dmt, p);
 
   return;
 }

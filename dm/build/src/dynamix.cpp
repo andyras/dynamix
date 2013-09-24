@@ -801,6 +801,9 @@ int main (int argc, char * argv[]) {
   realImaginary = fopen("real_imaginary.out", "w");
 #endif
 
+  // Make plot files
+  makePlots(outs, &p);
+
   // only do propagation if not just making plots
   if (!p.justPlots) {
     // Make outputs independent of time propagation
@@ -901,9 +904,6 @@ int main (int argc, char * argv[]) {
     std::cout << "done.";
 #endif
   }
-
-  // Make plot files
-  makePlots(outs, &p);
 
 #ifdef DEBUG
   fprintf(stdout, "Deallocating N_Vectors.\n");

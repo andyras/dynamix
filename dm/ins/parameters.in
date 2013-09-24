@@ -110,7 +110,7 @@ ne.out
 #psi_start.out
 #psi_start_s.out
 #psi_s_t.out
-#pump_intensity.out
+pump_intensity.out
 #tbprob.out
 #tcderiv.out
 #tcrate.out
