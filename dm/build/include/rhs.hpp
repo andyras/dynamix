@@ -11,7 +11,7 @@
 #include "params.hpp"
 #include "numerical.hpp"
 
-void updateTorsionV(PARAMETERS * p);
+void updateHamiltonian(PARAMETERS * p, realtype t);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 

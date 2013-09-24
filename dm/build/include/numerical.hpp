@@ -48,8 +48,7 @@ void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEd
  */
 double parabolicV(double Vee, double E, double bandEdge, double bandTop);
 
-/* gives the value of a laser pulse (electric field) at time t */
-realtype pump(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, double pumpFreq, double pumpPhase);
+realtype gaussPulse(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, double pumpFreq, double pumpPhase);
 
 /* normalizes an N_Vector so that the populations of all states are
  * normalized to value 'total'

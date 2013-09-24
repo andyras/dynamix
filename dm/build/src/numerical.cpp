@@ -176,9 +176,9 @@ double parabolicV(double Vee, double E, double bandEdge, double bandTop) {
   return Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid);
 }
 
-/* gives the value of a laser pulse (electric field) at time t */
-realtype pump(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, double pumpFreq, double pumpPhase) {
-  double sigma = pumpFWHM/2.35482005;
+/* gives the value of a Gaussian laser pulse (electric field) at time t */
+realtype gaussPulse(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, double pumpFreq, double pumpPhase) {
+  double sigma = pumpFWHM/2.35482005;	// conversion between FWHM and Gaussian 2nd moment
   return pumpAmpl*exp((-pow(t-pumpPeak, 2))/(2*pow(sigma, 2)))*cos(pumpFreq*t + pumpPhase);
 }
 

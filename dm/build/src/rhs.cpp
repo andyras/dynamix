@@ -10,50 +10,68 @@
 //#define DEBUGf_DM
 
 
-/* Updates the Hamiltonian with the time-dependent torsional coupling */
-void updateTorsionV(PARAMETERS * p, realtype t) {
-  double torsionValue = p->torsionV->value(t);
+/* Updates the Hamiltonian with the time-dependent torsional coupling
+ * and laser field.
+ */
+void updateHamiltonian(PARAMETERS * p, realtype t) {
+  //// first handle torsion
+  if (p->torsion) {
+    double torsionValue = p->torsionV->value(t);
 
-  // bridge is off, coupling is between k and c states
-  if (!(p->bridge_on)) {
+    // bridge is off, coupling is between k and c states
+    if (!(p->bridge_on)) {
 #ifdef DEBUG_RHS
-    std::cout << "torsion between k and c states" << std::endl;
+      std::cout << "torsion between k and c states" << std::endl;
 #endif
-    for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-      for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
-	p->H[ii*p->NEQ + jj] = torsionValue;
-	p->H[jj*p->NEQ + ii] = torsionValue;
+      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+	for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
+	  p->H[ii*p->NEQ + jj] = torsionValue;
+	  p->H[jj*p->NEQ + ii] = torsionValue;
+	}
       }
     }
-  }
-  // torsion is at first bridge coupling
-  else if (p->torsionSite == 0) {
+    // torsion is at first bridge coupling
+    else if (p->torsionSite == 0) {
 #ifdef DEBUG_RHS
-    std::cout << "torsion between k states and bridge" << std::endl;
+      std::cout << "torsion between k states and bridge" << std::endl;
 #endif
-    for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-      p->H[ii*p->NEQ + p->Ib] = torsionValue;
-      p->H[p->Ib*p->NEQ + ii] = torsionValue;
+      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+	p->H[ii*p->NEQ + p->Ib] = torsionValue;
+	p->H[p->Ib*p->NEQ + ii] = torsionValue;
+      }
+    }
+    // torsion is at last bridge coupling
+    else if (p->torsionSite == p->Nb) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between bridge and c states" << std::endl;
+#endif
+      for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
+	p->H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
+	p->H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+      }
+    }
+    // torsion is between bridge sites
+    else {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between bridge sites " << p->torsionSite - 1
+	<< " and " << p->torsionSite << "." << std::endl;
+#endif
+      p->H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
+      p->H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
     }
   }
-  // torsion is at last bridge coupling
-  else if (p->torsionSite == p->Nb) {
-#ifdef DEBUG_RHS
-    std::cout << "torsion between bridge and c states" << std::endl;
-#endif
-    for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
-      p->H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
-      p->H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+
+  //// now handle pump pulse
+  double laserCoupling = 0.0;
+  if (p->laser_on) {
+    laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFWHM, p->pumpPhase);
+    // coupling is between valence and conduction bands
+    for (int ii = p->Il; ii < (p->Il + p->Nl); ii++) {
+      for (int jj = p->Ik; jj < (p->Ik + p->Nk); jj++) {
+	p->H[(ii)*p->NEQ + jj] = laserCoupling;
+	p->H[(jj)*p->NEQ + ii] = laserCoupling;
+      }
     }
-  }
-  // torsion is between bridge sites
-  else {
-#ifdef DEBUG_RHS
-    std::cout << "torsion between bridge sites " << p->torsionSite - 1
-              << " and " << p->torsionSite << "." << std::endl;
-#endif
-    p->H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
-    p->H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
   }
 
   return;
@@ -77,10 +95,10 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
   int N = p->NEQ;
   int N2 = p->NEQ2;
-  
-  // if torsion is on, update Hamiltonian
-  if (p->torsion) {
-    updateTorsionV(p, t);
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    updateHamiltonian(p, t);
   }
 
   // initialize ydot
@@ -185,7 +203,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << "ekin      " << ekin << std::endl;
   std::cout << "ekin (SI) " << ekin/pow(5.29e-11,3)*4.3597482e-18 << std::endl;
 #endif
-  
+
   //// find the inverse temperature (beta)
   int iter = 0;
   const int maxiter = 60;
@@ -229,7 +247,7 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
 #ifdef DEBUG_RTA
   std::cout << std::endl;
 #endif
-  
+
   //// use beta to find chemical potential
   double mue = 0.0;
   double nue = 4*ne*pow(M_PI*bn/(2*p->me),1.5);	// constant to simplify
@@ -293,9 +311,9 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype g1 = p->gamma1;
   realtype g2 = p->gamma2;
 
-  // if torsion is on, update Hamiltonian
-  if (p->torsion) {
-    updateTorsionV(p, t);
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    updateHamiltonian(p, t);
   }
 
   // initialize ydot
@@ -401,9 +419,9 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N2 = p->NEQ2;
   realtype g2 = p->gamma2;
 
-  // if torsion is on, update Hamiltonian
-  if (p->torsion) {
-    updateTorsionV(p, t);
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    updateHamiltonian(p, t);
   }
 
   // initialize ydot
