@@ -18,14 +18,14 @@ progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=10000				# final time reached by solver (a.u.)
+tout=1000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.05				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=20					# number of k states to have
+Nk=10					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=4				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -45,7 +45,8 @@ muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)
 pumpPeak=6000				# time of peak of pump pulse (a.u.)
 pumpFreq=1.0e-2				# frequency of pump pulse (energy a.u.)
-pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
+#pumpAmpl=5.338027e-3			# intensity of pump pulse (electric field a.u.)
+pumpAmpl=5.338027e-9			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
