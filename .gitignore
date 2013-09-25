@@ -19,6 +19,7 @@ figures/
 dynamix
 fit.log
 weights.dat
+analysis.txt
 # Compiled Object files
 *.slo
 *.lo
