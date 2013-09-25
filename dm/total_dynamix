@@ -93,8 +93,6 @@ if command -v module &> /dev/null; then
   module load intel
   module load cvode/2.7.0
 else
-  :
-fi
 
 [ $do_compile == 1 ] && compile
 [ $do_run == 1 ] && run
