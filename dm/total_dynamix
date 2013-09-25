@@ -26,7 +26,12 @@ fi
 
 cd build
 ncores=$(grep processor /proc/cpuinfo | wc -l)
-make -j ${ncores} CPP=$CPP
+if [ $debug == 1 ]; then
+  make clean
+  make -j ${ncores} CPP=$CPP DEBUG_MAKE="1"
+else
+  make -j ${ncores} CPP=$CPP
+fi
 if [ $? == 0 ] ; then
   fecho "done compiling!" && make install
   cd ..
@@ -59,6 +64,11 @@ chmod 755 *.plt
 mv *.plt figures/
 # remove progress file
 rm -f progress.tmp
+
+# analyze debug output
+if [ $debug == 1 ]; then
+  gprof ./bin/dynamix ./outs/gmon.out > analysis.txt
+fi
 }
 
 function backup {

@@ -291,6 +291,7 @@ double b13(double bm, double ekin, double ne, double K1, double K2, double K3, d
   return -bm*ekin + 1.5*ne*(1 + K1 - K1/(K2*X)*pow(bm,-1.5)*log(1 + K2*X*pow(bm,1.5)) + 0.5*K3*X*pow(bm,1.5));
 }
 
+
 /* Right-hand-side equation for density matrix
  * using relaxation time approximation (RTA) */
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
