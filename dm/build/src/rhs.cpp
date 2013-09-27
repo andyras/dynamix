@@ -312,7 +312,8 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   p = (PARAMETERS *) data;
 
   // extract parameters from p
-  std::vector<realtype> H = p->H; // copying vector is OK performance-wise
+  //std::vector<realtype> H = p->H; // copying vector is OK performance-wise
+  realtype * H = &(p->H)[0];
   int N = p->NEQ;
   int N2 = p->NEQ2;
   realtype g1 = p->gamma1;

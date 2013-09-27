@@ -16,13 +16,13 @@ function compile {
 fecho "compiling dynamix.cpp..."
 
 # select a compiler
-if command -v icpc &> /dev/null; then
-  CPP=icpc
-elif command -v g++ &> /dev/null;then
-  CPP=g++
-else
-  CPP=c++
-fi
+#if command -v icpc &> /dev/null; then
+  #CPP=icpc
+#elif command -v g++ &> /dev/null;then
+  #CPP=g++
+#else
+  #CPP=c++
+#fi
 
 cd build
 ncores=$(grep processor /proc/cpuinfo | wc -l)

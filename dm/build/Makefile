@@ -12,14 +12,16 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = icpc
+CPP = g++
 
 # flags for compiler
 # optimized CPPFLAGS
-CPPFLAGS = -O3 -Wall -xHOST -ipo -no-prec-div --std=c++11 -openmp
+# Intel
+#CPPFLAGS = -O3 -Wall --std=c++11 -openmp
+CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
-  CPPFLAGS += -debug -pg
+  CPPFLAGS += -pg
 endif
 
 # non-optimized CPPFLAGS
@@ -28,8 +30,10 @@ endif
 # flags for linker
 INCLUDES = -I$(INCDIR) -I$(MKLROOT)/include/fftw
 # includes for CVODE
-INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib
-LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
+INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib -I/usr/include/sundials -I/usr/include/cvode -L/usr/lib
+LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lgomp -lfftw3
+# Intel flags for linker
+#LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 ifdef DEBUG_MAKE
   LDFLAGS += -pg
 endif

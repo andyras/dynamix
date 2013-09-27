@@ -10,6 +10,7 @@
 
 #include "params.hpp"
 #include "numerical.hpp"
+#include "omp.h"
 
 void updateHamiltonian(PARAMETERS * p, realtype t);
 
