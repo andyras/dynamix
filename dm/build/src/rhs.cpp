@@ -14,6 +14,9 @@
  * and laser field.
  */
 void updateHamiltonian(PARAMETERS * p, realtype t) {
+  // get pointer to H
+  realtype * H = &(p->H)[0];
+
   //// first handle torsion
   if (p->torsion) {
     double torsionValue = p->torsionV->value(t);
@@ -28,8 +31,8 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
 #endif
       for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
 	for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
-	  p->H[ii*p->NEQ + jj] = torsionValue;
-	  p->H[jj*p->NEQ + ii] = torsionValue;
+	  H[ii*p->NEQ + jj] = torsionValue;
+	  H[jj*p->NEQ + ii] = torsionValue;
 	}
       }
     }
@@ -39,8 +42,8 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
       std::cout << "torsion between k states and bridge" << std::endl;
 #endif
       for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-	p->H[ii*p->NEQ + p->Ib] = torsionValue;
-	p->H[p->Ib*p->NEQ + ii] = torsionValue;
+	H[ii*p->NEQ + p->Ib] = torsionValue;
+	H[p->Ib*p->NEQ + ii] = torsionValue;
       }
     }
     // torsion is at last bridge coupling
@@ -49,8 +52,8 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
       std::cout << "torsion between bridge and c states" << std::endl;
 #endif
       for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
-	p->H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
-	p->H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+	H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
+	H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
       }
     }
     // torsion is between bridge sites
@@ -59,8 +62,8 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
       std::cout << "torsion between bridge sites " << p->torsionSite - 1
 	<< " and " << p->torsionSite << "." << std::endl;
 #endif
-      p->H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
-      p->H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
+      H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
+      H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
     }
   }
 
@@ -74,8 +77,8 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
     // coupling is between valence and conduction bands
     for (int ii = p->Il; ii < (p->Il + p->Nl); ii++) {
       for (int jj = p->Ik; jj < (p->Ik + p->Nk); jj++) {
-	p->H[(ii)*p->NEQ + jj] = laserCoupling;
-	p->H[(jj)*p->NEQ + ii] = laserCoupling;
+	H[(ii)*p->NEQ + jj] = laserCoupling;
+	H[(jj)*p->NEQ + ii] = laserCoupling;
       }
     }
   }
@@ -158,7 +161,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 }
 
 /* gives the equilibrated FDD for the system */
-void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
+void buildFDD(struct PARAMETERS * p, N_Vector y, double * fdd) {
   //// "fine structure constant" -- conversion from index to wave vector
 #ifdef DEBUG_RTA
   std::cout << "p->X2   " << p->X2 << std::endl;
@@ -172,7 +175,8 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
   std::cout << "factor   " << factor << std::endl;
 #endif
   // assign vector of energies
-  std::vector<double> E (p->Nk,0.0);
+  // std::vector<double> E (p->Nk,0.0);
+  realtype * E = new realtype [p->Nk];
   for (int ii = 0; ii < p->Nk; ii++) {
     E[ii] = pow(ii,2)/(2*p->me*pow(p->X2,2));
   }
@@ -277,6 +281,9 @@ void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd) {
 #endif
   }
 
+  // free array
+  delete [] E;
+
   return;
 }
 
@@ -333,7 +340,8 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   //// diagonal; no need to calculate the imaginary part
   //   get equilibrium FDD populations
-  std::vector<double> fdd(p->Nk);
+  //std::vector<double> fdd(p->Nk);
+  double * fdd = new double [p->Nk];
 #ifdef DEBUG_RTA
   std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
 #endif
@@ -401,6 +409,9 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
   fprintf(dmf, "\n");
 #endif
+
+  // free fdd
+  delete [] fdd;
 
   return 0;
 }

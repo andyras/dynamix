@@ -3,7 +3,7 @@
 BIN = dynamix
 #############################################################
 
-DEBUG_MAKE = "foo"
+#DEBUG_MAKE = "foo"
 
 # directories for headers, objects and source files
 INCDIR = ./include
@@ -12,13 +12,13 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = g++
+CPP = icpc
 
 # flags for compiler
 # optimized CPPFLAGS
 # Intel
-#CPPFLAGS = -O3 -Wall --std=c++11 -openmp
-CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
+CPPFLAGS = -O3 -Wall --std=c++11 -openmp
+#CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg
@@ -31,9 +31,9 @@ endif
 INCLUDES = -I$(INCDIR) -I$(MKLROOT)/include/fftw
 # includes for CVODE
 INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib -I/usr/include/sundials -I/usr/include/cvode -L/usr/lib
-LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lgomp -lfftw3
+#LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lgomp -lfftw3
 # Intel flags for linker
-#LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
+LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 ifdef DEBUG_MAKE
   LDFLAGS += -pg
 endif
