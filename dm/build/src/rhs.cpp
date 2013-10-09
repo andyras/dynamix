@@ -108,9 +108,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
-    std::cout << "Updating, laser is on or something" << std::endl;
     if ((t > 0.0) && (t != p->lastTime)) {
-      std::cout << "Updating, old time is " << p->lastTime << ", new time is " << t << std::endl;
       updateHamiltonian(p, t);
       // update time point
       p->lastTime = t;
@@ -338,17 +336,6 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
     // only update if at a new time point
     if ((t > 0.0) && (t != p->lastTime)) {
       updateHamiltonian(p, t);
-      // print H
-      std::cout << t << " " << H[p->Il*p->NEQ + p->Ik] << std::endl;
-      /*
-      for (int ii = 0; ii < p->NEQ; ii++) {
-	std::cout << H[ii*p->NEQ];
-	for (int jj = 1; jj < p->NEQ; jj++) {
-	  std::cout << " " << H[ii*p->NEQ + jj];
-	}
-	std::cout << std::endl;
-      }
-      */
       // update time point
       p->lastTime = t;
     }
