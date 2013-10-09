@@ -84,6 +84,8 @@ struct PARAMETERS {
   std::vector<realtype> times;
 
   Spline * torsionV;
+
+  double lastTime;			// value of most recently calculated timepoint
 };
 
 #endif

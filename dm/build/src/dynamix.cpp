@@ -306,13 +306,15 @@ int main (int argc, char * argv[]) {
     fprintf(stderr, "ERROR [Inputs]: Nk_first greater than Nk or less than 1.\n");
     return -1;
   }
-  if (p.Nk_final > p.Nk || p.Nk_final < 1) {
-    fprintf(stderr, "ERROR [Inputs]: Nk_final greater than Nk or less than 1.\n");
-    return -1;
-  }
-  if (p.Nk_final < p.Nk_first) {
-    fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
-    return -1;
+  if (p.bulk_constant || (p.CBPopFlag == POP_CONSTANT)) {
+    if (p.Nk_final > p.Nk || p.Nk_final < 1) {
+      fprintf(stderr, "ERROR [Inputs]: Nk_final greater than Nk or less than 1.\n");
+      return -1;
+    }
+    if (p.Nk_final < p.Nk_first) {
+      fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
+      return -1;
+    }
   }
   if (p.Nl < 0) {
     fprintf(stderr, "ERROR [Inputs]: Nl less than 0.\n");

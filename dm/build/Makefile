@@ -3,7 +3,7 @@
 BIN = dynamix
 #############################################################
 
-#DEBUG_MAKE = "foo"
+DEBUG_MAKE = "foo"
 
 # directories for headers, objects and source files
 INCDIR = ./include

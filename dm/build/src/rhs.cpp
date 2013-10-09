@@ -1,6 +1,6 @@
 #include "rhs.hpp"
 
-#define DEBUG_RHS
+//#define DEBUG_RHS
 //#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
@@ -70,7 +70,7 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   //// now handle pump pulse
   double laserCoupling = 0.0;
   if (p->laser_on) {
-    laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFWHM, p->pumpPhase);
+    laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase);
 #ifdef DEBUG_RHS
     std::cout << "Value of laser coupling between valence and conduction bands is " << laserCoupling << std::endl;
 #endif
@@ -107,7 +107,14 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
-    updateHamiltonian(p, t);
+    // only update if at a new time point
+    std::cout << "Updating, laser is on or something" << std::endl;
+    if ((t > 0.0) && (t != p->lastTime)) {
+      std::cout << "Updating, old time is " << p->lastTime << ", new time is " << t << std::endl;
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
   }
 
   // initialize ydot
@@ -125,7 +132,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-  //// off-diagonalI hadn't t
+  //// off-diagonal
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
@@ -328,8 +335,25 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
-    updateHamiltonian(p, t);
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // print H
+      std::cout << t << " " << H[p->Il*p->NEQ + p->Ik] << std::endl;
+      /*
+      for (int ii = 0; ii < p->NEQ; ii++) {
+	std::cout << H[ii*p->NEQ];
+	for (int jj = 1; jj < p->NEQ; jj++) {
+	  std::cout << " " << H[ii*p->NEQ + jj];
+	}
+	std::cout << std::endl;
+      }
+      */
+      // update time point
+      p->lastTime = t;
+    }
   }
+
 
   // initialize ydot
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER

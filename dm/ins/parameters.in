@@ -3,7 +3,7 @@ do_compile=1
 do_run=1
 do_plot=1
 do_backup=0
-debug=0
+debug=1
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
@@ -26,9 +26,9 @@ numOutputSteps=300			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.05				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=30					# number of k states to have
+Nk=2					# number of k states to have
 Nk_first=1				# first k state initially populated
-Nk_final=4				# final k state initially populated
+Nk_final=2				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=1					# number of bulk valence band states
@@ -46,7 +46,7 @@ muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)
 pumpPeak=6000				# time of peak of pump pulse (a.u.)
 pumpFreq=1.0e-2				# frequency of pump pulse (energy a.u.)
-pumpAmpl=5.338027e-6			# intensity of pump pulse (electric field a.u.)
+pumpAmpl=5.338027e-8			# intensity of pump pulse (electric field a.u.)
 #pumpAmpl=5.338027e-9			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
@@ -57,7 +57,7 @@ bulk_FDD=0
 bulk_Gauss=1
 bulk_constant=0
 qd_pops=0
-laser_on=0
+laser_on=1
 parabolicCoupling=0
 scale_bubr=0
 scale_brqd=0
