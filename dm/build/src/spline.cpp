@@ -92,13 +92,13 @@ bool comparePoints(const Point &pa, const Point &pb) {
 
 double Spline::value(double x) {
   if (x < s.front().x) {
-    std::cerr << std::endl << "ERROR: value " << x << " is too small." << std::endl;
-    std::cerr << "Setting x to " << s.front().x << "." << std::endl << std::endl;
+    std::cerr << std::endl << "ERROR [spline]: value " << x << " is smaller than spline lower bound." << std::endl;
+    std::cerr << "Setting value to " << s.front().x << "." << std::endl << std::endl;
     x = s.front().x;
   }
 
   if (x > s.back().x) {
-    std::cerr << std::endl << "ERROR: value " << x << " is too large." << std::endl;
+    std::cerr << std::endl << "ERROR [spline]: value " << x << " is greater than spline upper bound." << std::endl;
     std::cerr << "Setting x to " << s.back().x << "." << std::endl << std::endl;
     x = s.back().x;
   }
