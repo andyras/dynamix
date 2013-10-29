@@ -28,10 +28,10 @@
 #include "conversions.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-//#define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-//#define DEBUG2
+#define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -778,6 +778,7 @@ int main (int argc, char * argv[]) {
     H[ii] = 0.0;
   }
   buildHamiltonian(H, p.energies, V, &p);
+  std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
   // add Hamiltonian to p
   p.H.resize(p.NEQ2);
   for (int ii = 0; ii < p.NEQ2; ii++) {

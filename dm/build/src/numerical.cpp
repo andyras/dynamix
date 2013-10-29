@@ -3,6 +3,7 @@
 //#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
 //#define DEBUG_BUILDHAMILTONIAN
+//#define DEBUG_READVECTOR
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
@@ -57,6 +58,13 @@ void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfVa
 void readVectorFromFile(std::vector<realtype> & v, const char * fileName, int n) {
   // resize vector according to number of lines in file
   v.resize(numberOfValuesInFile(fileName));
+#ifdef DEBUG_READVECTOR
+  std::cout << numberOfValuesInFile(fileName) << " values in " << fileName << std::endl;
+#endif
+  if (numberOfValuesInFile(fileName) != n) {
+    std::cerr << "ERROR reading in vector from " << fileName << ": wrong number of values in file." << std::endl;
+    _exit(1);
+  }
 
   // read in the file
   std::ifstream in(fileName);
@@ -429,11 +437,12 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** 
       H[idx1*N + idx2] = V[idx1][idx2];
       H[idx2*N + idx1] = V[idx2][idx1];
     }
+    fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
     // assign bridge-bridge couplings
 #ifdef DEBUG_BUILDHAMILTONIAN
     fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
 #endif
-    for (int ii = 1; ii < p->Nb; ii++) {
+    for (int ii = 0; ii < (p->Nb-1); ii++) {
       idx1 = p->Ib + ii;
       idx2 = p->Ib+ ii + 1;
 #ifdef DEBUG_BUILDHAMILTONIAN
@@ -444,6 +453,7 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** 
       H[idx1*N + idx2] = V[idx1][idx2];
       H[idx2*N + idx1] = V[idx2][idx1];
     }
+    fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
     // assign bridge-QD coupling
 #ifdef DEBUG_BUILDHAMILTONIAN
     fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
@@ -459,6 +469,7 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** 
       H[idx1*N + idx2] = V[idx1][idx2];
       H[idx2*N + idx1] = V[idx2][idx1];
     }
+    fprintf(stderr, "Done assigning bridge-QD coupling elements in Hamiltonian.\n");
   }
   // no bridge
   else {
