@@ -172,6 +172,7 @@ int main (int argc, char * argv[]) {
     if (input_param == "timedepH") { p.timedepH = atoi(param_val.c_str()); }
     else if (input_param == "justPlots") { p.justPlots = atoi(param_val.c_str()); }
     else if (input_param == "nproc") { p.nproc = atoi(param_val.c_str()); }
+    else if (input_param == "wavefunction") { p.wavefunction = atoi(param_val.c_str()); }
     else if (input_param == "analytical") { p.analytical = atoi(param_val.c_str()); }
     else if (input_param == "rta") { p.rta = atoi(param_val.c_str()); }
     else if (input_param == "dephasing") { p.dephasing = atoi(param_val.c_str()); }
@@ -232,6 +233,7 @@ int main (int argc, char * argv[]) {
   std::cout << "justPlots is " << p.justPlots << std::endl;
   std::cout << "timedepH is " << p.timedepH << std::endl;
   std::cout << "nproc is " << p.nproc << std::endl;
+  std::cout << "wavefunction is " << p.wavefunction << std::endl;
   std::cout << "analytical is " << p.analytical << std::endl;
   std::cout << "rta is " << p.rta << std::endl;
   std::cout << "dephasing is " << p.dephasing << std::endl;
