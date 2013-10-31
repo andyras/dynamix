@@ -2,6 +2,7 @@
 
 //#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
+//#define DEBUG_UPDATEWFN
 //#define DEBUG_BUILDHAMILTONIAN
 //#define DEBUG_READVECTOR
 
@@ -498,13 +499,38 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) 
 #ifdef DEBUG_UPDATEDM
   std::cout << "Updating DM at step " << timeStep << "...";
 #endif
-  for (int ii = 0; ii < p->NEQ2; ii++) {
-    dmt[2*p->NEQ2*timeStep + ii] = NV_Ith_S(dm, ii);
-    dmt[2*p->NEQ2*timeStep + ii + p->NEQ2] = NV_Ith_S(dm, ii + p->NEQ2);
+  int N = 2*p->NEQ2;
+  memcpy(&dmt[N*timeStep], N_VGetArrayPointer(dm), N*sizeof(realtype));
+  /*
+  realtype * nv = N_VGetArrayPointer(dm);
+  nv_tp = &dmt[N*timeStep];
+  for (int ii = 0; ii < N; ii++) {
+    nv_tp[ii] = nv[ii];
   }
+  */
 #ifdef DEBUG_UPDATEDM
   std::cout << "done.\n";
 #endif
 
+  return;
+}
+
+/* Updates \psi(t) at each time step. */
+void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p) {
+#ifdef DEBUG_UPDATEWFN
+  std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
+  std::cout << "Wavefunction is " << std::endl;
+  N_VPrint_Serial(wfn);
+#endif
+  int N = 2*p->NEQ;
+  memcpy(&wfnt[N*timeStep], N_VGetArrayPointer(wfn), N*sizeof(realtype));
+  /*
+  for (int ii = 0; ii < N; ii++) {
+    wfnt[N*timeStep + ii] = NV_Ith_S(wfnt, ii);
+  }
+  */
+#ifdef DEBUG_UPDATEWFN
+  std::cout << "done updating wavefunction." << std::endl;
+#endif
   return;
 }

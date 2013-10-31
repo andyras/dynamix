@@ -2,7 +2,19 @@
 #include "conversions.hpp"
 
 //#define DEBUG_OUTPUT
-//#define DEBUG_OUTPUTTXPROB
+#define DEBUG_OUTPUTTXPROB
+
+/* returns true if map contains key, otherwise false */
+bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr) {
+  try {
+    // key exists, return its value
+    return myMap.at(myStr);
+  }
+  catch(const std::out_of_range& oor) {
+    // key does not exist
+    return false;
+  }
+}
 
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
@@ -182,6 +194,36 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
   return;
 }
 
+/* Output the total population in a set of states over time */
+void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
+    struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUTTXPROB
+  std::cout << "Making file " << fileName << "..." << std::endl;
+  std::cout << "start index is " << start << std::endl;
+  std::cout << "end index is " << end << std::endl;
+#endif
+  int N = p->NEQ;
+
+  std::ofstream output(fileName);
+
+  realtype summ;
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+    output << std::setw(8) << std::scientific << p->times[ii] << " ";
+    summ = 0.0;
+    for (int jj = start; jj < end; jj++) {
+      summ += pow(wfnt[ii*2*N + jj],2) + pow(wfnt[ii*2*N + jj + N],2);
+    }
+    output << std::setw(8) << std::scientific << summ << std::endl;
+  }
+
+  output.close();
+
+#ifdef DEBUG_OUTPUTTXPROB
+  std::cout << "Done making file " << fileName << "..." << std::endl;
+#endif
+  return;
+}
+
 /* Output the total population in a set of states over time.  This function
  * takes the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
@@ -201,6 +243,8 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
     }
     output << std::setw(8) << std::scientific << summ << "\n";
   }
+
+  output.close();
 
 #ifdef DEBUG_OUTPUT
   std::cout << "\nDone making " << fileName << std::endl;
@@ -697,6 +741,32 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
 /* Computes outputs from \psi(t) */
 void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
+  // populations on all sites
+  if (isOutput(outs, "totprob.out")) {
+    outputtXprobWfn("totprob.out", 0, p->NEQ, wfnt, p);
+  }
+
+  // populations on bulk conduction band
+  if (isOutput(outs, "tkprob.out")) {
+    outputtXprobWfn("tkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+  }
+
+  // populations on QD
+  if (isOutput(outs, "tcprob.out")) {
+    outputtXprobWfn("tcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+  }
+
+  // populations on bridge
+  if (isOutput(outs, "tbprob.out")) {
+    outputtXprobWfn("tbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+  }
+
+  // populations on bulk valence band
+  if (isOutput(outs, "tlprob.out")) {
+    outputtXprobWfn("tlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+  }
+
+  std::cerr << "whooooot" << std::endl;
   return;
 }
 

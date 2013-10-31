@@ -16,26 +16,26 @@ do_backup=0
 
 ## START INPUT PARAMETERS ##
 # method parameters #
-timedepH=0				# if H is TD, use CVODE, else diag H and propogate
+timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
 tout=5000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
-numOutputSteps=6000			# number of output timesteps
+numOutputSteps=300			# number of output timesteps
 # bulk parameters #
-k_bandedge=0.01				# lower band edge of bulk conduction band (a.u.)
-k_bandtop=0.0835			# upper band edge of bulk conduction band (a.u.)
+k_bandedge=0.00				# lower band edge of bulk conduction band (a.u.)
+k_bandtop=0.03			# upper band edge of bulk conduction band (a.u.)
 #k_bandtop=0.0				# upper band edge of bulk conduction band (a.u.)
-Nk=1001					# number of k states to have
+Nk=401					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
-bulkGaussSigma=0.008			# width of initial Gaussian in bulk (a.u.)
-bulkGaussMu=0.03675			# position of initial Gaussian above band edge (a.u.)
+bulkGaussSigma=0.00221			# width of initial Gaussian in bulk (a.u.)
+bulkGaussMu=0.015			# position of initial Gaussian above band edge (a.u.)
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 # vibronic parameters #
@@ -92,7 +92,7 @@ return
 #FCbc.out
 #FCbb.out
 #FTtcprob.out
-#ham.out
+ham.out
 #Icprob.out
 #Ikprob.out
 #kmax.out

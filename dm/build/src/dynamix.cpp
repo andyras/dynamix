@@ -384,6 +384,7 @@ int main (int argc, char * argv[]) {
   // PREPROCESS DATA FROM INPUTS //
   // set number of processors for OpenMP
   omp_set_num_threads(p.nproc);
+  mkl_set_num_threads(p.nproc);
 
   p.NEQ = p.Nk+p.Nc+p.Nb+p.Nl;				// total number of equations set
   p.NEQ2 = p.NEQ*p.NEQ;				// number of elements in DM
@@ -784,7 +785,10 @@ int main (int argc, char * argv[]) {
     for (int ii = 0; ii < p.NEQ; ii++) {
       summ += pow(wavefunction[ii],2) + pow(wavefunction[ii+p.NEQ],2);
     }
-    summ = 1.0/summ;
+#ifdef DEBUG
+    std::cout << "Before normalization, the total population is " << summ << std::endl;
+#endif
+    summ = 1.0/sqrt(summ);
     for (int ii = 0; ii < 2*p.NEQ; ii++) {
       wavefunction[ii] *= summ;
     }
@@ -795,7 +799,7 @@ int main (int argc, char * argv[]) {
       summ += pow(wavefunction[ii],2) + pow(wavefunction[ii+p.NEQ],2);
     }
 #ifdef DEBUG
-    std::cout << "The total population is " << summ << std::endl;
+    std::cout << "After normalization, the total population is " << summ << std::endl;
 #endif
     if (fabs(summ - 1.0) > 1e-12) {
       std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
@@ -813,7 +817,6 @@ int main (int argc, char * argv[]) {
     H[ii] = 0.0;
   }
   buildHamiltonian(H, p.energies, V, &p);
-  std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
   // add Hamiltonian to p
   p.H.resize(p.NEQ2);
   for (int ii = 0; ii < p.NEQ2; ii++) {
@@ -833,14 +836,17 @@ int main (int argc, char * argv[]) {
 #endif
   // Creates N_Vector y with initial populations which will be used by CVode//
   if (p.wavefunction) {
-    y = N_VMake_Serial(2*p.NEQ, dm);
+    y = N_VMake_Serial(2*p.NEQ, wavefunction);
   }
   else {
     y = N_VMake_Serial(2*p.NEQ2, dm);
   }
+  // put in t = 0 information
   if (! p.wavefunction) {
-    // put in t = 0 information
     updateDM(y, dmt, 0, &p);
+  }
+  else {
+    updateWfn(y, wfnt, 0, &p);
   }
   // the vector yout has the same dimensions as y
   yout = N_VClone(y);
@@ -926,7 +932,7 @@ int main (int argc, char * argv[]) {
 	  progressFile.close();
 	}
 	if (p.wavefunction) {
-	  // TODO: write updateWavefunction function
+	  updateWfn(yout, wfnt, ii*p.numOutputSteps/p.numsteps, &p);
 	}
 	else {
 	  updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
@@ -958,18 +964,19 @@ int main (int argc, char * argv[]) {
       printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
     }
 
-    // Compute density matrix outputs.
+    // Compute density outputs.
 #ifdef DEBUG
-    std::cout << "Computing outputs...";
+    std::cout << "Computing outputs..." << std::endl;
 #endif
     if (p.wavefunction) {
-      computeDMOutput(dmt, outs, &p);
-    }
-    else {
       computeWfnOutput(wfnt, outs, &p);
     }
+    else {
+  std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
+      computeDMOutput(dmt, outs, &p);
+    }
 #ifdef DEBUG
-    std::cout << "done.";
+    std::cout << "done computing outputs" << std::endl;
 #endif
   }
 

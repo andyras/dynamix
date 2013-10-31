@@ -7,6 +7,7 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+#include <mkl.h>
 
 #include "params.hpp"
 #include "numerical.hpp"

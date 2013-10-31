@@ -88,6 +88,31 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
 
 /* Right-hand-side equation for wavefunction */
 int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  realtype * H = &(p->H)[0];
+  int N = p->NEQ;
+
+  // get pointer to y, ydot data
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
+  // set up LAPACK variables
+  const char TRANS = 'n';
+  double beta = 0.0;
+  double alpha_re = 1.0;	// alpha value for real part of wfn derivative
+  double alpha_im = -1.0;	// alpha value for imag part of wfn derivative
+  int inc = 1;
+
+  // Re(\dot{\psi}) = \hat{H}Im(\psi)
+  DGEMV(&TRANS, &N, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+
+  // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
+  DGEMV(&TRANS, &N, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+
   return 0;
 }
 

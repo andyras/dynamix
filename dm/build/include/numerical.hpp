@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <string.h>
+#include <stdio.h>
 #include <iostream>
 #include <stdexcept>
 #include <nvector/nvector_serial.h>
@@ -90,6 +92,8 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** V, struct PARAMETERS * p);
 
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
+
+void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p);
 
 /* returns sign of number (+1/-1/0) */
 template <typename T> int sgn(T val) {
