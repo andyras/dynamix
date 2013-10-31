@@ -14,6 +14,8 @@
 
 void updateHamiltonian(PARAMETERS * p, realtype t);
 
+int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
+
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 void buildFDD(struct PARAMETERS * p, N_Vector y, std::vector<double> & fdd);

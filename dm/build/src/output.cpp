@@ -694,6 +694,12 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
   return;
 }
 
+/* Computes outputs from \psi(t) */
+void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p) {
+  return;
+}
+
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {

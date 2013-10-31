@@ -61,6 +61,7 @@ int main (int argc, char * argv[]) {
   realtype * wavefunction = NULL;			// (initial) wavefunction
   realtype * dm = NULL;					// density matrix
   realtype * dmt = NULL;				// density matrix in tiinitOutputMapme
+  realtype * wfnt = NULL;				// density matrix in tiinitOutputMapme
   realtype * k_energies = NULL;				// pointers to arrays of energies
   realtype * c_energies = NULL;
   realtype * b_energies = NULL;
@@ -698,76 +699,108 @@ int main (int argc, char * argv[]) {
 #endif
   }
 
-  // Create the initial density matrix
-  dm = new realtype [2*p.NEQ2];
-  initializeArray(dm, 2*p.NEQ2, 0.0);
+  // density matrix
+  if (! p.wavefunction) {
+    // Create the initial density matrix
+    dm = new realtype [2*p.NEQ2];
+    initializeArray(dm, 2*p.NEQ2, 0.0);
 #pragma omp parallel for
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    // diagonal part
-    dm[p.NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + p.NEQ],2);
-    // off-diagonal part
-    for (int jj = 0; jj < ii; jj++) {
-      // real part of \rho_{ii,jj}
-      dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
-      // imaginary part of \rho_{ii,jj}
-      dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
-      // real part of \rho_{jj,ii}
-      dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
-      // imaginary part of \rho_{jj,ii}
-      dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
-    }
-  }
-
-  // Create the array to store the density matrix in time
-  dmt = new realtype [2*p.NEQ2*(p.numOutputSteps+1)];
-  initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
-
-#ifdef DEBUG2
-  // print out density matrix
-  std::cout << "\nDensity matrix without normalization:\n\n";
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    for (int jj = 0; jj < p.NEQ; jj++) {
-      fprintf(stdout, "(%+.1e,%+.1e) ", dm[p.NEQ*ii + jj], dm[p.NEQ*ii + jj + p.NEQ2]);
-    }
-    fprintf(stdout, "\n");
-  }
-#endif
-
-  // Normalize the DM so that populations add up to 1.
-  // No normalization if RTA is on.
-  if (!p.rta) {
-    summ = 0.0;
     for (int ii = 0; ii < p.NEQ; ii++) {
-      // assume here that diagonal elements are all real
-      summ += dm[p.NEQ*ii + ii];
-    }
-    if ( summ == 0.0 ) {
-      std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-      return -1;
-    }
-    if (summ != 1.0) {
-      // the variable 'summ' is now a multiplicative normalization factor
-      summ = 1.0/summ;
-      for (int ii = 0; ii < 2*p.NEQ2; ii++) {
-	dm[ii] *= summ;
+      // diagonal part
+      dm[p.NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + p.NEQ],2);
+      // off-diagonal part
+      for (int jj = 0; jj < ii; jj++) {
+	// real part of \rho_{ii,jj}
+	dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
+	// imaginary part of \rho_{ii,jj}
+	dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
+	// real part of \rho_{jj,ii}
+	dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
+	// imaginary part of \rho_{jj,ii}
+	dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
       }
     }
-#ifdef DEBUG
-    std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
-#endif
-  }
 
-  // Error checking for total population; recount population first
-  summ = 0.0;
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    summ += dm[p.NEQ*ii + ii];
-  }
-  if ( fabs(summ-1.0) > 1e-12  && (!p.rta)) {
-    std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
-  }
-#ifdef DEBUG
-  std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
+    // Create the array to store the density matrix in time
+    dmt = new realtype [2*p.NEQ2*(p.numOutputSteps+1)];
+    initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
+
+#ifdef DEBUG2
+    // print out density matrix
+    std::cout << "\nDensity matrix without normalization:\n\n";
+    for (int ii = 0; ii < p.NEQ; ii++) {
+      for (int jj = 0; jj < p.NEQ; jj++) {
+	fprintf(stdout, "(%+.1e,%+.1e) ", dm[p.NEQ*ii + jj], dm[p.NEQ*ii + jj + p.NEQ2]);
+      }
+      fprintf(stdout, "\n");
+    }
 #endif
+
+    // Normalize the DM so that populations add up to 1.
+    // No normalization if RTA is on.
+    if (!p.rta) {
+      summ = 0.0;
+      for (int ii = 0; ii < p.NEQ; ii++) {
+	// assume here that diagonal elements are all real
+	summ += dm[p.NEQ*ii + ii];
+      }
+      if ( summ == 0.0 ) {
+	std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+	return -1;
+      }
+      if (summ != 1.0) {
+	// the variable 'summ' is now a multiplicative normalization factor
+	summ = 1.0/summ;
+	for (int ii = 0; ii < 2*p.NEQ2; ii++) {
+	  dm[ii] *= summ;
+	}
+      }
+#ifdef DEBUG
+      std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+#endif
+    }
+
+    // Error checking for total population; recount population first
+    summ = 0.0;
+    for (int ii = 0; ii < p.NEQ; ii++) {
+      summ += dm[p.NEQ*ii + ii];
+    }
+    if ( fabs(summ-1.0) > 1e-12  && (!p.rta)) {
+      std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
+    }
+#ifdef DEBUG
+    std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
+#endif
+  }
+  // wavefunction
+  else {
+
+    // Create the array to store the wavefunction in time
+    wfnt = new realtype [2*p.NEQ*(p.numOutputSteps+1)];
+    initializeArray(wfnt, 2*p.NEQ*(p.numOutputSteps+1), 0.0);
+
+    // normalize
+    summ = 0.0;
+    for (int ii = 0; ii < p.NEQ; ii++) {
+      summ += pow(wavefunction[ii],2) + pow(wavefunction[ii+p.NEQ],2);
+    }
+    summ = 1.0/summ;
+    for (int ii = 0; ii < 2*p.NEQ; ii++) {
+      wavefunction[ii] *= summ;
+    }
+
+    // check total population
+    summ = 0.0;
+    for (int ii = 0; ii < p.NEQ; ii++) {
+      summ += pow(wavefunction[ii],2) + pow(wavefunction[ii+p.NEQ],2);
+    }
+#ifdef DEBUG
+    std::cout << "The total population is " << summ << std::endl;
+#endif
+    if (fabs(summ - 1.0) > 1e-12) {
+      std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
+    }
+  }
 
   // build Hamiltonian
   // //TODO TODO
@@ -791,20 +824,27 @@ int main (int argc, char * argv[]) {
 
 #ifdef DEBUG
   std::cout << "\nCreating N_Vectors.\n";
-  std::cout << "\nProblem size is " << 2*p.NEQ2 << " elements.\n";
+  if (p.wavefunction) {
+    std::cout << "\nProblem size is " << 2*p.NEQ << " elements.\n";
+  }
+  else {
+    std::cout << "\nProblem size is " << 2*p.NEQ2 << " elements.\n";
+  }
 #endif
   // Creates N_Vector y with initial populations which will be used by CVode//
-  y = N_VMake_Serial(2*p.NEQ2, dm);
-  // put in t = 0 information
-  updateDM(y, dmt, 0, &p);
+  if (p.wavefunction) {
+    y = N_VMake_Serial(2*p.NEQ, dm);
+  }
+  else {
+    y = N_VMake_Serial(2*p.NEQ2, dm);
+  }
+  if (! p.wavefunction) {
+    // put in t = 0 information
+    updateDM(y, dmt, 0, &p);
+  }
   // the vector yout has the same dimensions as y
   yout = N_VClone(y);
 
-  // print t = 0 information //
-  summ = 0;
-  for (int ii = 0; ii < 2*p.NEQ2; ii++) {
-    summ += pow(NV_Ith_S(y, ii),2);
-  }
 #ifdef DEBUG
   realImaginary = fopen("real_imaginary.out", "w");
 #endif
@@ -830,14 +870,19 @@ int main (int argc, char * argv[]) {
 #endif
     // initialize CVode solver //
 
-    if (p.rta) {
-      flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
-    }
-    else if (p.dephasing) {
-      flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
+    if (p.wavefunction) {
+      flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
     }
     else {
-      flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+      if (p.rta) {
+	flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+      }
+      else if (p.dephasing) {
+	flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
+      }
+      else {
+	flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+      }
     }
 
 #ifdef DEBUG
@@ -850,7 +895,12 @@ int main (int argc, char * argv[]) {
     std::cout << "\nAttaching linear solver module.\n";
 #endif
     // attach linear solver module //
-    flag = CVDense(cvode_mem, 2*p.NEQ2);
+    if (p.wavefunction) {
+      flag = CVDense(cvode_mem, 2*p.NEQ);
+    }
+    else {
+      flag = CVDense(cvode_mem, 2*p.NEQ2);
+    }
 
     // advance the solution in time! //
     // use CVODE for time-dependent H
@@ -875,7 +925,12 @@ int main (int argc, char * argv[]) {
 	  progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
 	  progressFile.close();
 	}
-	updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
+	if (p.wavefunction) {
+	  // TODO: write updateWavefunction function
+	}
+	else {
+	  updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
+	}
       }
     }
 
@@ -907,7 +962,12 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
     std::cout << "Computing outputs...";
 #endif
-    computeDMOutput(dmt, outs, &p);
+    if (p.wavefunction) {
+      computeDMOutput(dmt, outs, &p);
+    }
+    else {
+      computeWfnOutput(wfnt, outs, &p);
+    }
 #ifdef DEBUG
     std::cout << "done.";
 #endif
@@ -958,8 +1018,13 @@ int main (int argc, char * argv[]) {
     delete [] V[ii];
   }
   delete [] V;
-  delete [] dm;
-  delete [] dmt;
+  if (p.wavefunction) {
+    delete [] wfnt;
+  }
+  else {
+    delete [] dm;
+    delete [] dmt;
+  }
   delete [] times;
   delete [] qd_est;
   delete [] qd_est_diag;

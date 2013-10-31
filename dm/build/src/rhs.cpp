@@ -86,6 +86,11 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   return;
 }
 
+/* Right-hand-side equation for wavefunction */
+int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
+  return 0;
+}
+
 /* Right-hand-side equation for density matrix */
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 

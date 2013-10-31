@@ -85,6 +85,9 @@ void outputCouplings(struct PARAMETERS * p, char * fileName);
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 
+void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p);
+
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 #endif
