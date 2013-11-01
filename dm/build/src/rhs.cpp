@@ -94,6 +94,7 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // extract parameters from p
   realtype * H = &(p->H)[0];
+  //realtype * H = &(p->H_lo)[0];
   int N = p->NEQ;
 
   // get pointer to y, ydot data
@@ -102,16 +103,19 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // set up LAPACK variables
   const char TRANS = 'n';
+  const char UPLO = 'l';
   double beta = 0.0;
   double alpha_re = 1.0;	// alpha value for real part of wfn derivative
   double alpha_im = -1.0;	// alpha value for imag part of wfn derivative
   int inc = 1;
 
   // Re(\dot{\psi}) = \hat{H}Im(\psi)
-  DGEMV(&TRANS, &N, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+  //DGEMV(&TRANS, &N, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+  DSYMV(&UPLO, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
 
   // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
-  DGEMV(&TRANS, &N, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+  //DGEMV(&TRANS, &N, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+  DSYMV(&UPLO, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
 
   return 0;
 }

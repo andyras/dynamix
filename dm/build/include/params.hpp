@@ -82,6 +82,8 @@ struct PARAMETERS {
   std::vector<realtype> Vbridge;
   std::vector<realtype> Vnobridge;
   std::vector<realtype> H;
+  std::vector<realtype> H_up;
+  std::vector<realtype> H_lo;
   std::vector<realtype> times;
 
   Spline * torsionV;

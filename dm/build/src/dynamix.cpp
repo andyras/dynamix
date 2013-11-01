@@ -822,6 +822,17 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < p.NEQ2; ii++) {
     p.H[ii] = H[ii];
   }
+  // create upper and lower of H
+  p.H_up.resize((pow(p.NEQ,2) + p.NEQ)/2);
+  p.H_lo.resize((pow(p.NEQ,2) + p.NEQ)/2);
+  int triangleCount = 1;
+  for (int ii = 0; ii < p.NEQ; ii++) {
+    for (int jj = 0; jj <= ii; jj++) {
+      p.H_up[triangleCount + jj - 1] = p.H[ii*p.NEQ + jj];
+      p.H_lo[triangleCount + jj - 1] = p.H[jj*p.NEQ + ii];
+    }
+    triangleCount++;
+  }
 
   // DONE PREPROCESSING //
 
