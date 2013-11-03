@@ -383,7 +383,7 @@ int main (int argc, char * argv[]) {
 
   // PREPROCESS DATA FROM INPUTS //
   // set number of processors for OpenMP
-  omp_set_num_threads(p.nproc);
+  //omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
 
   p.NEQ = p.Nk+p.Nc+p.Nb+p.Nl;				// total number of equations set
@@ -822,17 +822,15 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < p.NEQ2; ii++) {
     p.H[ii] = H[ii];
   }
-  // create upper and lower of H
-  p.H_up.resize((pow(p.NEQ,2) + p.NEQ)/2);
-  p.H_lo.resize((pow(p.NEQ,2) + p.NEQ)/2);
-  int triangleCount = 1;
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    for (int jj = 0; jj <= ii; jj++) {
-      p.H_up[triangleCount + jj - 1] = p.H[ii*p.NEQ + jj];
-      p.H_lo[triangleCount + jj - 1] = p.H[jj*p.NEQ + ii];
-    }
-    triangleCount++;
-  }
+  // create sparse version of H
+  p.H_sp.resize(p.NEQ2);
+  p.H_cols.resize(p.NEQ2);
+  p.H_rowind.resize(p.NEQ2 + 1);
+  int job [6] = {0, 0, 0, 2, p.NEQ2, 1};
+  int info = 0;
+
+  mkl_ddnscsr(&job[0], &(p.NEQ), &(p.NEQ), &(p.H)[0], &(p.NEQ), &(p.H_sp)[0],
+              &(p.H_cols)[0], &(p.H_rowind)[0], &info);
 
   // DONE PREPROCESSING //
 
@@ -860,6 +858,7 @@ int main (int argc, char * argv[]) {
     updateWfn(y, wfnt, 0, &p);
   }
   // the vector yout has the same dimensions as y
+  N_VPrint_Serial(y);
   yout = N_VClone(y);
 
 #ifdef DEBUG
@@ -889,6 +888,7 @@ int main (int argc, char * argv[]) {
 
     if (p.wavefunction) {
       flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
+      //flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
     }
     else {
       if (p.rta) {
@@ -1048,6 +1048,7 @@ int main (int argc, char * argv[]) {
   delete [] qd_est_diag;
 
   std::cout << "whoo" << std::endl;
+  std::cout << "WHOOOOOOOOOOOOOOOOOOOOOOOOOT" << std::endl;
 
   return 0;
 }

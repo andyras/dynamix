@@ -3,7 +3,7 @@
 BIN = dynamix
 #############################################################
 
-DEBUG_MAKE = "foo"
+#DEBUG_MAKE = "foo"
 
 # directories for headers, objects and source files
 INCDIR = ./include
@@ -17,11 +17,11 @@ CPP = icpc
 # flags for compiler
 # optimized CPPFLAGS
 # Intel
-CPPFLAGS = -O3 -Wall --std=c++11 -openmp
+CPPFLAGS = -O0 -Wall --std=c++11 -openmp
 #CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
-  CPPFLAGS += -pg
+  CPPFLAGS += -pg -g -debug
 endif
 
 # non-optimized CPPFLAGS
@@ -35,7 +35,7 @@ INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib 
 # Intel flags for linker
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 ifdef DEBUG_MAKE
-  LDFLAGS += -pg
+  LDFLAGS += -pg -g -debug
 endif
 
 # make will look for .cpp files in $(SRCDIR)
