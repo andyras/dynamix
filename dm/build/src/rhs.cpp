@@ -240,6 +240,87 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   return 0;
 }
 
+/* Right-hand-side equation for density matrix using BLAS */
+int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+  dmf = fopen("dmf.out", "w");
+#endif
+
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  double * H = &(p->H)[0];
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
+  }
+
+  double * yp = N_VGetArrayPointer(y);
+  double * ydotp = N_VGetArrayPointer(ydot);
+
+  // initialize ydot
+
+#pragma omp parallel for
+  for (int ii = 0; ii < 2*N2; ii++) {
+    ydotp[ii] = 0.0;
+  }
+
+  char TRANSA = 'n';
+  char TRANSB = 'n';
+  char LEFT = 'l';
+  char RGHT = 'r';
+  char UPLO = 'u';
+  double ONE = 1.0;
+  double NEG = -1.0;
+
+  mkl_set_num_threads(p->nproc);
+  // Re(\dot{\rho}) += H*Im(\rho)
+  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  DSYMM(&LEFT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  //N_VPrint_Serial(ydot);
+  // Re(\dot{\rho}) -= Im(\rho)*H
+  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &yp[N2], &N, &H[0], &N, &ONE, &ydotp[0], &N);
+  DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  //N_VPrint_Serial(ydot);
+  // Im(\dot{\rho}) += i*Re(\rho)*H
+  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &yp[0], &N, &H[0], &N, &ONE, &ydotp[N2], &N);
+  DSYMM(&RGHT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  //N_VPrint_Serial(ydot);
+  // Im(\dot{\rho}) -= i*H*Re(\rho)
+  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  DSYMM(&LEFT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  //N_VPrint_Serial(ydot);
+
+#ifdef DEBUGf_DM
+  fprintf(dmf, "%+.7e", t);
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+    }
+  }
+  fprintf(dmf, "\n");
+
+  std::cout << "Closing output file for density matrix coefficients in time.\n";
+  fclose(dmf);
+#endif
+
+  return 0;
+}
+
 /* gives the equilibrated FDD for the system */
 void buildFDD(struct PARAMETERS * p, N_Vector y, double * fdd) {
   //// "fine structure constant" -- conversion from index to wave vector

@@ -899,6 +899,7 @@ int main (int argc, char * argv[]) {
       }
       else {
 	flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+	//flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
       }
     }
 
