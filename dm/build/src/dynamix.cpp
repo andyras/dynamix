@@ -28,10 +28,10 @@
 #include "conversions.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+//#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-#define DEBUG2
+//#define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -887,8 +887,8 @@ int main (int argc, char * argv[]) {
     // initialize CVode solver //
 
     if (p.wavefunction) {
-      flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
-      //flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
+      //flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
+      flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
     }
     else {
       if (p.rta) {
