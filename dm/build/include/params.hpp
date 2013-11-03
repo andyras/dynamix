@@ -11,6 +11,7 @@
 // Struct of parameters
 struct PARAMETERS {
   int nproc = 0;			// number of processors
+  bool wavefunction = 1;		// 1 => wavefunction; 0 => density matrix
   bool justPlots = false;		// just make plots, no propagation or other output
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
@@ -81,6 +82,9 @@ struct PARAMETERS {
   std::vector<realtype> Vbridge;
   std::vector<realtype> Vnobridge;
   std::vector<realtype> H;
+  std::vector<realtype> H_sp;
+  std::vector<int> H_cols;
+  std::vector<int> H_rowind;
   std::vector<realtype> times;
 
   Spline * torsionV;

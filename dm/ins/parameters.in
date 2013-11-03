@@ -7,8 +7,9 @@ debug=0
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
-nproc=6
+nproc=1
 # method parameters #
+wavefunction=1				# 1 => wavefunction; 0 => density matrix
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
@@ -24,7 +25,7 @@ numsteps=60000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
-kBandTop=0.005				# upper band edge of bulk conduction band (a.u.)
+kBandTop=0.03				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
 Nk=11					# number of k states to have
 Nk_first=1				# first k state initially populated
@@ -33,7 +34,7 @@ bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
 bulkGaussSigma=0.002217514892873433	# width of initial Gaussian in bulk (a.u.)
-bulkGaussMu=0.0025			# position of initial Gaussian above band edge (a.u.)
+bulkGaussMu=0.015			# position of initial Gaussian above band edge (a.u.)
 me=0.078				# effective mass of electron
 mh=0.11					# effective mass of hole
 X2=1512.2873345935727			# "Bohr radius" for material, inverse spacing in k-space
@@ -63,7 +64,7 @@ scale_bubr=0
 scale_brqd=0
 scale_buqd=0
 scale_laser=1
-bridge_on=1
+bridge_on=0
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
@@ -132,5 +133,5 @@ populations.plt
 cprobs.plt
 kprobs.plt
 #dmt_z.plt
-kprobs_movie.plt
+#kprobs_movie.plt
 [[End]]

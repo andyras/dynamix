@@ -24,6 +24,8 @@ typedef struct {
 
 /* FUNCTIONS */
 
+bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr);
+
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
  */
@@ -59,6 +61,9 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
     struct PARAMETERS * p);
 
+void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
+    struct PARAMETERS * p);
+
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
     struct PARAMETERS * p);
 
@@ -83,6 +88,9 @@ void outputRTA(std::map<const std::string, bool> &outs,
 void outputCouplings(struct PARAMETERS * p, char * fileName);
 
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p);
+
+void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,

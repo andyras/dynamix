@@ -86,6 +86,81 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   return;
 }
 
+/* Right-hand-side equation for wavefunction */
+int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  realtype * H = &(p->H)[0];
+  //realtype * H = &(p->H_lo)[0];
+  int N = p->NEQ;
+
+  // get pointer to y, ydot data
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
+  // set up BLAS variables
+  const char TRANS = 'n';
+  const char UPLO = 'l';
+  double beta = 0.0;
+  double alpha_re = 1.0;	// alpha value for real part of wfn derivative
+  double alpha_im = -1.0;	// alpha value for imag part of wfn derivative
+  int inc = 1;
+
+  // Re(\dot{\psi}) = \hat{H}Im(\psi)
+  //DGEMV(&TRANS, &N, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+  DSYMV(&UPLO, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+
+  // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
+  //DGEMV(&TRANS, &N, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+  DSYMV(&UPLO, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+
+  return 0;
+}
+
+int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  realtype * H = &(p->H_sp)[0];
+  int * columns = &(p->H_cols)[0];
+  int * rowind = &(p->H_rowind)[0];
+
+  //realtype * H = &(p->H_lo)[0];
+  int N = p->NEQ;
+
+  // get pointer to y, ydot data
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
+  // set up MKL variables
+  char transa = 'n';
+  double alpha_re = 1.0;	// alpha value for real part of wfn derivative
+  double alpha_im = -1.0;	// alpha value for imag part of wfn derivative
+  double beta = 0.0;
+  char matdescra [6] = {'S', // symmetric matrix
+			'L', // lower triangle
+			'N', // non-unit on diagonal
+			'C', // zero-based indexing (C-style)
+			'*', '*'}; // extra characters
+
+  mkl_set_num_threads(1);
+
+  // Re(\dot{\psi}) = \hat{H}Im(\psi)
+  mkl_dcsrmv(&transa, &N, &N, &alpha_re, &matdescra[0], &H[0], &columns[0],
+             &rowind[0], &rowind[1], &yp[N], &beta, &ydotp[0]);
+
+  // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
+  mkl_dcsrmv(&transa, &N, &N, &alpha_im, &matdescra[0], &H[0], &columns[0],
+             &rowind[0], &rowind[1], &yp[0], &beta, &ydotp[N]);
+
+  return 0;
+}
+
 /* Right-hand-side equation for density matrix */
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 

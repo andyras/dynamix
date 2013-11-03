@@ -7,12 +7,17 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+#include <mkl.h>
 
 #include "params.hpp"
 #include "numerical.hpp"
 #include "omp.h"
 
 void updateHamiltonian(PARAMETERS * p, realtype t);
+
+int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
+
+int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
