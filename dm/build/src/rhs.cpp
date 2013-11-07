@@ -9,18 +9,22 @@
 // DEBUGf_DM flag: DEBUGf for density matrix EOM
 //#define DEBUGf_DM
 
+//#define DEBUG_TORSION
+
 
 /* Updates the Hamiltonian with the time-dependent torsional coupling
  * and laser field.
  */
 void updateHamiltonian(PARAMETERS * p, realtype t) {
+  // TODO unpack NEQ from p
+
   // get pointer to H
   realtype * H = &(p->H)[0];
 
   //// first handle torsion
   if (p->torsion) {
     double torsionValue = p->torsionV->value(t);
-#ifdef DEBUG_RHS
+#ifdef DEBUG_TORSION
     std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
 #endif
 
@@ -83,6 +87,13 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
     }
   }
 
+  // make sparse version of Hamiltonian
+  int job [6] = {0, 0, 0, 2, p->NEQ2, 1};
+  int info = 0;
+
+  mkl_ddnscsr(&job[0], &(p->NEQ), &(p->NEQ), &(p->H)[0], &(p->NEQ), &(p->H_sp)[0],
+              &(p->H_cols)[0], &(p->H_rowind)[0], &info);
+
   return;
 }
 
@@ -91,6 +102,16 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // data is a pointer to the params struct
   PARAMETERS * p;
   p = (PARAMETERS *) data;
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
+  }
 
   // extract parameters from p
   realtype * H = &(p->H)[0];
@@ -124,6 +145,16 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // data is a pointer to the params struct
   PARAMETERS * p;
   p = (PARAMETERS *) data;
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
+  }
 
   // extract parameters from p
   realtype * H = &(p->H_sp)[0];
@@ -283,27 +314,51 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   char TRANSB = 'n';
   char LEFT = 'l';
   char RGHT = 'r';
-  char UPLO = 'u';
+  char UPLO = 'l';
   double ONE = 1.0;
   double NEG = -1.0;
+
+  realtype * H_sp = &(p->H_sp)[0];
+  int * columns = &(p->H_cols)[0];
+  int * rowind = &(p->H_rowind)[0];
+
+  // set up MKL variables
+  double beta = 0.0;
+  char matdescra [6] = {'T', // symmetric matrix
+			'L', // lower triangle
+			'N', // non-unit on diagonal
+			'C', // zero-based indexing (C-style)
+			'*', '*'};
+
+			// set beta to zero for first call
 
   mkl_set_num_threads(p->nproc);
   // Re(\dot{\rho}) += H*Im(\rho)
   //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
-  DSYMM(&LEFT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  //DSYMM(&LEFT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
   //N_VPrint_Serial(ydot);
+  // Re(\dot{\psi}) = \hat{H}Im(\psi)
+  mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
+             &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
+  
   // Re(\dot{\rho}) -= Im(\rho)*H
   //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &yp[N2], &N, &H[0], &N, &ONE, &ydotp[0], &N);
   DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+
   //N_VPrint_Serial(ydot);
   // Im(\dot{\rho}) += i*Re(\rho)*H
   //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &yp[0], &N, &H[0], &N, &ONE, &ydotp[N2], &N);
   DSYMM(&RGHT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+
   //N_VPrint_Serial(ydot);
   // Im(\dot{\rho}) -= i*H*Re(\rho)
   //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
-  DSYMM(&LEFT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  //DSYMM(&LEFT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
   //N_VPrint_Serial(ydot);
+
+  // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
+  mkl_dcsrmm(&TRANSA, &N, &N, &N, &NEG, &matdescra[0], &H[0], &columns[0],
+             &rowind[0], &rowind[1], &yp[0], &N, &beta, &ydotp[N2], &N);
 
 #ifdef DEBUGf_DM
   fprintf(dmf, "%+.7e", t);

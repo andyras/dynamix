@@ -17,8 +17,8 @@ CPP = icpc
 # flags for compiler
 # optimized CPPFLAGS
 # Intel
-CPPFLAGS = -O0 -Wall --std=c++11 -openmp
-#CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
+#CPPFLAGS = -O0 -Wall --std=c++11 -openmp
+CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug
