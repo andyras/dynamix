@@ -58,7 +58,7 @@ fi
 mkdir -p outs
 mv *.out outs/
 # move plot files
-[ -d figures ] && rm -rf figures
+[ -d figures ] && rm -rf figures/*
 mkdir -p figures
 chmod 755 *.plt
 mv *.plt figures/

@@ -20,16 +20,16 @@ progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=10000				# final time reached by solver (a.u.)
+tout=40000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
-kBandTop=0.03				# upper band edge of bulk conduction band (a.u.)
+kBandTop=0.0				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=101					# number of k states to have
+Nk=1					# number of k states to have
 Nk_first=1				# first k state initially populated
-Nk_final=2				# final k state initially populated
+Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
@@ -68,8 +68,8 @@ bridge_on=1
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
-torsion=1				# turn torsion-mediated coupling on or off
-torsionFile=ins/tors.in
+torsion=0				# turn torsion-mediated coupling on or off
+torsionFile=ins/torsion.in
 torsionSite=1				# 0 = coupling between bulk and bridge
 ## END INPUT PARAMETERS ##
 
@@ -77,7 +77,8 @@ torsionSite=1				# 0 = coupling between bulk and bridge
 return
 
 [[Output Files]]
-#bprobs.out
+allprobs.out
+bprobs.out
 #cmax_first.out
 #cmax_first_t.out
 #cprobs_gnuplot.out

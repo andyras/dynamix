@@ -171,6 +171,32 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
 /* Output the population in each state over time.  This function takes
  * the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
+void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
+    struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "Creating file " << fileName << ".\n";
+#endif
+  std::ofstream output(fileName);
+
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+    output << std::setw(8) << std::scientific << p->times[ii];
+    for (int jj = start; jj < end; jj++) {
+      output << " " << std::setw(8) << std::scientific
+	<< (pow(wfnt[ii*p->NEQ*2 + jj],2) + pow(wfnt[ii*p->NEQ*2 + p->NEQ + jj],2));
+    }
+    output << "\n";
+  }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
+  return;
+}
+
+/* Output the population in each state over time.  This function takes
+ * the indices 'start' and 'end', e.g. Ik and Ik+Nk
+ */
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
     struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
@@ -741,29 +767,54 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
 /* Computes outputs from \psi(t) */
 void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
-  // populations on all sites
+  // total population on all sites
   if (isOutput(outs, "totprob.out")) {
     outputtXprobWfn("totprob.out", 0, p->NEQ, wfnt, p);
   }
 
-  // populations on bulk conduction band
+  // total population on bulk conduction band
   if (isOutput(outs, "tkprob.out")) {
     outputtXprobWfn("tkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
 
-  // populations on QD
+  // total population on QD
   if (isOutput(outs, "tcprob.out")) {
     outputtXprobWfn("tcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
 
-  // populations on bridge
+  // total population on bridge
   if (isOutput(outs, "tbprob.out")) {
     outputtXprobWfn("tbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
 
-  // populations on bulk valence band
+  // total population on bulk valence band
   if (isOutput(outs, "tlprob.out")) {
     outputtXprobWfn("tlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+  }
+
+  // populations in all states
+  if (isOutput(outs, "allprobs.out")) {
+    outputXProbsWfn("allprobs.out", 0, p->NEQ, wfnt, p);
+  }
+
+  // populations in bulk CB
+  if (isOutput(outs, "kprobs.out")) {
+    outputXProbsWfn("kprobs.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+  }
+
+  // populations in QD
+  if (isOutput(outs, "cprobs.out")) {
+    outputXProbsWfn("cprobs.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+  }
+
+  // populations in bridge states
+  if (isOutput(outs, "bprobs.out")) {
+    outputXProbsWfn("bprobs.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+  }
+
+  // populations in bulk VB
+  if (isOutput(outs, "lprobs.out")) {
+    outputXProbsWfn("lprobs.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   std::cerr << "whooooot" << std::endl;

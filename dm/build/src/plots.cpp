@@ -81,7 +81,7 @@ void plotPopulations(char * fileName, struct PARAMETERS * p) {
   o << "set style line 3 lt 1 lc rgb 'blue'" << std::endl;
   o << "set style increment user" << std::endl;
   o << std::endl;
-  o << "set terminal pdfcairo enhanced size 5,5 lw 2 font 'Arial-Bold,12'" << std::endl;
+  o << "set terminal pdfcairo enhanced dashed size 5,5 lw 2 font 'Arial-Bold,12'" << std::endl;
   o << "set output 'figures/populations.pdf'" << std::endl;
   o << std::endl;
   o << "stats './outs/tkprob.out' u ($1/41.3414):2 nooutput" << std::endl;
@@ -115,8 +115,13 @@ void plotPopulations(char * fileName, struct PARAMETERS * p) {
   if (p->bridge_on) {
     o << "set origin 0,0.32" << std::endl;
     o << "set title 'Bridge Population vs. Time'" << std::endl;
-    o << "plot './outs/tbprob.out' u ($1/41.3414):2 lt 3 notitle" << std::endl;
-    o << std::endl;
+    o << "plot './outs/bprobs.out' u ($1/41.3414):2 lt 3 notitle";
+    if (p->Nb > 1) {
+      for (int ii = 0; ii < (p->Nb - 1); ii++) {
+	o << ", \\" << std::endl << "     '' u ($1/41.3414):" << (ii+3) << " lt " << (ii+4) << " notitle";
+      }
+    }
+    o << std::endl << std::endl;
   }
   o << "set origin 0,0.01" << std::endl;
   o << "set xlabel 'Time (fs)'" << std::endl;

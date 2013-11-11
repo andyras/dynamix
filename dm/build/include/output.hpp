@@ -58,6 +58,9 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 /* prints a square matrix stored as a 2D array */
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
+void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
+    struct PARAMETERS * p);
+
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
     struct PARAMETERS * p);
 
