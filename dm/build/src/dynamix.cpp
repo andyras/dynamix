@@ -174,6 +174,7 @@ int main (int argc, char * argv[]) {
     else if (input_param == "justPlots") { p.justPlots = atoi(param_val.c_str()); }
     else if (input_param == "nproc") { p.nproc = atoi(param_val.c_str()); }
     else if (input_param == "wavefunction") { p.wavefunction = atoi(param_val.c_str()); }
+    else if (input_param == "coherent") { p.coherent = atoi(param_val.c_str()); }
     else if (input_param == "analytical") { p.analytical = atoi(param_val.c_str()); }
     else if (input_param == "rta") { p.rta = atoi(param_val.c_str()); }
     else if (input_param == "dephasing") { p.dephasing = atoi(param_val.c_str()); }
@@ -235,6 +236,7 @@ int main (int argc, char * argv[]) {
   std::cout << "timedepH is " << p.timedepH << std::endl;
   std::cout << "nproc is " << p.nproc << std::endl;
   std::cout << "wavefunction is " << p.wavefunction << std::endl;
+  std::cout << "coherent is " << p.coherent << std::endl;
   std::cout << "analytical is " << p.analytical << std::endl;
   std::cout << "rta is " << p.rta << std::endl;
   std::cout << "dephasing is " << p.dephasing << std::endl;
@@ -709,16 +711,18 @@ int main (int argc, char * argv[]) {
     for (int ii = 0; ii < p.NEQ; ii++) {
       // diagonal part
       dm[p.NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + p.NEQ],2);
-      // off-diagonal part
-      for (int jj = 0; jj < ii; jj++) {
-	// real part of \rho_{ii,jj}
-	dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
-	// imaginary part of \rho_{ii,jj}
-	dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
-	// real part of \rho_{jj,ii}
-	dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
-	// imaginary part of \rho_{jj,ii}
-	dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
+      if (p.coherent) {
+	// off-diagonal part
+	for (int jj = 0; jj < ii; jj++) {
+	  // real part of \rho_{ii,jj}
+	  dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
+	  // imaginary part of \rho_{ii,jj}
+	  dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
+	  // real part of \rho_{jj,ii}
+	  dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
+	  // imaginary part of \rho_{jj,ii}
+	  dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
+	}
       }
     }
 
