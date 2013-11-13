@@ -12,6 +12,7 @@
 struct PARAMETERS {
   int nproc = 0;			// number of processors
   bool wavefunction = 1;		// 1 => wavefunction; 0 => density matrix
+  bool coherent = 1;			// 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_{ii} only
   bool justPlots = false;		// just make plots, no propagation or other output
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
