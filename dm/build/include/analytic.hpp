@@ -2,6 +2,7 @@
 #define __ANALYTIC__
 
 #include <complex>
+#include <vector>
 
 #include "output.hpp"
 #include "params.hpp"
