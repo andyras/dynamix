@@ -4,63 +4,28 @@
 
 void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
   // populations in subsystems
-  try {
-    if (isOutput(outs, "populations.plt")) {
-      plotPopulations("populations.plt", p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "populations.plt")) {
+    plotPopulations("populations.plt", p);
   }
 
-  try {
-    // probabilities in k states
-    if (isOutput(outs, "kprobs.plt") && (p->Nk > 1)) {
-      plotKProbs("kprobs.plt", p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // probabilities in k states
+  if (isOutput(outs, "kprobs.plt") && (p->Nk > 1)) {
+    plotKProbs("kprobs.plt", p);
   }
 
-  try {
-    // probabilities in c states
-    if (isOutput(outs, "cprobs.plt") && (p->Nc > 1)) {
-      plotCProbs(p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // probabilities in c states
+  if (isOutput(outs, "cprobs.plt") && (p->Nc > 1)) {
+    plotCProbs(p);
   }
 
-  try {
-    // density matrix in time
-    if (isOutput(outs, "dmt_z.plt")) {
-      plotDMt_z("dmt_z.plt", p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // density matrix in time
+  if (isOutput(outs, "dmt_z.plt")) {
+    plotDMt_z("dmt_z.plt", p);
   }
 
-  try {
-    // populations in k states as a movie
-    if (isOutput(outs, "kprobs_movie.plt") && (p->Nk > 1)) {
-      plotKProbsMovie("kprobs_movie.plt", p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // populations in k states as a movie
+  if (isOutput(outs, "kprobs_movie.plt") && (p->Nk > 1)) {
+    plotKProbsMovie("kprobs_movie.plt", p);
   }
 
   return;
