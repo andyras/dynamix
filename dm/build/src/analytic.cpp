@@ -50,6 +50,11 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
       Elr[ii*Nc + jj] = std::complex <double> (energies[Ik + ii] - energies[Ic + jj], 0);
     }
   }
+  for (int ii = 0; ii < Nc*Nk; ii++) {
+    std::cout << Elr[ii] << " ";
+  }
+  std::cout << std::endl;
+  std::cout << std::endl;
 
   // Create matrix of prefactors for each QC (n) state
   std::complex <double> pref;
@@ -57,16 +62,23 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
   for (int ii = 0; ii < Nk; ii++) {
     // V*c_l/(E_{lr} + i\kappa)
     pref = Vee*(std::complex <double> (startWfn[Ik + ii], startWfn[Ik + N + ii]));
+    std::cout << startWfn[Ik + ii] << "," << pref << " ";
     for (int jj = 0; jj < Nc; jj++) {
       prefQC[jj] = pref/(Elr[ii*Nc + jj] + CI*K);
     }
   }
+  std::cout << std::endl;
+  std::cout << std::endl;
+  for (int ii = 0; ii < Nc*Nk; ii++) {
+    std::cout << prefQC[ii] << " ";
+  }
+  std::cout << std::endl;
 
   // calculate wavefunction coefficients on electron-accepting side over time
   std::vector<std::complex <double>> crt (Nc*p->numOutputSteps, std::complex <double> (0.0, 0.0));
 
   int timeIndex = 0;
-  for (std::complex <double> t = C0; std::real(t) < p->tout;
+  for (std::complex <double> t = C0; std::real(t) <= p->tout;
        t += std::complex <double> (p->tout/p->numOutputSteps, 0.0), timeIndex++) {
     for (int ii = 0; ii < Nc; ii++) {
       // TODO add bit for multiple state terms
@@ -78,10 +90,23 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
   
   // calculate populations on electron-accepting side over time
   std::vector<double> Prt (Nc*p->numOutputSteps, 0.0);
-  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     for (int jj = 0; jj < Nc; jj++) {
       Prt[ii*Nc + jj] = pow(real(crt[ii*Nc + jj]), 2) + pow(imag(crt[ii*Nc + jj]), 2);
     }
+  }
+
+  if (isOutput(outs, "analytic_tcprob.out")) {
+    std::ofstream output("analytic_tcprob.out");
+    for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+      output << p->times[ii];
+      for (int jj = 0; jj < Nc; jj++) {
+	output << " " << Prt[ii*Nc + jj];
+	output << " " << real(crt[ii*Nc + jj]) << " " << imag(crt[ii*Nc + jj]);
+      }
+      output << std::endl;
+    }
+    output.close();
   }
 
   return;

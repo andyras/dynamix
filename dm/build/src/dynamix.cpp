@@ -641,10 +641,6 @@ int main (int argc, char * argv[]) {
   std::cout << "\nTotal population is " << summ << "\n\n";
 #endif
 
-  // Add initial wavefunction to parameters.
-  p.startWfn.resize(2*p.NEQ);
-  memcpy(&(p.startWfn[0]), &(wavefunction[0]), 2*p.NEQ);
-
   // Assemble array of energies
   // TODO TODO
   p.energies.resize(p.NEQ);
@@ -783,7 +779,7 @@ int main (int argc, char * argv[]) {
 #endif
     // Add initial DM to parameters.
     p.startDM.resize(2*p.NEQ2);
-    memcpy(&(p.startDM[0]), &(dm[0]), 2*p.NEQ2);
+    memcpy(&(p.startDM[0]), &(dm[0]), 2*p.NEQ2*sizeof(double));
   }
   // wavefunction
   else {
@@ -816,6 +812,10 @@ int main (int argc, char * argv[]) {
     if (fabs(summ - 1.0) > 1e-12) {
       std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
     }
+
+    // Add initial wavefunction to parameters.
+    p.startWfn.resize(2*p.NEQ);
+    memcpy(&(p.startWfn[0]), &(wavefunction[0]), 2*p.NEQ*sizeof(double));
   }
 
   // build Hamiltonian

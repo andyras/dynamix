@@ -21,12 +21,12 @@ progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-10				# absolute tolerance
 reltol=1.0e-10				# relative tolerance
-tout=40000				# final time reached by solver (a.u.)
+tout=5000				# final time reached by solver (a.u.)
 numsteps=60000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
-kBandTop=0.0				# upper band edge of bulk conduction band (a.u.)
+kBandTop=0.03				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
 Nk=101					# number of k states to have
 Nk_first=1				# first k state initially populated
@@ -79,6 +79,7 @@ return
 
 [[Output Files]]
 allprobs.out
+analytic_tcprob.out
 bprobs.out
 #cmax_first.out
 #cmax_first_t.out
