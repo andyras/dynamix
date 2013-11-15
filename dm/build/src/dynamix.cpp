@@ -640,6 +640,10 @@ int main (int argc, char * argv[]) {
   std::cout << "\nTotal population is " << summ << "\n\n";
 #endif
 
+  // Add initial wavefunction to parameters.
+  p.startWfn.resize(2*p.NEQ);
+  memcpy(&(p.startWfn[0]), &(wavefunction[0]), 2*p.NEQ);
+
   // Assemble array of energies
   // TODO TODO
   p.energies.resize(p.NEQ);
@@ -776,6 +780,9 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
     std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
 #endif
+    // Add initial DM to parameters.
+    p.startDM.resize(2*p.NEQ2);
+    memcpy(&(p.startDM[0]), &(dm[0]), 2*p.NEQ2);
   }
   // wavefunction
   else {

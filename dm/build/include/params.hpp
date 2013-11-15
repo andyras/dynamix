@@ -87,6 +87,8 @@ struct PARAMETERS {
   std::vector<int> H_cols;
   std::vector<int> H_rowind;
   std::vector<realtype> times;
+  std::vector<realtype> startWfn;
+  std::vector<realtype> startDM;
 
   Spline * torsionV;
 
