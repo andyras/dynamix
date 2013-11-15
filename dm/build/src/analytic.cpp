@@ -7,6 +7,7 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
   // energy spacing in bulk
   std::complex <double> dE ((p->kBandTop-p->kBandEdge)/(p->Nk-1), 0);
   // bulk-QD coupling
+  std::cout << "NOBODY HERE BUT US SEGFAULTS\n";
   std::complex <double> Vee (p->Vnobridge[0], 0);
   // rate constant (can be defined also as K/2)
   std::complex <double> K = std::complex <double> (3.1415926535,0)*pow(Vee,2)/dE;
@@ -25,11 +26,11 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
   std::complex <double> cn_offdiag (0, 0);
   double cn_tot;
   // complex numbers are dumb
-  std::complex <double> CI (0.0, 1.0);
-  std::complex <double> NEGCI (0.0, -1.0);
   std::complex <double> C0 (0.0, 0.0);
   std::complex <double> C1 (1.0, 0.0);
   std::complex <double> NEGC1 (-1.0, 0.0);
+  std::complex <double> CI (0.0, 1.0);
+  std::complex <double> NEGCI (0.0, -1.0);
 
   // unpack params a bit
   int Nk = p->Nk;
@@ -40,7 +41,7 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
   double * energies = &(p->energies[0]);
   double * startWfn = &(p->startWfn[0]);
 
-  // Create vector of energy differences
+  // Create matrix of energy differences
   std::vector<std::complex <double>> Elr (Nk*Nc, std::complex <double> (0.0, 0.0));
   for (int ii = 0; ii < Nk; ii++) {
     for (int jj = 0; jj < Nc; jj++) {
@@ -50,7 +51,7 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
     }
   }
 
-  // Create vector of prefactors for each QC (n) state
+  // Create matrix of prefactors for each QC (n) state
   std::complex <double> pref;
   std::vector<std::complex <double>> prefQC (Nk, std::complex <double> (0.0, 0.0));
   for (int ii = 0; ii < Nk; ii++) {
@@ -61,7 +62,7 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
     }
   }
 
-  // calculate wavefunction coefficient on electron-accepting side over time
+  // calculate wavefunction coefficients on electron-accepting side over time
   std::vector<std::complex <double>> crt (Nc*p->numOutputSteps, std::complex <double> (0.0, 0.0));
 
   int timeIndex = 0;

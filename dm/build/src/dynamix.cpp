@@ -26,6 +26,7 @@
 #include "plots.hpp"
 #include "constants.hpp"
 #include "conversions.hpp"
+#include "analytic.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 //#define DEBUG
@@ -841,7 +842,7 @@ int main (int argc, char * argv[]) {
   int info = 0;
 
   mkl_ddnscsr(&job[0], &(p.NEQ), &(p.NEQ), &(p.H)[0], &(p.NEQ), &(p.H_sp)[0],
-              &(p.H_cols)[0], &(p.H_rowind)[0], &info);
+      &(p.H_cols)[0], &(p.H_rowind)[0], &info);
 
   // DONE PREPROCESSING //
 
@@ -995,12 +996,17 @@ int main (int argc, char * argv[]) {
       computeWfnOutput(wfnt, outs, &p);
     }
     else {
-  std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
+      std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
       computeDMOutput(dmt, outs, &p);
     }
 #ifdef DEBUG
     std::cout << "done computing outputs" << std::endl;
 #endif
+
+    // do analytical propagation
+    if (p.analytical && (! p.bridge_on)) {
+      computeAnalyticOutputs(outs, &p);
+    }
   }
 
 #ifdef DEBUG
