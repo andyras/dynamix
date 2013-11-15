@@ -5,7 +5,7 @@
 void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
   // populations in subsystems
   try {
-    if (outs.at("populations.plt")) {
+    if (isOutput(outs, "populations.plt")) {
       plotPopulations("populations.plt", p);
     }
   }
@@ -17,7 +17,7 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
 
   try {
     // probabilities in k states
-    if (outs.at("kprobs.plt") && (p->Nk > 1)) {
+    if (isOutput(outs, "kprobs.plt") && (p->Nk > 1)) {
       plotKProbs("kprobs.plt", p);
     }
   }
@@ -29,7 +29,7 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
 
   try {
     // probabilities in c states
-    if (outs.at("cprobs.plt") && (p->Nc > 1)) {
+    if (isOutput(outs, "cprobs.plt") && (p->Nc > 1)) {
       plotCProbs(p);
     }
   }
@@ -41,7 +41,7 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
 
   try {
     // density matrix in time
-    if (outs.at("dmt_z.plt")) {
+    if (isOutput(outs, "dmt_z.plt")) {
       plotDMt_z("dmt_z.plt", p);
     }
   }
@@ -53,7 +53,7 @@ void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p) {
 
   try {
     // populations in k states as a movie
-    if (outs.at("kprobs_movie.plt") && (p->Nk > 1)) {
+    if (isOutput(outs, "kprobs_movie.plt") && (p->Nk > 1)) {
       plotKProbsMovie("kprobs_movie.plt", p);
     }
   }

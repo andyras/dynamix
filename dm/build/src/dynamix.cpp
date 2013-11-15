@@ -102,7 +102,7 @@ int main (int argc, char * argv[]) {
 
   // OPEN LOG FILE; PUT IN START TIME //
   try {
-    if (outs.at("log.out")) {
+    if (isOutput(outs, "log.out")) {
       log = fopen("log.out", "w");			// note that this file is closed at the end of the program
     }
   }
@@ -114,7 +114,7 @@ int main (int argc, char * argv[]) {
   time(&startRun);
   currentTime = localtime(&startRun);
   try {
-    if (outs.at("log.out")) {
+    if (isOutput(outs, "log.out")) {
       fprintf(log, "Run started at %s\n", asctime(currentTime));
     }
   }
@@ -292,7 +292,7 @@ int main (int argc, char * argv[]) {
 #endif
 
   try {
-    if (outs.at("log.out")) {
+    if (isOutput(outs, "log.out")) {
       // make a note about the laser intensity.
       fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
     }
@@ -582,7 +582,7 @@ int main (int argc, char * argv[]) {
   }
 
   try {
-    if (outs.at("psi_start.out")) {
+    if (isOutput(outs, "psi_start.out")) {
       outputWavefunction(wavefunction, p.NEQ);
     }
   }
@@ -673,7 +673,7 @@ int main (int argc, char * argv[]) {
   buildCoupling(V, &p, outs);
 
   try {
-    if (outs.at("log.out")) {
+    if (isOutput(outs, "log.out")) {
       // make a note in the log about system timescales
       double tau = 0;		// fundamental system timescale
       if (p.Nk == 1) {
@@ -971,7 +971,7 @@ int main (int argc, char * argv[]) {
     time(&endRun);
     currentTime = localtime(&endRun);
     try {
-      if (outs.at("log.out")) {
+      if (isOutput(outs, "log.out")) {
 	fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
 	fprintf(log, "Run ended at %s\n", asctime(currentTime));
 	fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
