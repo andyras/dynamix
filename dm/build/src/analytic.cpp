@@ -1,5 +1,7 @@
 #include "analytic.hpp"
 
+//#define DEBUG_ANALYTIC
+
 /* Compute analytic dynamics */
 void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
@@ -7,7 +9,6 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
   // energy spacing in bulk
   std::complex <double> dE ((p->kBandTop-p->kBandEdge)/(p->Nk-1), 0);
   // bulk-QD coupling
-  std::cout << "NOBODY HERE BUT US SEGFAULTS\n";
   std::complex <double> Vee (p->Vnobridge[0], 0);
   // rate constant (can be defined also as K/2)
   std::complex <double> K = std::complex <double> (3.1415926535,0)*pow(Vee,2)/dE;
@@ -50,29 +51,35 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
       Elr[ii*Nc + jj] = std::complex <double> (energies[Ik + ii] - energies[Ic + jj], 0);
     }
   }
+#ifdef DEBUG_ANALYTIC
+  std::cout << std::endl;
+  std::cout << "Energy gaps:" << std::endl;
   for (int ii = 0; ii < Nc*Nk; ii++) {
     std::cout << Elr[ii] << " ";
   }
   std::cout << std::endl;
   std::cout << std::endl;
+#endif
 
   // Create matrix of prefactors for each QC (n) state
   std::complex <double> pref;
-  std::vector<std::complex <double>> prefQC (Nk, std::complex <double> (0.0, 0.0));
+  std::vector<std::complex <double>> prefQC (Nk*Nc, std::complex <double> (0.0, 0.0));
   for (int ii = 0; ii < Nk; ii++) {
     // V*c_l/(E_{lr} + i\kappa)
     pref = Vee*(std::complex <double> (startWfn[Ik + ii], startWfn[Ik + N + ii]));
     std::cout << startWfn[Ik + ii] << "," << pref << " ";
     for (int jj = 0; jj < Nc; jj++) {
-      prefQC[jj] = pref/(Elr[ii*Nc + jj] + CI*K);
+      prefQC[ii*Nc + jj] = pref/(Elr[ii*Nc + jj] + CI*K);
     }
   }
-  std::cout << std::endl;
+#ifdef DEBUG_ANALYTIC
   std::cout << std::endl;
   for (int ii = 0; ii < Nc*Nk; ii++) {
     std::cout << prefQC[ii] << " ";
   }
   std::cout << std::endl;
+  std::cout << std::endl;
+#endif
 
   // calculate wavefunction coefficients on electron-accepting side over time
   std::vector<std::complex <double>> crt (Nc*p->numOutputSteps, std::complex <double> (0.0, 0.0));

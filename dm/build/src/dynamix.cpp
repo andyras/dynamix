@@ -870,7 +870,6 @@ int main (int argc, char * argv[]) {
     updateWfn(y, wfnt, 0, &p);
   }
   // the vector yout has the same dimensions as y
-  N_VPrint_Serial(y);
   yout = N_VClone(y);
 
 #ifdef DEBUG
