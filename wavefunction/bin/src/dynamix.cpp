@@ -20,7 +20,7 @@
 #include "numerical.h"
 
 /* DEBUG compiler flag: turn on to generate basic debug outputs.         */
-//#define DEBUG
+#define DEBUG
 // DEBUG2 flag: turn on for more numerical output
 //#define DEBUG2
 /* DANGER! Only turn on DEBUGf for small test runs, otherwise output is       */
@@ -2550,7 +2550,7 @@ int main (int argc, char * argv[]) {
  }
  else if (bulk_Gauss) {
   Build_k_pops_Gaussian(k_pops, k_energies, k_bandedge,
-                        bulkGaussSigma, bulkGaussMu, Nk);   // populate k states with FDD
+                        bulkGaussSigma, bulkGaussMu, Nk);   // populate k states with Gaussian
   Initialize_array(l_pops, Nl, 0.0);		// populate l states (all 0 to start off)
   Initialize_array(c_pops, Nc, 0.0);		// QD states empty to start
  }
