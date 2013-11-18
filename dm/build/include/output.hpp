@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 
+#include "conversions.hpp"
 #include "numerical.hpp"
 #include "fftmanip.hpp"
 #include "params.hpp"
@@ -77,6 +78,8 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
 void outputEnergy(char * fileName, struct PARAMETERS * p);
+
+void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p);
 
 void outputTimes(char * fileName, struct PARAMETERS * p);
 

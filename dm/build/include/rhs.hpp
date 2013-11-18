@@ -13,8 +13,6 @@
 #include "numerical.hpp"
 #include "omp.h"
 
-void updateHamiltonian(PARAMETERS * p, realtype t);
-
 int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
