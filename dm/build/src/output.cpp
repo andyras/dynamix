@@ -408,6 +408,8 @@ void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p,
   double ZERO = 0.0;
   int INC = 1;
 
+  std::ofstream output(fileName);
+
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     // update Hamiltonian
     if (p->laser_on || p->torsion) {
@@ -421,8 +423,10 @@ void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p,
     ee[ii] = DDOT(&N, &wfnt[ii*N*2], &INC, &psiH[0], &INC);
     // take dot product of \bra{\psi(t)} with Hpsi(t) (imag part)
     ee[ii] += DDOT(&N, &wfnt[ii*N*2 + N], &INC, &psiH[N], &INC);
-    std::cout << ee[ii] << std::endl;
+    output << p->times[ii] << " " << ee[ii] << std::endl;
   }
+
+  output.close();
 
   return;
 }
