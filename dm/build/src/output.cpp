@@ -392,20 +392,36 @@ void outputEnergy(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Outputs energy expectation value over time */
-void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p) {
+void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p,
+    double * wfnt) {
   // allocate array to hold matrix-vector product
   std::vector<double> psiHvec (2*p->NEQ, 0.0);
   double * psiH = &(psiHvec[0]);
+  // array of energy expectation values
+  std::vector<double> ee (p->numOutputSteps, 0.0);
 
-  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+  double * H = &(p->H[0]);
+  int N = p->NEQ;
+
+  char TRANS = 'n';
+  double ONE = 1.0;
+  double ZERO = 0.0;
+  int INC = 1;
+
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     // update Hamiltonian
-    updateHamiltonian(p, ii*p->tout/p->numOutputSteps);
-    // take product \hat{H}(t)\ket{\psi(t)}
-    // DGEMV
+    if (p->laser_on || p->torsion) {
+      updateHamiltonian(p, ii*p->tout/p->numOutputSteps);
+    }
+    // take product \hat{H}(t)\ket{\psi(t)} (real part)
+    DGEMV(&TRANS, &N, &N, &ONE, &H[0], &N, &wfnt[ii*N*2], &INC, &ZERO, &psiH[0], &INC);
+    // take product \hat{H}(t)\ket{\psi(t)} (imag part)
+    DGEMV(&TRANS, &N, &N, &ONE, &H[0], &N, &wfnt[ii*N*2 + N], &INC, &ZERO, &psiH[N], &INC);
     // take dot product of \bra{\psi(t)} with Hpsi(t) (real part)
-    // DDOT
+    ee[ii] = DDOT(&N, &wfnt[ii*N*2], &INC, &psiH[0], &INC);
     // take dot product of \bra{\psi(t)} with Hpsi(t) (imag part)
-    // DDOT
+    ee[ii] += DDOT(&N, &wfnt[ii*N*2 + N], &INC, &psiH[N], &INC);
+    std::cout << ee[ii] << std::endl;
   }
 
   return;
@@ -834,6 +850,11 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
   // populations in bulk VB
   if (isOutput(outs, "lprobs.out")) {
     outputXProbsWfn("lprobs.out", p->Il, p->Il + p->Nl, wfnt, p);
+  }
+
+  // energy expectation value
+  if (isOutput(outs, "energyexp.out")) {
+    outputEnergyExpWfn("energyexp.out", p, wfnt);
   }
 
   std::cerr << "whooooot" << std::endl;
