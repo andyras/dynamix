@@ -10,10 +10,9 @@ debug=0
 nproc=1
 # method parameters #
 wavefunction=1				# 1 => wavefunction; 0 => density matrix
-coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_{ii} only
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
-analytical=1				# turn on analytical propagation
+analytical=0				# turn on analytical propagation
 rta=0					# use relaxation time approximation (RTA)
 dephasing=0				# turn on dephasing (gamma2)
 progressFile=1				# create file to show progress of run
@@ -34,7 +33,7 @@ Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
-#bulkGaussSigma=0.0032			# width of initial Gaussian in bulk (a.u.)
+#bulkGaussSigma=0.002217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussSigma=0.001			# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.015			# position of initial Gaussian above band edge (a.u.)
 me=0.078				# effective mass of electron
@@ -80,7 +79,6 @@ return
 
 [[Output Files]]
 allprobs.out
-analytic_tcprob.out
 bprobs.out
 #cmax_first.out
 #cmax_first_t.out

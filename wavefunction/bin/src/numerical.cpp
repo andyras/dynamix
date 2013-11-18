@@ -1,5 +1,7 @@
 #include "numerical.h"
 
+//#define DEBUG_NUMERICAL
+
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
  */
@@ -93,18 +95,21 @@ void Build_k_pops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, re
 
 /* populates a set of states according to a Gaussian distribution. */
 void Build_k_pops_Gaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
+#ifdef DEBUG_NUMERICAL
+  std::cout << "Conduction band edge is " << kBandEdge << std::endl;
+  std::cout << "Gaussian mu is          " << mu << std::endl;
+  std::cout << "Gaussian sigma is       " << sigma << std::endl;
+  std::cout << "Number of k states is   " << Nk << std::endl;
+#endif
 
- int i;
-
- for (i = 0; i < Nk; i++) {
-  kPops[i] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
-#ifdef DEBUG
- cout << "\nk population at state " << i << " is: "
-      << sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[i]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+ for (int ii = 0; ii < Nk; ii++) {
+  kPops[ii] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+#ifdef DEBUG_NUMERICAL
+  std::cout << "\nk population at state " << ii << " is: " << kPops[ii];
 #endif
  }
-#ifdef DEBUG
- cout << endl;
+#ifdef DEBUG_NUMERICAL
+ std::cout << std::endl;
 #endif
 }
 

@@ -1,5 +1,6 @@
 #include "numerical.hpp"
 
+//#define DEBUG_NUMERICAL
 //#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
 //#define DEBUG_UPDATEWFN
@@ -150,15 +151,21 @@ void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, real
 
 /* populates a set of states according to a Gaussian distribution. */
 void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
+#ifdef DEBUG_NUMERICAL
+  std::cout << "Conduction band edge is " << kBandEdge << std::endl;
+  std::cout << "Gaussian mu is          " << mu << std::endl;
+  std::cout << "Gaussian sigma is       " << sigma << std::endl;
+  std::cout << "Number of k states is   " << Nk << std::endl;
+#endif
 
   for (int ii = 0; ii < Nk; ii++) {
-    kPops[ii] = exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
-#ifdef DEBUG
-    std::cout << "\nk population at state " << ii << " is: "
-      << exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+    // take the square root so that populations have proper width given by sigma
+    kPops[ii] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+#ifdef DEBUG_NUMERICAL
+    std::cout << "\nk population at state " << ii << " is: " << kPops[ii];
 #endif
   }
-#ifdef DEBUG
+#ifdef DEBUG_NUMERICAL
   std::cout << std::endl;
 #endif
 }
@@ -397,8 +404,8 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 
 #ifdef DEBUG
   std::cout << "\nCoupling matrix:\n";
-  for (ii = 0; ii < p->NEQ; ii++) {
-    for (jj = 0; jj < p->NEQ; jj++)
+  for (int ii = 0; ii < p->NEQ; ii++) {
+    for (int jj = 0; jj < p->NEQ; jj++)
       std::cout << std::scientific << vArray[ii][jj] << " ";
     std::cout << std::endl;
   }

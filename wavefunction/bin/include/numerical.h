@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <nvector/nvector_serial.h>
+#include <iostream>
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
