@@ -238,6 +238,87 @@ void outputIntegralDM(const std::string fileName, const int start, const int end
 }
 
 /* Output the integrated population on a set of states. */
+void outputIntegratedDM(const std::string fileName, const int start, const int end,
+    const realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "Creating file " << fileName << std::endl;
+#endif
+
+  double summ1 = 0.0;	// accumulator variable, population at current time point
+  double summ2 = 0.0;	// accumulator variable, population at previous time point
+  double total = 0.0;	// actual integral over time
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+
+  // get population at zeroth time point
+  for (int jj = start; jj < end; jj++) {
+    summ2 += dmt[jj*N + jj];
+  }
+
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    // sum of population
+    summ1 = 0.0;
+    for (int jj = start; jj < end; jj++) {
+      summ1 += dmt[ii*2*N2 + jj*N + jj];
+    }
+    // Riemann sum
+    total += (p->times[ii+1] - p->times[ii])*(summ1 + summ2)/2.0;
+    summ2 = summ1;
+  }
+
+  // write to output
+  std::ofstream output(fileName);
+  output << std::setw(8) << std::scientific << total << std::endl;
+  output.close();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Done making file " << fileName << std::endl;
+#endif
+
+  return;
+}
+
+/* Output the integrated population on a set of states. */
+void outputIntegratedWfn(const std::string fileName, const int start, const int end,
+    const realtype * wfnt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "Creating file " << fileName << std::endl;
+#endif
+
+  double summ1 = 0.0;	// accumulator variable, population at current time point
+  double summ2 = 0.0;	// accumulator variable, population at previous time point
+  double total = 0.0;	// actual integral over time
+  int N = p->NEQ;
+
+  // get population at zeroth time point
+  for (int jj = start; jj < end; jj++) {
+    summ2 += pow(wfnt[jj], 2) + pow(wfnt[N + jj], 2);
+  }
+
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    // sum of population
+    summ1 = 0.0;
+    for (int jj = start; jj < end; jj++) {
+      summ1 += pow(wfnt[ii*2*N + jj], 2) + pow(wfnt[ii*2*N + N + jj], 2);
+    }
+    // Riemann sum
+    total += (p->times[ii+1] - p->times[ii])*(summ1 + summ2)/2.0;
+    summ2 = summ1;
+  }
+
+  // write to output
+  std::ofstream output(fileName);
+  output << std::setw(8) << std::scientific << total << std::endl;
+  output.close();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Done making file " << fileName << std::endl;
+#endif
+
+  return;
+}
+
+/* Output the integrated population on a set of states. */
 void outputIntegralWfn(const std::string fileName, const int start, const int end,
     const realtype * wfnt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
@@ -887,6 +968,20 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     outputIntegralWfn("cumItlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
+  // integrated population on QD over all time
+  if (isOutput(outs, "Itkprob.out")) {
+    outputIntegratedWfn("Itkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+  }
+  if (isOutput(outs, "Itcprob.out")) {
+    outputIntegratedWfn("Itcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+  }
+  if (isOutput(outs, "Itbprob.out")) {
+    outputIntegratedWfn("Itbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+  }
+  if (isOutput(outs, "Itlprob.out")) {
+    outputIntegratedWfn("Itlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+  }
+
   // energy expectation value
   if (isOutput(outs, "energyexp.out")) {
     outputEnergyExpWfn("energyexp.out", p, wfnt);
@@ -949,6 +1044,20 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   }
   if (isOutput(outs, "cumItlprob.out")) {
     outputIntegralDM("cumItlprob.out", p->Il, p->Il + p->Nl, dmt, p);
+  }
+
+  // integrated populations over all time
+  if (isOutput(outs, "Itkprob.out")) {
+    outputIntegratedDM("Itkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
+  }
+  if (isOutput(outs, "Itcprob.out")) {
+    outputIntegratedDM("Itcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
+  }
+  if (isOutput(outs, "Itbprob.out")) {
+    outputIntegratedDM("Itbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
+  }
+  if (isOutput(outs, "Itlprob.out")) {
+    outputIntegratedDM("Itlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // norm of DM elements

@@ -91,7 +91,10 @@ bprobs.out
 #c_offdiag.out
 couplings.out
 cprobs.out
+cumItkprob.out
 cumItcprob.out
+cumItbprob.out
+cumItlprob.out
 dmt_z.out
 #dmt_re.out
 #dmt_im.out
@@ -101,8 +104,10 @@ energyexp.out
 fdd.out
 #FTtcprob.out
 ham.out
-#Icprob.out
-#Ikprob.out
+Itkprob.out
+Itcprob.out
+Itbprob.out
+Itlprob.out
 #kmax.out
 kprobs.out
 #kprobs_gnuplot.out
