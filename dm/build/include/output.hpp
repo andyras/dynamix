@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 
+#include "conversions.hpp"
 #include "numerical.hpp"
 #include "fftmanip.hpp"
 #include "params.hpp"
@@ -58,6 +59,18 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 /* prints a square matrix stored as a 2D array */
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
+void outputIntegratedDM(const std::string fileName, const int start, const int end,
+    const realtype * dmt, struct PARAMETERS * p);
+
+void outputIntegratedWfn(const std::string fileName, const int start, const int end,
+    const realtype * wfnt, struct PARAMETERS * p);
+
+void outputIntegralDM(const std::string fileName, const int start, const int end,
+    const realtype * dmt, struct PARAMETERS * p);
+
+void outputIntegralWfn(const std::string fileName, const int start, const int end,
+    const realtype * wfnt, struct PARAMETERS * p);
+
 void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
     struct PARAMETERS * p);
 
@@ -77,6 +90,8 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
 void outputEnergy(char * fileName, struct PARAMETERS * p);
+
+void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p);
 
 void outputTimes(char * fileName, struct PARAMETERS * p);
 

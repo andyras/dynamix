@@ -1,10 +1,96 @@
 #include "numerical.hpp"
 
+//#define DEBUG_NUMERICAL
 //#define DEBUG_BUILDCOUPLING
 //#define DEBUG_UPDATEDM
 //#define DEBUG_UPDATEWFN
 //#define DEBUG_BUILDHAMILTONIAN
 //#define DEBUG_READVECTOR
+
+/* Updates the Hamiltonian with the time-dependent torsional coupling
+ * and laser field.
+ */
+void updateHamiltonian(PARAMETERS * p, realtype t) {
+  // TODO unpack NEQ from p
+
+  // get pointer to H
+  realtype * H = &(p->H)[0];
+
+  //// first handle torsion
+  if (p->torsion) {
+    double torsionValue = p->torsionV->value(t);
+#ifdef DEBUG_TORSION
+    std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
+#endif
+
+    // bridge is off, coupling is between k and c states
+    if (!(p->bridge_on)) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between k and c states" << std::endl;
+#endif
+      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+	for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
+	  H[ii*p->NEQ + jj] = torsionValue;
+	  H[jj*p->NEQ + ii] = torsionValue;
+	}
+      }
+    }
+    // torsion is at first bridge coupling
+    else if (p->torsionSite == 0) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between k states and bridge" << std::endl;
+#endif
+      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+	H[ii*p->NEQ + p->Ib] = torsionValue;
+	H[p->Ib*p->NEQ + ii] = torsionValue;
+      }
+    }
+    // torsion is at last bridge coupling
+    else if (p->torsionSite == p->Nb) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between bridge and c states" << std::endl;
+#endif
+      for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
+	H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
+	H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+      }
+    }
+    // torsion is between bridge sites
+    else {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between bridge sites " << p->torsionSite - 1
+	<< " and " << p->torsionSite << "." << std::endl;
+#endif
+      H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
+      H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
+    }
+  }
+
+  //// now handle pump pulse
+  double laserCoupling = 0.0;
+  if (p->laser_on) {
+    laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase);
+#ifdef DEBUG_RHS
+    std::cout << "Value of laser coupling between valence and conduction bands is " << laserCoupling << std::endl;
+#endif
+    // coupling is between valence and conduction bands
+    for (int ii = p->Il; ii < (p->Il + p->Nl); ii++) {
+      for (int jj = p->Ik; jj < (p->Ik + p->Nk); jj++) {
+	H[(ii)*p->NEQ + jj] = laserCoupling;
+	H[(jj)*p->NEQ + ii] = laserCoupling;
+      }
+    }
+  }
+
+  // make sparse version of Hamiltonian
+  int job [6] = {0, 0, 0, 2, p->NEQ2, 1};
+  int info = 0;
+
+  mkl_ddnscsr(&job[0], &(p->NEQ), &(p->NEQ), &(p->H)[0], &(p->NEQ), &(p->H_sp)[0],
+              &(p->H_cols)[0], &(p->H_rowind)[0], &info);
+
+  return;
+}
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
@@ -150,15 +236,21 @@ void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, real
 
 /* populates a set of states according to a Gaussian distribution. */
 void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
+#ifdef DEBUG_NUMERICAL
+  std::cout << "Conduction band edge is " << kBandEdge << std::endl;
+  std::cout << "Gaussian mu is          " << mu << std::endl;
+  std::cout << "Gaussian sigma is       " << sigma << std::endl;
+  std::cout << "Number of k states is   " << Nk << std::endl;
+#endif
 
   for (int ii = 0; ii < Nk; ii++) {
-    kPops[ii] = exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2)));
-#ifdef DEBUG
-    std::cout << "\nk population at state " << ii << " is: "
-      << exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+    // take the square root so that populations have proper width given by sigma
+    kPops[ii] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
+#ifdef DEBUG_NUMERICAL
+    std::cout << "\nk population at state " << ii << " is: " << kPops[ii];
 #endif
   }
-#ifdef DEBUG
+#ifdef DEBUG_NUMERICAL
   std::cout << std::endl;
 #endif
 }
@@ -397,8 +489,8 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
 
 #ifdef DEBUG
   std::cout << "\nCoupling matrix:\n";
-  for (ii = 0; ii < p->NEQ; ii++) {
-    for (jj = 0; jj < p->NEQ; jj++)
+  for (int ii = 0; ii < p->NEQ; ii++) {
+    for (int jj = 0; jj < p->NEQ; jj++)
       std::cout << std::scientific << vArray[ii][jj] << " ";
     std::cout << std::endl;
   }

@@ -11,9 +11,12 @@
 #include <iostream>
 #include <stdexcept>
 #include <nvector/nvector_serial.h>
+#include <mkl.h>
 
 #include "params.hpp"
 #include "constants.hpp"
+
+void updateHamiltonian(PARAMETERS * p, realtype t);
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.

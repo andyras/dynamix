@@ -26,6 +26,7 @@
 #include "plots.hpp"
 #include "constants.hpp"
 #include "conversions.hpp"
+#include "analytic.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
 //#define DEBUG
@@ -101,27 +102,13 @@ int main (int argc, char * argv[]) {
 #endif
 
   // OPEN LOG FILE; PUT IN START TIME //
-  try {
-    if (outs.at("log.out")) {
-      log = fopen("log.out", "w");			// note that this file is closed at the end of the program
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "log.out")) {
+    log = fopen("log.out", "w");			// note that this file is closed at the end of the program
   }
   time(&startRun);
   currentTime = localtime(&startRun);
-  try {
-    if (outs.at("log.out")) {
-      fprintf(log, "Run started at %s\n", asctime(currentTime));
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "log.out")) {
+    fprintf(log, "Run started at %s\n", asctime(currentTime));
   }
 
   // read in parameters from parameter bash script
@@ -291,16 +278,9 @@ int main (int argc, char * argv[]) {
   std::cout << "torsionSite is " << p.torsionSite << std::endl;
 #endif
 
-  try {
-    if (outs.at("log.out")) {
-      // make a note about the laser intensity.
-      fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: Warning: no log file will be created" << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "log.out")) {
+    // make a note about the laser intensity.
+    fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
   }
 
   // Error checking
@@ -581,15 +561,8 @@ int main (int argc, char * argv[]) {
     wavefunction[p.Il + ii] = l_pops[ii];
   }
 
-  try {
-    if (outs.at("psi_start.out")) {
-      outputWavefunction(wavefunction, p.NEQ);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "psi_start.out")) {
+    outputWavefunction(wavefunction, p.NEQ);
   }
 
   // Give all coefficients a random phase
@@ -668,38 +641,31 @@ int main (int argc, char * argv[]) {
     V[ii] = new realtype [p.NEQ];
   buildCoupling(V, &p, outs);
 
-  try {
-    if (outs.at("log.out")) {
-      // make a note in the log about system timescales
-      double tau = 0;		// fundamental system timescale
-      if (p.Nk == 1) {
-	fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
-      }
-      else {
-	if (p.bridge_on) {
-	  if (p.scale_bubr) {
-	    tau = 1.0/(2*p.Vbridge[0]*M_PI);
-	  }
-	  else {
-	    tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vbridge[0],2)*M_PI);
-	  }
+  if (isOutput(outs, "log.out")) {
+    // make a note in the log about system timescales
+    double tau = 0;		// fundamental system timescale
+    if (p.Nk == 1) {
+      fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
+    }
+    else {
+      if (p.bridge_on) {
+	if (p.scale_bubr) {
+	  tau = 1.0/(2*p.Vbridge[0]*M_PI);
 	}
 	else {
-	  if (p.scale_buqd) {
-	    tau = 1.0/(2*p.Vnobridge[0]*M_PI);
-	  }
-	  else {
-	    tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vnobridge[0],2)*M_PI);
-	  }
+	  tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vbridge[0],2)*M_PI);
 	}
-	fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
       }
+      else {
+	if (p.scale_buqd) {
+	  tau = 1.0/(2*p.Vnobridge[0]*M_PI);
+	}
+	else {
+	  tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vnobridge[0],2)*M_PI);
+	}
+      }
+      fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
     }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
   }
 
   // density matrix
@@ -776,6 +742,9 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
     std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
 #endif
+    // Add initial DM to parameters.
+    p.startDM.resize(2*p.NEQ2);
+    memcpy(&(p.startDM[0]), &(dm[0]), 2*p.NEQ2*sizeof(double));
   }
   // wavefunction
   else {
@@ -808,6 +777,10 @@ int main (int argc, char * argv[]) {
     if (fabs(summ - 1.0) > 1e-12) {
       std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
     }
+
+    // Add initial wavefunction to parameters.
+    p.startWfn.resize(2*p.NEQ);
+    memcpy(&(p.startWfn[0]), &(wavefunction[0]), 2*p.NEQ*sizeof(double));
   }
 
   // build Hamiltonian
@@ -834,7 +807,7 @@ int main (int argc, char * argv[]) {
   int info = 0;
 
   mkl_ddnscsr(&job[0], &(p.NEQ), &(p.NEQ), &(p.H)[0], &(p.NEQ), &(p.H_sp)[0],
-              &(p.H_cols)[0], &(p.H_rowind)[0], &info);
+      &(p.H_cols)[0], &(p.H_rowind)[0], &info);
 
   // DONE PREPROCESSING //
 
@@ -862,7 +835,6 @@ int main (int argc, char * argv[]) {
     updateWfn(y, wfnt, 0, &p);
   }
   // the vector yout has the same dimensions as y
-  N_VPrint_Serial(y);
   yout = N_VClone(y);
 
 #ifdef DEBUG
@@ -963,18 +935,11 @@ int main (int argc, char * argv[]) {
     // finalize log file //
     time(&endRun);
     currentTime = localtime(&endRun);
-    try {
-      if (outs.at("log.out")) {
-	fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
-	fprintf(log, "Run ended at %s\n", asctime(currentTime));
-	fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
-	fclose(log);					// note that the log file is opened after variable declaration
-      }
-    }
-    catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-      std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+    if (isOutput(outs, "log.out")) {
+      fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
+      fprintf(log, "Run ended at %s\n", asctime(currentTime));
+      fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
+      fclose(log);					// note that the log file is opened after variable declaration
     }
     if (p.progressStdout) {
       printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
@@ -988,12 +953,17 @@ int main (int argc, char * argv[]) {
       computeWfnOutput(wfnt, outs, &p);
     }
     else {
-  std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
+      std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
       computeDMOutput(dmt, outs, &p);
     }
 #ifdef DEBUG
     std::cout << "done computing outputs" << std::endl;
 #endif
+
+    // do analytical propagation
+    if (p.analytical && (! p.bridge_on)) {
+      computeAnalyticOutputs(outs, &p);
+    }
   }
 
 #ifdef DEBUG

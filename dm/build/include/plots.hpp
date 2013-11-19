@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <map>
 
+#include "output.hpp"
 #include "params.hpp"
 
 void makePlots(std::map<const std::string, bool> &outs, struct PARAMETERS * p);
