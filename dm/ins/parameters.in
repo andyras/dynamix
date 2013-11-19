@@ -10,6 +10,7 @@ debug=0
 nproc=1
 # method parameters #
 wavefunction=1				# 1 => wavefunction; 0 => density matrix
+coherent=0				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
