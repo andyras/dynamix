@@ -193,6 +193,93 @@ void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
   return;
 }
 
+/* Output the integrated population on a set of states. */
+void outputIntegralDM(const std::string fileName, const int start, const int end,
+    const realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "Creating file " << fileName << std::endl;
+#endif
+  std::ofstream output(fileName);
+
+  double summ1 = 0.0;	// accumulator variable, population at current time point
+  double summ2 = 0.0;	// accumulator variable, population at previous time point
+  double total = 0.0;	// actual integral over time
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+
+  // get population at zeroth time point
+  for (int jj = start; jj < end; jj++) {
+    summ2 += dmt[jj*N + jj];
+  }
+
+  // output first time point
+  output << std::setw(8) << std::scientific << p->times[0] << " " << 0 << std::endl;
+
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    output << std::setw(8) << std::scientific << p->times[ii] << " ";
+    summ1 = 0.0;
+    // sum of population
+    for (int jj = start; jj < end; jj++) {
+      summ1 += dmt[ii*2*N2 + jj*N + jj];
+    }
+    // Riemann sum
+    total += (p->times[ii+1] - p->times[ii])*(summ1 + summ2)/2.0;
+    summ2 = summ1;
+    output << std::setw(8) << std::scientific << total << std::endl;
+  }
+
+  output.close();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Done making file " << fileName << std::endl;
+#endif
+
+  return;
+}
+
+/* Output the integrated population on a set of states. */
+void outputIntegralWfn(const std::string fileName, const int start, const int end,
+    const realtype * wfnt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "Creating file " << fileName << std::endl;
+#endif
+  std::ofstream output(fileName);
+
+  double summ1 = 0.0;	// accumulator variable, population at current time point
+  double summ2 = 0.0;	// accumulator variable, population at previous time point
+  double total = 0.0;	// actual integral over time
+  int N = p->NEQ;
+
+  // get population at zeroth time point
+  for (int jj = start; jj < end; jj++) {
+    summ2 += pow(wfnt[jj], 2) + pow(wfnt[N + jj], 2);
+  }
+
+  // output first time point
+  output << std::setw(8) << std::scientific << p->times[0] << " " << 0 << std::endl;
+
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    output << std::setw(8) << std::scientific << p->times[ii] << " ";
+    summ1 = 0.0;
+    // sum of population
+    for (int jj = start; jj < end; jj++) {
+      summ1 += pow(wfnt[ii*2*N + jj], 2) + pow(wfnt[ii*2*N + N + jj], 2);
+    }
+    // Riemann sum
+    total += (p->times[ii+1] - p->times[ii])*(summ1 + summ2)/2.0;
+    summ2 = summ1;
+    output << std::setw(8) << std::scientific << total << std::endl;
+  }
+
+  output.close();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Done making file " << fileName << std::endl;
+#endif
+
+  return;
+}
+
 /* Output the population in each state over time.  This function takes
  * the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
@@ -588,103 +675,68 @@ void outputRTA(std::map<const std::string, bool> &outs,
       fdd_t[kk*p->Nk + ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
     }
   }
-  try {
-    if (outs.at("mu.out")) {
-      std::ofstream mu_out("mu.out");
+  if (isOutput(outs, "mu.out")) {
+    std::ofstream mu_out("mu.out");
     std::cout << "WHOOO " << std::endl << std::endl;
-      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
-      }
-      mu_out.close();
-
-#ifdef DEBUG_OUTPUT
-      std::cout << "\nDone making mu.out" << std::endl;
-#endif
+    for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+      mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
     }
-  }
-  catch (const std::out_of_range& oor) {
+    mu_out.close();
+
 #ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cout << "\nDone making mu.out" << std::endl;
 #endif
   }
 
-  try {
-    if (outs.at("temp.out")) {
-      std::ofstream temp_out("temp.out");
-      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	temp_out << p->times[kk] << " " << temp_t[kk]*AU2K << std::endl;
-      }
-      temp_out.close();
-
-#ifdef DEBUG_OUTPUT
-      std::cout << "\nDone making temp.out" << std::endl;
-#endif
+  if (isOutput(outs, "temp.out")) {
+    std::ofstream temp_out("temp.out");
+    for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+      temp_out << p->times[kk] << " " << temp_t[kk]*AU2K << std::endl;
     }
-  }
-  catch (const std::out_of_range& oor) {
+    temp_out.close();
+
 #ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cout << "\nDone making temp.out" << std::endl;
 #endif
   }
 
-  try {
-    if (outs.at("ne.out")) {
-      std::ofstream ne_out("ne.out");
-      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
-      }
-      ne_out.close();
-
-#ifdef DEBUG_OUTPUT
-      std::cout << "\nDone making ne.out" << std::endl;
-#endif
+  if (isOutput(outs, "ne.out")) {
+    std::ofstream ne_out("ne.out");
+    for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+      ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
     }
-  }
-  catch (const std::out_of_range& oor) {
+    ne_out.close();
+
 #ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cout << "\nDone making ne.out" << std::endl;
 #endif
   }
 
-  try {
-    if (outs.at("ekin.out")) {
-      std::ofstream ekin_out("ekin.out");
-      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
-      }
-      ekin_out.close();
-
-#ifdef DEBUG_OUTPUT
-      std::cout << "\nDone making ekin.out" << std::endl;
-#endif
+  if (isOutput(outs, "ekin.out")) {
+    std::ofstream ekin_out("ekin.out");
+    for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+      ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
     }
-  }
-  catch (const std::out_of_range& oor) {
+    ekin_out.close();
+
 #ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cout << "\nDone making ekin.out" << std::endl;
 #endif
   }
 
-  try {
-    if (outs.at("fdd.out")) {
-      std::ofstream fdd_out("fdd.out");
-      for (int kk = 0; kk <= p->numOutputSteps; kk++) {
-	fdd_out << p->times[kk];
-	for (int ii = 0; ii < p->Nk; ii++) {
-	  fdd_out << " " << fdd_t[kk*p->Nk + ii];
-	}
-	fdd_out << std::endl;
+  if (isOutput(outs, "fdd.out")) {
+    std::ofstream fdd_out("fdd.out");
+    for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+      fdd_out << p->times[kk];
+      for (int ii = 0; ii < p->Nk; ii++) {
+	fdd_out << " " << fdd_t[kk*p->Nk + ii];
       }
-      fdd_out.close();
+      fdd_out << std::endl;
+    }
+    fdd_out.close();
 
 #ifdef DEBUG_OUTPUT
-      std::cout << "\nDone making fdd.out" << std::endl;
-#endif
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
+    std::cout << "\nDone making fdd.out" << std::endl;
 #endif
   }
 
@@ -692,23 +744,23 @@ void outputRTA(std::map<const std::string, bool> &outs,
 }
 
 /* Outputs the laser pump intensity over time */
-  void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
-    std::ofstream o(fileName);
-    for (int ii = 0; ii <= p->numOutputSteps; ii++) {
-      o << p->times[ii] << " "
-	<< gaussPulse(p->times[ii], p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase)
-       	<< std::endl;
-    }
-    o.close();
-
-    return;
+void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
+  std::ofstream o(fileName);
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+    o << p->times[ii] << " "
+      << gaussPulse(p->times[ii], p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase)
+      << std::endl;
   }
+  o.close();
+
+  return;
+}
 
 /* output couplings as a matrix */
 void outputCouplings(struct PARAMETERS * p, char * fileName) {
   std::ofstream o(fileName);
   //// This output is the same as the Hamiltonian, but with diagonal elements zero.
-  
+
   // first element of first row will be zero
   o << 0;
   // rest of first row
@@ -741,63 +793,28 @@ void outputCouplings(struct PARAMETERS * p, char * fileName) {
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
   // torsion-mediated coupling
-  try {
-    if ((p->torsion) && (outs.at("torsion.out"))) {
-      outputTorsion(p, "torsion.out");
-    }
+  if ((p->torsion) && (isOutput(outs, "torsion.out"))) {
+    outputTorsion(p, "torsion.out");
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  
+
   // hamiltonian at time zero
-  try {
-    if (outs.at("ham.out")) {
-      // &(p->H)[0] is address of first element of array in vector
-      outputSquareMatrix(&(p->H)[0], p->NEQ, "ham.out");
-    }
+  if (isOutput(outs, "ham.out")) {
+    // &(p->H)[0] is address of first element of array in vector
+    outputSquareMatrix(&(p->H)[0], p->NEQ, "ham.out");
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  
+
   // pump intensity
-  try {
-    if (outs.at("pump_intensity.out")) {
-      outputPumpIntensity(p, "pump_intensity.out");
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "pump_intensity.out")) {
+    outputPumpIntensity(p, "pump_intensity.out");
   }
 
-  try {
-    // energies of all states
-    if (outs.at("energies.out")) {
-      outputEnergy("energies.out", p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // energies of all states
+  if (isOutput(outs, "energies.out")) {
+    outputEnergy("energies.out", p);
   }
 
-  try {
-    if (outs.at("couplings.out")) {
-      outputCouplings(p, "couplings.out");
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "couplings.out")) {
+    outputCouplings(p, "couplings.out");
   }
 
   return;
@@ -856,6 +873,20 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     outputXProbsWfn("lprobs.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
+  // integrated population on QD
+  if (isOutput(outs, "cumItkprob.out")) {
+    outputIntegralWfn("cumItkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+  }
+  if (isOutput(outs, "cumItcprob.out")) {
+    outputIntegralWfn("cumItcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+  }
+  if (isOutput(outs, "cumItbprob.out")) {
+    outputIntegralWfn("cumItbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+  }
+  if (isOutput(outs, "cumItlprob.out")) {
+    outputIntegralWfn("cumItlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+  }
+
   // energy expectation value
   if (isOutput(outs, "energyexp.out")) {
     outputEnergyExpWfn("energyexp.out", p, wfnt);
@@ -869,164 +900,80 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
 
-  try {
-    // total population
-    if (outs.at("totprob.out")) {
-      outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // total population
+  if (isOutput(outs, "totprob.out")) {
+    outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
   }
 
-  try {
-    // populations in k states
-    if (outs.at("kprobs.out")) {
-      outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
-    }
+  // populations in k states
+  if (isOutput(outs, "kprobs.out")) {
+    outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  try {
-    if (outs.at("tkprob.out")) {
-      outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "tkprob.out")) {
+    outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
 
-  try {
-    // populations in c states
-    if (outs.at("cprobs.out")) {
-      outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
-    }
+  // populations in c states
+  if (isOutput(outs, "cprobs.out")) {
+    outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  try {
-    if (outs.at("tcprob.out")) {
-      outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "tcprob.out")) {
+    outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
 
-  try {
-    // populations in b states
-    if (outs.at("bprobs.out")) {
-      outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
-    }
+  // populations in b states
+  if (isOutput(outs, "bprobs.out")) {
+    outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  try {
-    if (outs.at("tbprob.out")) {
-      outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "tbprob.out")) {
+    outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
 
-  try {
-    // populations in l states
-    if (outs.at("lprobs.out")) {
-      outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
-    }
+  // populations in l states
+  if (isOutput(outs, "lprobs.out")) {
+    outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
-  }
-  try {
-    if (outs.at("tlprob.out")) {
-      outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "tlprob.out")) {
+    outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
-  try {
-    // norm of DM elements
-    if (outs.at("dmt_z.out")) {
-      outputDMZ("dmt_z.out", dmt, p);
-    }
+  // integrated populations
+  if (isOutput(outs, "cumItkprob.out")) {
+    outputIntegralDM("cumItkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "cumItcprob.out")) {
+    outputIntegralDM("cumItcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
-
-  try {
-    // norm of DM elements
-    if (outs.at("dmt_re.out")) {
-      outputDMRe("dmt_re.out", dmt, p);
-    }
+  if (isOutput(outs, "cumItbprob.out")) {
+    outputIntegralDM("cumItbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  if (isOutput(outs, "cumItlprob.out")) {
+    outputIntegralDM("cumItlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
-  try {
-    // norm of DM elements
-    if (outs.at("dmt_im.out")) {
-      outputDMIm("dmt_im.out", dmt, p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // norm of DM elements
+  if (isOutput(outs, "dmt_z.out")) {
+    outputDMZ("dmt_z.out", dmt, p);
   }
 
-  try {
-    // all time steps
-    if (outs.at("times.out")) {
-      outputTimes("times.out", p);
-    }
-  }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+  // norm of DM elements
+  if (isOutput(outs, "dmt_re.out")) {
+    outputDMRe("dmt_re.out", dmt, p);
   }
 
-  try {
-    // expectation value of energy
-    if (outs.at("energyexp.out")) {
-      outputEnergyExp("energyexp.out", dmt, p);
-    }
+  // norm of DM elements
+  if (isOutput(outs, "dmt_im.out")) {
+    outputDMIm("dmt_im.out", dmt, p);
   }
-  catch (const std::out_of_range& oor) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "Out of Range error: " << oor.what() << std::endl;
-#endif
+
+  // all time steps
+  if (isOutput(outs, "times.out")) {
+    outputTimes("times.out", p);
+  }
+
+  // expectation value of energy
+  if (isOutput(outs, "energyexp.out")) {
+    outputEnergyExp("energyexp.out", dmt, p);
   }
 
   // RTA outputs are tied together

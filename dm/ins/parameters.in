@@ -19,10 +19,10 @@ dephasing=0				# turn on dephasing (gamma2)
 progressFile=1				# create file to show progress of run
 progressStdout=1			# show progress in stdout
 # numerical parameters #
-abstol=1.0e-10				# absolute tolerance
-reltol=1.0e-10				# relative tolerance
+abstol=1.0e-8				# absolute tolerance
+reltol=1.0e-8				# relative tolerance
 tout=5000				# final time reached by solver (a.u.)
-numsteps=60000				# number of timesteps
+numsteps=300				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
@@ -91,6 +91,7 @@ bprobs.out
 #c_offdiag.out
 couplings.out
 cprobs.out
+cumItcprob.out
 dmt_z.out
 #dmt_re.out
 #dmt_im.out
