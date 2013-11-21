@@ -115,6 +115,10 @@ kprobs.out
 log.out
 mu.out
 ne.out
+#peaksTkprob.out
+peaksTcprob.out
+#peaksTbprob.out
+#peaksTlprob.out
 #projections.out
 #psi2_start_e.out
 #psi_e_t.out
