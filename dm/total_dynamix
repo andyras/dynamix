@@ -25,7 +25,13 @@ else
 fi
 
 cd build
-ncores=$(grep processor /proc/cpuinfo | wc -l)
+if [[ $(uname) == "Darwin" ]]; then
+  ncores=$(sysctl hw.ncpu | awk '{print $2}')
+elif [[ $(uname) == "Linux" ]]; then
+  ncores=$(grep processor /proc/cpuinfo | wc -l)
+else
+  ncores=1
+fi
 if [ $debug == 1 ]; then
   make clean
   make -j ${ncores} CPP=$CPP DEBUG_MAKE="1"
