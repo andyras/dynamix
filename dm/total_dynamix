@@ -3,6 +3,7 @@
 # Function for formatted echo
 
 function fecho {
+# ISO 8601 time stamp
 echo "### $(date -u +"%Y-%m-%dT%H:%M:%SZ") ${1}"
 }
 
