@@ -105,6 +105,9 @@ void outputRTA(std::map<const std::string, bool> &outs,
 
 void outputCouplings(struct PARAMETERS * p, char * fileName);
 
+void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
+    struct PARAMETERS * p);
+
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 
