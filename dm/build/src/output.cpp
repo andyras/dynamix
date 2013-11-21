@@ -199,7 +199,7 @@ void outputIntegralDM(const std::string fileName, const int start, const int end
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
 
   double summ1 = 0.0;	// accumulator variable, population at current time point
   double summ2 = 0.0;	// accumulator variable, population at previous time point
@@ -267,7 +267,7 @@ void outputIntegratedDM(const std::string fileName, const int start, const int e
   }
 
   // write to output
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
   output << std::setw(8) << std::scientific << total << std::endl;
   output.close();
 
@@ -307,7 +307,7 @@ void outputIntegratedWfn(const std::string fileName, const int start, const int 
   }
 
   // write to output
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
   output << std::setw(8) << std::scientific << total << std::endl;
   output.close();
 
@@ -324,7 +324,7 @@ void outputIntegralWfn(const std::string fileName, const int start, const int en
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
 
   double summ1 = 0.0;	// accumulator variable, population at current time point
   double summ2 = 0.0;	// accumulator variable, population at previous time point
