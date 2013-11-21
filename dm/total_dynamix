@@ -3,8 +3,7 @@
 # Function for formatted echo
 
 function fecho {
-timespec=--iso-8601=sec
-echo "### $(date ${timespec}) ${1}"
+echo "### $(date -u +"%Y-%m-%dT%H:%M:%SZ") ${1}"
 }
 
 ## INPUT PARAMETERS ##
@@ -74,7 +73,7 @@ fi
 function backup {
 ## BACK UP FILES ##
 fecho "backing things up..."
-durr=backup/dynamix_$(date ${timespec})
+durr=backup/dynamix_$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 mkdir -p $durr
 cp -rf * $durr &> /dev/null
 fecho "all backed up!"
