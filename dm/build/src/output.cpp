@@ -1,6 +1,6 @@
 #include "output.hpp"
 
-#define DEBUG_OUTPUT
+//#define DEBUG_OUTPUT
 //#define DEBUG_OUTPUTTXPROB
 
 /* returns true if map contains key, otherwise false */

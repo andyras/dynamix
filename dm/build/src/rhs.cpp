@@ -1,7 +1,7 @@
 #include "rhs.hpp"
 
 //#define DEBUG_RHS
-//#define DEBUG_RTA
+#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 //#define DEBUGf
@@ -529,6 +529,150 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
       NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
       NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
 
+      // relaxation
+      NV_Ith_S(ydot, ii*N + jj) -= g2*NV_Ith_S(y, ii*N + jj);
+      NV_Ith_S(ydot, ii*N + jj + N2) -= g2*NV_Ith_S(y, ii*N + jj + N2);
+      NV_Ith_S(ydot, jj*N + ii) -= g2*NV_Ith_S(y, jj*N + ii);
+      NV_Ith_S(ydot, jj*N + ii + N2) -= g2*NV_Ith_S(y, jj*N + ii + N2);
+    }
+  }
+
+#ifdef DEBUGf_DM
+  fprintf(dmf, "%+.7e", t);
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+    }
+  }
+  fprintf(dmf, "\n");
+#endif
+
+  // free fdd
+  delete [] fdd;
+
+  return 0;
+}
+
+/* Right-hand-side equation for density matrix
+ * using relaxation time approximation (RTA) */
+int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
+  dmf = fopen("dmf.out", "w");
+#endif
+
+#ifdef DEBUG_RHS
+  std::cout << "Time " << t << std::endl;
+#endif
+
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  //std::vector<realtype> H = p->H; // copying vector is OK performance-wise
+  realtype * H = &(p->H)[0];
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+  realtype g1 = p->gamma1;
+  realtype g2 = p->gamma2;
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
+  }
+
+  double * yp = N_VGetArrayPointer(y);
+  double * ydotp = N_VGetArrayPointer(ydot);
+
+
+  // initialize ydot
+  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
+#pragma omp parallel for
+  for (int ii = 0; ii < 2*N2; ii++) {
+    NV_Ith_S(ydot, ii) = 0.0;
+  }
+  char TRANSA = 'n';
+  char TRANSB = 'n';
+  char LEFT = 'l';
+  char RGHT = 'r';
+  char UPLO = 'l';
+  double ONE = 1.0;
+  double NEG = -1.0;
+
+  realtype * H_sp = &(p->H_sp)[0];
+  int * columns = &(p->H_cols)[0];
+  int * rowind = &(p->H_rowind)[0];
+
+  // set up MKL variables
+  double beta = 0.0;
+  char matdescra [6] = {'T', // symmetric matrix
+			'L', // lower triangle
+			'N', // non-unit on diagonal
+			'C', // zero-based indexing (C-style)
+			'*', '*'};
+
+			// set beta to zero for first call
+
+  mkl_set_num_threads(p->nproc);
+  // Re(\dot{\rho}) += H*Im(\rho)
+  mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
+             &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
+  
+  // Re(\dot{\rho}) -= Im(\rho)*H
+  DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+
+  // Im(\dot{\rho}) += i*Re(\rho)*H
+  DSYMM(&RGHT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+
+  // Im(\dot{\rho}) -= i*H*Re(\rho)
+  mkl_dcsrmm(&TRANSA, &N, &N, &N, &NEG, &matdescra[0], &H[0], &columns[0],
+             &rowind[0], &rowind[1], &yp[0], &N, &beta, &ydotp[N2], &N);
+
+  //// diagonal; no need to calculate the imaginary part
+  //   get equilibrium FDD populations
+  //std::vector<double> fdd(p->Nk);
+  double * fdd = new double [p->Nk];
+#ifdef DEBUG_RTA
+  std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
+#endif
+  buildFDD(p, y, fdd);
+
+  //// normalize FDD to amount of population in conduction band
+  double fddSum = 0.0;
+  double CBSum = 0.0;
+  for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+    // sum population in FDD
+    fddSum += fdd[ii - p->Ik];
+    // sum population in CB
+    CBSum += NV_Ith_S(y, ii*N + ii);
+  }
+  double fddNorm = CBSum/fddSum;
+#ifdef DEBUG_RTA
+  std::cout << "FDD normalization constant is " << fddNorm << std::endl;
+#endif
+  for (int ii = 0; ii < p->Nk; ii++) {
+    fdd[ii] *= fddNorm;
+  }
+
+  // force conduction band toward Fermi-Dirac distribution
+#pragma omp parallel for
+  for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+    NV_Ith_S(ydot, ii*N + ii) -= g1*(NV_Ith_S(y, ii*N + ii) - fdd[ii]);
+  }
+
+  //// off-diagonal
+#pragma omp parallel for
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < ii; jj++) {
       // relaxation
       NV_Ith_S(ydot, ii*N + jj) -= g2*NV_Ith_S(y, ii*N + jj);
       NV_Ith_S(ydot, ii*N + jj + N2) -= g2*NV_Ith_S(y, ii*N + jj + N2);
