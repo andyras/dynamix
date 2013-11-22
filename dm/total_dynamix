@@ -26,7 +26,7 @@ fi
 
 cd build
 if [[ $(uname) == "Darwin" ]]; then
-  ncores=$(sysctl hw.ncpu | awk '{print $2}')
+  ncores=$(sysctl -n hw.ncpu)
 elif [[ $(uname) == "Linux" ]]; then
   ncores=$(grep processor /proc/cpuinfo | wc -l)
 else
