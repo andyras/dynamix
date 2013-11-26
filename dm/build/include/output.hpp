@@ -85,6 +85,8 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
 
 void outputDMZ(realtype * dmt, struct PARAMETERS * p);
 
+void outputDMCoherences(realtype * dmt, struct PARAMETERS * p);
+
 void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
 
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);

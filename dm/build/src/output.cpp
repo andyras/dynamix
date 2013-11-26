@@ -479,6 +479,49 @@ void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
   return;
 }
 
+/* Outputs the norm of each component of the density matrix */
+void outputDMCoherences(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  fprintf(stderr, "\n\n\noutputting |\\rho_{ij}| in time\n\n\n");
+#endif
+
+  std::ofstream output(fileName);
+  // loop over time steps
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    // loop over first index
+    for (int jj = 0; jj < p->NEQ; jj++) {
+      // first element in row
+      if (jj == 0) {
+	output << std::setw(8) << std::scientific << 0;
+      }
+      else {
+	output << std::setw(8) << std::scientific
+	  << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj],2)
+	      + pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2],2));
+      }
+      // loop over second index
+      for (int kk = 1; kk < p->NEQ; kk++) {
+	if (jj == kk) {
+	  output << " " << std::setw(8) << std::scientific << 0;
+	}
+	else {
+	  output << " " << std::setw(8) << std::scientific
+	    << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk],2)
+		+ pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2],2));
+	}
+      }
+      output << "\n";
+    }
+    output << "\n";
+  }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
+  return;
+}
+
 /* Outputs the real part of each component of the density matrix */
 void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
@@ -1180,6 +1223,11 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   // norm of DM elements
   if (isOutput(outs, "dmt_im.out")) {
     outputDMIm("dmt_im.out", dmt, p);
+  }
+
+  // coherences (magnitude)
+  if (isOutput(outs, "dmCoherences.out")) {
+    outputDMCoherences("dmCoherences.out", dmt, p);
   }
 
   // all time steps
