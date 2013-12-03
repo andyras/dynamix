@@ -954,7 +954,6 @@ int main (int argc, char * argv[]) {
       computeWfnOutput(wfnt, outs, &p);
     }
     else {
-      std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
       computeDMOutput(dmt, outs, &p);
     }
 #ifdef DEBUG
@@ -1024,7 +1023,6 @@ int main (int argc, char * argv[]) {
   delete [] qd_est_diag;
 
   std::cout << "whoo" << std::endl;
-  std::cout << "WHOOOOOOOOOOOOOOOOOOOOOOOOOT" << std::endl;
 
   return 0;
 }

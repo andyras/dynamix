@@ -970,7 +970,9 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   }
 
   //// find time gaps between peaks, last one is zero
-  std::cout << "size of peaks vector is" << peaks.size() << std::endl;
+#ifdef DEBUG_PEAKS
+  std::cout << "size of peaks vector is " << peaks.size() << std::endl;
+#endif
   if (peaks.size() > 1) {	// don't do this with zero or one peak
     for (int ii = 0; ii < (peaks.size()-1); ii++) {
       peaks[ii].nextPeakTime = peaks[ii+1].time - peaks[ii].time;
@@ -1137,7 +1139,6 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     findPeaksWfn("peaksTlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
-  std::cerr << "whooooot" << std::endl;
   return;
 }
 
