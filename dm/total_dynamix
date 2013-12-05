@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# enable extended pattern matching
+shopt -s extglob
+
 # Function for formatted echo
 
 function fecho {
@@ -80,9 +83,10 @@ fi
 function backup {
 ## BACK UP FILES ##
 fecho "backing things up..."
-durr=backup/dynamix_$(date -u +"%Y-%m-%dT%H:%M:%SZ")_${1}
+durr=backup/dynamix_${1}
 mkdir -p $durr
-cp -rf * $durr &> /dev/null
+# cp all but backup dir
+cp -r !(backup) $durr
 fecho "all backed up!"
 }
 
@@ -98,7 +102,7 @@ else
 fi
 }
 
-BACKUP=""
+BACKUP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 ### This is where the script actually starts doing things. ###
 
 fecho "dynamix run starting now..."
