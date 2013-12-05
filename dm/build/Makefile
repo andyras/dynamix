@@ -18,7 +18,7 @@ CPP = icpc
 # optimized CPPFLAGS
 # Intel
 #CPPFLAGS = -O0 -Wall --std=c++11 -openmp
-CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall --std=c++11 -fopenmp -mkl
+CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall --std=c++11 -fopenmp -mkl -no-multibyte-chars
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug

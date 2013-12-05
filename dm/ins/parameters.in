@@ -70,7 +70,7 @@ bridge_on=0
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
-torsion=1				# turn torsion-mediated coupling on or off
+torsion=0				# turn torsion-mediated coupling on or off
 torsionFile=ins/torsion.in
 torsionSite=1				# 0 = coupling between bulk and bridge
 ## END INPUT PARAMETERS ##
