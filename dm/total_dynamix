@@ -80,7 +80,7 @@ fi
 function backup {
 ## BACK UP FILES ##
 fecho "backing things up..."
-durr=backup/dynamix_$(date -u +"%Y-%m-%dT%H:%M:%SZ")_${1}
+durr=backup/dynamix_${1}
 mkdir -p $durr
 cp -rf * $durr &> /dev/null
 fecho "all backed up!"
