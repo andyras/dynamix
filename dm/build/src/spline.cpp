@@ -21,7 +21,7 @@ Spline::Spline(const char * dataFile) {
 
   // for each line, read in the x and y point values
   while (data >> p.x >> p.a) {
-    s.emplace_back(p);
+    s.push_back(p);
   }
 
   // sort the vector of values to ensure they are ordered by x value

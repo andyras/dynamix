@@ -10,7 +10,7 @@ debug=0
 nproc=1
 # method parameters #
 wavefunction=1				# 1 => wavefunction; 0 => density matrix
-coherent=0				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
+coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
@@ -28,7 +28,7 @@ numOutputSteps=300			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.03				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=101					# number of k states to have
+Nk=401					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -36,7 +36,7 @@ valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
 #bulkGaussSigma=0.002217514892873433	# width of initial Gaussian in bulk (a.u.)
 bulkGaussSigma=0.001			# width of initial Gaussian in bulk (a.u.)
-bulkGaussMu=0.015			# position of initial Gaussian above band edge (a.u.)
+bulkGaussMu=0.005			# position of initial Gaussian above band edge (a.u.)
 me=0.078				# effective mass of electron
 mh=0.11					# effective mass of hole
 X2=1512.2873345935727			# "Bohr radius" for material, inverse spacing in k-space
@@ -98,6 +98,7 @@ cumItlprob.out
 dmt_z.out
 #dmt_re.out
 #dmt_im.out
+dmCoherences.out
 ekin.out
 energies.out
 energyexp.out
@@ -115,6 +116,10 @@ kprobs.out
 log.out
 mu.out
 ne.out
+#peaksTkprob.out
+peaksTcprob.out
+#peaksTbprob.out
+#peaksTlprob.out
 #projections.out
 #psi2_start_e.out
 #psi_e_t.out
@@ -142,5 +147,5 @@ populations.plt
 cprobs.plt
 kprobs.plt
 #dmt_z.plt
-#kprobs_movie.plt
+kprobs_movie.plt
 [[End]]

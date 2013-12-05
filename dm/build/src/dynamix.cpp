@@ -868,14 +868,15 @@ int main (int argc, char * argv[]) {
     }
     else {
       if (p.rta) {
-	flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+	//flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+	flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
       }
       else if (p.dephasing) {
 	flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
       }
       else {
-	flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
-	//flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
+	//flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+	flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
       }
     }
 
@@ -953,7 +954,6 @@ int main (int argc, char * argv[]) {
       computeWfnOutput(wfnt, outs, &p);
     }
     else {
-      std::cerr << "NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
       computeDMOutput(dmt, outs, &p);
     }
 #ifdef DEBUG
@@ -1023,7 +1023,6 @@ int main (int argc, char * argv[]) {
   delete [] qd_est_diag;
 
   std::cout << "whoo" << std::endl;
-  std::cout << "WHOOOOOOOOOOOOOOOOOOOOOOOOOT" << std::endl;
 
   return 0;
 }

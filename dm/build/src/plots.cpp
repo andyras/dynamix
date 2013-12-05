@@ -275,11 +275,27 @@ void plotDMt_z(char * fileName, struct PARAMETERS * p) {
 void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
   std::ofstream o(fileName);
 
-  o << "#!/usr/bin/env gnuplot" << std::endl;
+  o << "#!/bin/bash" << std::endl;
   o << std::endl;
-  o << "![ -d img ] && rm -rf img" << std::endl;
-  o << "!mkdir -p img" << std::endl;
-  o << "!transpose -o _t outs/kprobs.out" << std::endl;
+  o << "if ! command -v mencoder &> /dev/null; then" << std::endl;
+  o << "  echo \"ERROR [$0]: need mencoder to run this script\"" << std::endl;
+  o << "  exit" << std::endl;
+  o << "fi" << std::endl;
+  o << "" << std::endl;
+  o << "if ! command -v transpose &> /dev/null; then" << std::endl;
+  o << "  echo \"ERROR [$0]: need 'transpose' program to run this script\"" << std::endl;
+  o << "  exit" << std::endl;
+  o << "fi" << std::endl;
+  o << "" << std::endl;
+  o << "if ! command -v parallel &> /dev/null; then" << std::endl;
+  o << "  echo \"ERROR [$0]: need 'parallel' command to run this script\"" << std::endl;
+  o << "  exit" << std::endl;
+  o << "fi" << std::endl;
+  o << "" << std::endl;
+  o << "function plotNumber {" << std::endl;
+  o << "gnuplot << EOF" << std::endl;
+  o << "set terminal pngcairo font 'Arial-Bold,12'" << std::endl;
+  o << "set output sprintf(\"img/%.5d.png\", ${1})" << std::endl;
   o << std::endl;
   o << "set palette defined(\\" << std::endl;
   o << "0.0    0.8667  0.8667  0.8667,\\" << std::endl;
@@ -301,21 +317,19 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
   o << "1      0.7059  0.0157  0.1490\\" << std::endl;
   o << ")" << std::endl;
   o << std::endl;
-  o << "set terminal pngcairo font 'Arial-Bold,12'" << std::endl;
   o << "set tics scale 0" << std::endl;
   o << "unset key" << std::endl;
-  o << "do for [ii=0:" << p->numOutputSteps << "] {" << std::endl;
-  o << "idx=ii+1" << std::endl;
-  o << "set output sprintf(\"img/%.5d.png\", ii)" << std::endl;
+  o << "idx=${1}+1" << std::endl;
+  o << "set output sprintf(\"img/%.5d.png\", ${1})" << std::endl;
   o << "set multiplot layout 2,1" << std::endl;
   o << std::endl;
   o << "set xrange [0:" << p->kBandWidth << "]" << std::endl;
   o << "set yrange [0:*]" << std::endl;
   o << "set xlabel 'Energy above band edge (a.u.)'" << std::endl;
   o << "set ylabel 'Population in state'" << std::endl;
-  o << "set title sprintf(\"Bulk Populations at t = %.6f a.u.\", ii*"
+  o << "set title sprintf(\"Bulk Populations at t = %.6f a.u.\", ${1}*"
     << p->tout << "/" << p->numOutputSteps << ")" << std::endl;
-  o << "plot 'outs/kprobs_t.out' u ($0*" << p->kBandWidth << "/" << (p->Nk - 1)
+  o << "plot 'outs/kprobs_t.out' u (\\$0*" << p->kBandWidth << "/" << (p->Nk - 1)
     << "):idx every ::1 with filledcurves x1" << std::endl;
   o << std::endl;
   o << "set xrange [0:" << p->tout << "]" << std::endl;
@@ -323,14 +337,22 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
   o << "set xlabel 'Time (a.u.)'" << std::endl;
   o << "set ylabel 'Energy above band edge (a.u.)'" << std::endl;
   o << "set title 'State Populations vs. Energy and Time'" << std::endl;
-  o << "plot '<cut -d \" \" -f 2- outs/kprobs.out' u ($2*" << p->tout << "/"
-    << p->numOutputSteps << "):($1*" << p->kBandWidth << "/" << (p->Nk - 1) << "):3 matrix with image" << std::endl;
+  o << "plot '<cut -d \" \" -f 2- outs/kprobs.out' u (\\$2*" << p->tout << "/"
+    << p->numOutputSteps << "):(\\$1*" << p->kBandWidth << "/" << (p->Nk - 1) << "):3 matrix with image" << std::endl;
   o << "unset multiplot" << std::endl;
+  o << "EOF" << std::endl;
   o << "}" << std::endl;
   o << std::endl;
-  o << "!mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o /dev/null \"mf://img/*.png\"" << std::endl;
-  o << "!mencoder -really-quiet -ovc lavc -lavcopts vcodec=msmpeg4v2:vpass=1:$opt -mf type=png:fps=25 -nosound -o figures/kprobs_movie.avi \"mf://img/*.png\"" << std::endl;
-  o << "!rm -f divx2pass.log" << std::endl;
-  o << "!rm -rf img" << std::endl;
+  o << "export -f plotNumber	# do this so parallel can find the plotNumber command" << std::endl;
+  o << std::endl;
+  o << "rm -rf img" << std::endl;
+  o << "mkdir img" << std::endl;
+  o << "transpose -o _t outs/kprobs.out" << std::endl;
+  o << std::endl;
+  o << "parallel plotNumber ::: {0.." << p->numOutputSteps << "}" << std::endl;
+  o << std::endl;
+  o << "mencoder -really-quiet \"mf://img/*png\" -mf type=png:fps=18 -ovc lavc -o kprobs_movie.avi" << std::endl;
+  o << std::endl;
+  o << "rm -rf img" << std::endl;
   return;
 }

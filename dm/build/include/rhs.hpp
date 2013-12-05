@@ -27,6 +27,8 @@ double b13(double bm, double ekin, double ne, double K1, double K2, double K3, d
 
 int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data);
 
+int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
+
 int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 #endif

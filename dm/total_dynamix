@@ -3,8 +3,8 @@
 # Function for formatted echo
 
 function fecho {
-timespec=--iso-8601=sec
-echo "### $(date ${timespec}) ${1}"
+# ISO 8601 time stamp
+echo "### $(date -u +"%Y-%m-%dT%H:%M:%SZ") ${1}"
 }
 
 ## INPUT PARAMETERS ##
@@ -25,7 +25,13 @@ else
 fi
 
 cd build
-ncores=$(grep processor /proc/cpuinfo | wc -l)
+if [[ $(uname) == "Darwin" ]]; then
+  ncores=$(sysctl -n hw.ncpu)
+elif [[ $(uname) == "Linux" ]]; then
+  ncores=$(grep processor /proc/cpuinfo | wc -l)
+else
+  ncores=1
+fi
 if [ $debug == 1 ]; then
   make clean
   make -j ${ncores} CPP=$CPP DEBUG_MAKE="1"
@@ -74,7 +80,7 @@ fi
 function backup {
 ## BACK UP FILES ##
 fecho "backing things up..."
-durr=backup/dynamix_$(date ${timespec})
+durr=backup/dynamix_$(date -u +"%Y-%m-%dT%H:%M:%SZ")_${1}
 mkdir -p $durr
 cp -rf * $durr &> /dev/null
 fecho "all backed up!"
@@ -92,11 +98,31 @@ else
 fi
 }
 
+BACKUP=""
 ### This is where the script actually starts doing things. ###
 
 fecho "dynamix run starting now..."
 fecho ""
 fecho ""
+
+while getopts ":b:" opt; do
+  case ${opt} in
+    b)
+      # specify name of backup directory
+      do_backup=1
+      BACKUP=${OPTARG}
+      ;;
+    \?)
+      echo "Invalid option: -${OPTARG}" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -${OPTARG} requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
 
 # if modules are available, try to load them.
 if command -v module &> /dev/null; then
@@ -107,7 +133,7 @@ fi
 [ $do_compile == 1 ] && compile
 [ $do_run == 1 ] && run
 [ $do_plot == 1 ] && plot
-[ $do_backup == 1 ] && backup
+[ $do_backup == 1 ] && backup ${BACKUP}
 
 fecho "all done!"
 fecho ""

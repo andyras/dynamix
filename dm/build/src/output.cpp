@@ -1,7 +1,7 @@
 #include "output.hpp"
 
 //#define DEBUG_OUTPUT
-#define DEBUG_OUTPUTTXPROB
+//#define DEBUG_OUTPUTTXPROB
 
 /* returns true if map contains key, otherwise false */
 bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr) {
@@ -199,7 +199,7 @@ void outputIntegralDM(const std::string fileName, const int start, const int end
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
 
   double summ1 = 0.0;	// accumulator variable, population at current time point
   double summ2 = 0.0;	// accumulator variable, population at previous time point
@@ -267,7 +267,7 @@ void outputIntegratedDM(const std::string fileName, const int start, const int e
   }
 
   // write to output
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
   output << std::setw(8) << std::scientific << total << std::endl;
   output.close();
 
@@ -307,7 +307,7 @@ void outputIntegratedWfn(const std::string fileName, const int start, const int 
   }
 
   // write to output
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
   output << std::setw(8) << std::scientific << total << std::endl;
   output.close();
 
@@ -324,7 +324,7 @@ void outputIntegralWfn(const std::string fileName, const int start, const int en
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(fileName.c_str());
 
   double summ1 = 0.0;	// accumulator variable, population at current time point
   double summ2 = 0.0;	// accumulator variable, population at previous time point
@@ -466,6 +466,49 @@ void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 	output << " " << std::setw(8) << std::scientific
 	  << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk],2)
 	      + pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2],2));
+      }
+      output << "\n";
+    }
+    output << "\n";
+  }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
+  return;
+}
+
+/* Outputs the norm of each component of the density matrix */
+void outputDMCoherences(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  fprintf(stderr, "\n\n\noutputting |\\rho_{ij}| in time\n\n\n");
+#endif
+
+  std::ofstream output(fileName);
+  // loop over time steps
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    // loop over first index
+    for (int jj = 0; jj < p->NEQ; jj++) {
+      // first element in row
+      if (jj == 0) {
+	output << std::setw(8) << std::scientific << 0;
+      }
+      else {
+	output << std::setw(8) << std::scientific
+	  << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj],2)
+	      + pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + p->NEQ2],2));
+      }
+      // loop over second index
+      for (int kk = 1; kk < p->NEQ; kk++) {
+	if (jj == kk) {
+	  output << " " << std::setw(8) << std::scientific << 0;
+	}
+	else {
+	  output << " " << std::setw(8) << std::scientific
+	    << sqrt(pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk],2)
+		+ pow(dmt[2*p->NEQ2*ii + p->NEQ*jj + kk + p->NEQ2],2));
+	}
       }
       output << "\n";
     }
@@ -870,6 +913,101 @@ void outputCouplings(struct PARAMETERS * p, char * fileName) {
   return;
 }
 
+/* Finds peaks in populations, outputs values, times and differences. */
+void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
+    struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "Making file " << fileName << "..." << std::endl;
+  std::cout << "start index is " << start << std::endl;
+  std::cout << "end index is " << end << std::endl;
+#endif
+  int N = p->NEQ;
+  // vector of populations
+  std::vector<double> pops (p->numOutputSteps, 0.0);
+
+  // struct to hold peak info
+  struct Peak {
+    double peak;
+    double time;
+    double nextPeakTime;
+  };
+  std::vector<Peak> peaks;
+
+  // calculate populations
+  realtype summ;
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+    summ = 0.0;
+    for (int jj = start; jj < end; jj++) {
+      summ += pow(wfnt[ii*2*N + jj],2) + pow(wfnt[ii*2*N + jj + N],2);
+    }
+    pops[ii] = summ;
+  }
+
+  //// find peaks
+  Peak tmpPeak;	// struct to hold peak information before adding to vector
+  tmpPeak.nextPeakTime = 0.0;
+
+  // first point can be a peak
+  if (pops[0] > pops[1]) {
+    tmpPeak.peak = pops[0];
+    tmpPeak.time = p->times[0];
+    peaks.push_back(tmpPeak);
+  }
+
+  for (int ii = 1; ii < p->numOutputSteps; ii++) {
+    if ((pops[ii] > pops[ii-1]) && (pops[ii] > pops[ii+1])) {
+      tmpPeak.peak = pops[ii];
+      tmpPeak.time = p->times[ii];
+      peaks.push_back(tmpPeak);
+    }
+  }
+
+  // last point can be a peak
+  if (pops[p->numOutputSteps] > pops[p->numOutputSteps-1]) {
+    tmpPeak.peak = pops[p->numOutputSteps];
+    tmpPeak.time = p->times[p->numOutputSteps];
+    peaks.push_back(tmpPeak);
+  }
+
+  //// find time gaps between peaks, last one is zero
+#ifdef DEBUG_PEAKS
+  std::cout << "size of peaks vector is " << peaks.size() << std::endl;
+#endif
+  if (peaks.size() > 1) {	// don't do this with zero or one peak
+    for (int ii = 0; ii < (peaks.size()-1); ii++) {
+      peaks[ii].nextPeakTime = peaks[ii+1].time - peaks[ii].time;
+    }
+  }
+
+  // create output file
+  std::ofstream output(fileName);
+
+  // handle case with no peaks (flat the whole time)
+  if (peaks.size() == 0) {
+    output << "0 0 0" << std::endl;
+#ifdef DEBUG_OUTPUT
+    std::cout << "No peaks." << std::endl;
+#endif
+  }
+  else {
+    for (int ii = 0; ii < peaks.size(); ii++) {
+#ifdef DEBUG_OUTPUT
+      std::cout << "Peak (" << peaks[ii].peak << ") at " << peaks[ii].time << std::endl;
+#endif
+      output << std::setw(8) << std::scientific << peaks[ii].time << " "
+	<< std::setw(8) << std::scientific << peaks[ii].peak << " "
+	<< std::setw(8) << std::scientific << peaks[ii].nextPeakTime << std::endl;
+    }
+  }
+
+  output.close();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Done making file " << fileName << "..." << std::endl;
+#endif
+  return;
+}
+
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
@@ -987,7 +1125,20 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     outputEnergyExpWfn("energyexp.out", p, wfnt);
   }
 
-  std::cerr << "whooooot" << std::endl;
+  // peaks in populations
+  if (isOutput(outs, "peaksTkprob.out")) {
+    findPeaksWfn("peaksTkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+  }
+  if (isOutput(outs, "peaksTcprob.out")) {
+    findPeaksWfn("peaksTcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+  }
+  if (isOutput(outs, "peaksTbprob.out")) {
+    findPeaksWfn("peaksTbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+  }
+  if (isOutput(outs, "peaksTlprob.out")) {
+    findPeaksWfn("peaksTlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+  }
+
   return;
 }
 
@@ -1073,6 +1224,11 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   // norm of DM elements
   if (isOutput(outs, "dmt_im.out")) {
     outputDMIm("dmt_im.out", dmt, p);
+  }
+
+  // coherences (magnitude)
+  if (isOutput(outs, "dmCoherences.out")) {
+    outputDMCoherences("dmCoherences.out", dmt, p);
   }
 
   // all time steps
