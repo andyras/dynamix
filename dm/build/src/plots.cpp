@@ -349,7 +349,7 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
   o << "mkdir img" << std::endl;
   o << "transpose -o _t outs/kprobs.out" << std::endl;
   o << std::endl;
-  o << "parallel plotNumber ::: {0.." << p->numOutputSteps << "}" << std::endl;
+  o << "parallel --gnu plotNumber ::: {0.." << p->numOutputSteps << "}" << std::endl;
   o << std::endl;
   o << "mencoder -really-quiet \"mf://img/*png\" -mf type=png:fps=18 -ovc lavc -o kprobs_movie.avi" << std::endl;
   o << std::endl;
