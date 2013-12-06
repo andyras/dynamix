@@ -37,7 +37,10 @@
 
 int main (int argc, char * argv[]) {
 
+
   //// DECLARING VARIABLES
+
+
   // Struct of parameters
   PARAMETERS p;
   // CVode variables
@@ -87,13 +90,20 @@ int main (int argc, char * argv[]) {
   realtype * qd_est_diag = NULL;
   const char * inputFile = "ins/parameters.in";			// name of input file
   std::map<const std::string, bool> outs;	// map of output file names to bool
-  // END VARIABLES //
+
+  double summ = 0;			// sum variable
+
+
+  //// ASSIGN PARAMETERS FROM INPUT FILE
+
+
+  assignParams(inputFile, &p);
 
   // Decide which output files to make
 #ifdef DEBUG
   std::cout << "Assigning outputs as specified in " << inputFile << "\n";
 #endif
-  assignOutputs(inputFile, outs);
+  assignOutputs(inputFile, outs, &p);
 
 #ifdef DEBUG
   // print out which outputs will be made
@@ -112,44 +122,15 @@ int main (int argc, char * argv[]) {
     fprintf(log, "Run started at %s\n", asctime(currentTime));
   }
 
-  // ASSIGN VARIABLE DEFAULTS //
-  double summ = 0;			// sum variable
-  // DONE ASSIGNING VARIABLE DEFAULTS //
-
-  // assign parameters from input file
-  assignParams(inputFile, &p);
-
   if (isOutput(outs, "log.out")) {
     // make a note about the laser intensity.
     fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
   }
 
-  // if creating plot files, make sure that the appropriate outputs are being created.
-  if (isOutput(outs, "projections.plt")) {
-    outs.insert(std::pair<const std::string,bool>("tkprob.out", true));
-    outs.insert(std::pair<const std::string,bool>("tcprob.out", true));
 
-    // create bridge output if bridge is on
-    if (p.bridge_on) {
-      outs.insert(std::pair<const std::string,bool>("tbprob.out", true));
-    }
-  }
+  //// READ DATA FROM INPUTS
 
-  if (isOutput(outs, "cprobs.plt")) {
-    outs.insert(std::pair<const std::string,bool>("cprobs.out", true));
-  }
 
-  if ((isOutput(outs, "kprobs.plt")) || (isOutput(outs, "kprobs_movie.plt"))) {
-    outs.insert(std::pair<const std::string,bool>("kprobs.out", true));
-  }
-
-  if ((isOutput(outs, "dmt_z.plt")) && (! p.wavefunction)) {
-    outs.insert(std::pair<const std::string,bool>("dmt_z.out", true));
-  }
-
-  // DONE ASSIGNING VARIABLES FROM RUN SCRIPT //
-
-  // READ DATA FROM INPUTS //
   p.Nc = numberOfValuesInFile("ins/c_energies.in");
   p.Nb = numberOfValuesInFile("ins/b_energies.in");
   k_pops = new realtype [p.Nk];
@@ -186,12 +167,15 @@ int main (int argc, char * argv[]) {
     p.Vnobridge.resize(1);
     readVectorFromFile(p.Vnobridge, "ins/Vnobridge.in", 1);
   }
-  // DONE READING //
+
 #ifdef DEBUG
   std::cout << "\nDone reading things from inputs.\n";
 #endif
 
-  // PREPROCESS DATA FROM INPUTS //
+
+  //// PREPROCESS DATA FROM INPUTS
+
+
   // set number of processors for OpenMP
   //omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
@@ -235,37 +219,9 @@ int main (int argc, char * argv[]) {
   // calculate band width
   p.kBandWidth = k_energies[p.Nk - 1] - k_energies[0];
 
-  if (p.torsion) {
-#ifdef DEBUG
-    std::cout << "Torsion is on." << std::endl;
-#endif
 
-    //// torsion error checking
-    if (p.torsionSite > p.Nb) {
-      std::cerr << "ERROR: torsion site is larger than number of bridge sites." << std::endl;
-      return -1;
-    }
-    else if (p.torsionSite < 0) {
-      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
-      return -1;
-    }
+  //// BUILD INITIAL WAVEFUNCTION
 
-    if (!fileExists(p.torsionFile)) {
-      std::cerr << "ERROR: torsion file " << p.torsionFile << " does not exist." << std::endl;
-    }
-    //// create spline
-    p.torsionV = new Spline(p.torsionFile.c_str());
-    if (p.torsionV->getFirstX() != 0.0) {
-      std::cerr << "ERROR: time in " << p.torsionFile << " should start at 0.0." << std::endl;
-      return -1;
-    }
-    if (p.torsionV->getLastX() < p.tout) {
-      std::cerr << "ERROR: time in " << p.torsionFile << " should be >= tout." << std::endl;
-      return -1;
-    }
-  }
-
-  //// Build initial wavefunction
 
   // bridge states (empty to start)
   initializeArray(b_pops, p.Nb, 0.0);
@@ -310,7 +266,7 @@ int main (int argc, char * argv[]) {
   }
   // with RTA, use different set of switches
   else {
-    //// bulk valence band
+    // bulk valence band
     if (p.VBPopFlag == POP_EMPTY) {
 #ifdef DEBUG
       std::cout << "Initializing empty valence band" << std::endl;
@@ -327,7 +283,7 @@ int main (int argc, char * argv[]) {
       std::cerr << "ERROR: unrecognized VBPopFlag " << p.VBPopFlag << std::endl;
     }
 
-    //// bulk conduction band
+    // bulk conduction band
     if (p.CBPopFlag == POP_EMPTY) {
 #ifdef DEBUG
       std::cout << "Initializing empty conduction band" << std::endl;
@@ -441,7 +397,10 @@ int main (int argc, char * argv[]) {
   std::cout << "\nTotal population is " << summ << "\n\n";
 #endif
 
-  // Assemble array of energies
+
+  //// ASSEMBLE ARRAY OF ENERGIES
+
+
   // TODO TODO
   p.energies.resize(p.NEQ);
   for (int ii = 0; ii < p.Nk; ii++) {
@@ -463,7 +422,10 @@ int main (int argc, char * argv[]) {
   }
 #endif
 
-  // assign coupling constants
+
+  //// ASSIGN COUPLING CONSTANTS
+
+
   V = new realtype * [p.NEQ];
   for (int ii = 0; ii < p.NEQ; ii++)
     V[ii] = new realtype [p.NEQ];
@@ -496,7 +458,7 @@ int main (int argc, char * argv[]) {
     }
   }
 
-  // density matrix
+  //// CREATE DENSITY MATRIX
   if (! p.wavefunction) {
     // Create the initial density matrix
     dm = new realtype [2*p.NEQ2];
@@ -611,7 +573,10 @@ int main (int argc, char * argv[]) {
     memcpy(&(p.startWfn[0]), &(wavefunction[0]), 2*p.NEQ*sizeof(double));
   }
 
-  // build Hamiltonian
+
+  //// BUILD HAMILTONIAN
+
+
   // //TODO TODO
 #ifdef DEBUG
   fprintf(stderr, "Building Hamiltonian.\n");
@@ -637,7 +602,9 @@ int main (int argc, char * argv[]) {
   mkl_ddnscsr(&job[0], &(p.NEQ), &(p.NEQ), &(p.H)[0], &(p.NEQ), &(p.H_sp)[0],
       &(p.H_cols)[0], &(p.H_rowind)[0], &info);
 
-  // DONE PREPROCESSING //
+
+  //// SET UP CVODE VARIABLES
+
 
 #ifdef DEBUG
   std::cout << "\nCreating N_Vectors.\n";
@@ -672,8 +639,10 @@ int main (int argc, char * argv[]) {
   // Make plot files
   makePlots(outs, &p);
 
+  if (p.justPlots) {
+  }
   // only do propagation if not just making plots
-  if (!p.justPlots) {
+  else {
     // Make outputs independent of time propagation
     computeGeneralOutputs(outs, &p);
 
@@ -725,8 +694,9 @@ int main (int argc, char * argv[]) {
       flag = CVDense(cvode_mem, 2*p.NEQ2);
     }
 
-    // advance the solution in time! //
-    // use CVODE for time-dependent H
+    //// CVODE TIME PROPAGATION
+
+
 #ifdef DEBUG
     std::cout << "\nAdvancing the solution in time.\n";
 #endif
@@ -761,6 +731,10 @@ int main (int argc, char * argv[]) {
     fclose(realImaginary);
 #endif
 
+
+    //// MAKE FINAL OUTPUTS
+
+
     // finalize log file //
     time(&endRun);
     currentTime = localtime(&endRun);
@@ -793,6 +767,10 @@ int main (int argc, char * argv[]) {
       computeAnalyticOutputs(outs, &p);
     }
   }
+
+
+  //// CLEAN UP
+
 
 #ifdef DEBUG
   fprintf(stdout, "Deallocating N_Vectors.\n");

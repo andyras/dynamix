@@ -3,7 +3,8 @@
 //#define DEBUG_INPUT_PARSER
 
 
-void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outputs) {
+void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outs,
+    struct PARAMETERS * p) {
   std::string line;
   std::ifstream input;
 
@@ -59,13 +60,36 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
 #ifdef DEBUG_INPUT_PARSER
 	std::cout << "Creating output file:  " << line << "\n";
 #endif
-	outputs.insert(std::pair<const std::string,bool>(line,true));
+	outs.insert(std::pair<const std::string,bool>(line,true));
 	if ((line.substr(line.length()-4, line.length()) != ".out")
 	    && (line.substr(line.length()-4, line.length()) != ".plt")) {
 	  std::cerr << "WARNING [" << __FUNCTION__ << "]: output file extension is not '.out' or '.plt'\n";
 	}
       }
     }
+  }
+
+  // if creating plot files, make sure that the appropriate outputs are being created.
+  if (isOutput(outs, "projections.plt")) {
+    outs.insert(std::pair<const std::string,bool>("tkprob.out", true));
+    outs.insert(std::pair<const std::string,bool>("tcprob.out", true));
+
+    // create bridge output if bridge is on
+    if (p->bridge_on) {
+      outs.insert(std::pair<const std::string,bool>("tbprob.out", true));
+    }
+  }
+
+  if (isOutput(outs, "cprobs.plt")) {
+    outs.insert(std::pair<const std::string,bool>("cprobs.out", true));
+  }
+
+  if ((isOutput(outs, "kprobs.plt")) || (isOutput(outs, "kprobs_movie.plt"))) {
+    outs.insert(std::pair<const std::string,bool>("kprobs.out", true));
+  }
+
+  if ((isOutput(outs, "dmt_z.plt")) && (! p->wavefunction)) {
+    outs.insert(std::pair<const std::string,bool>("dmt_z.out", true));
   }
 }
 
@@ -268,6 +292,38 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   }
   if ((p->Nk < 2) && (p->rta)) {
     std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
+  }
+
+  // check torsion parameters, set up torsion spline
+  if (p->torsion) {
+#ifdef DEBUG
+    std::cout << "Torsion is on." << std::endl;
+#endif
+
+    // error checking
+    if (p->torsionSite > p->Nb) {
+      std::cerr << "ERROR: torsion site is larger than number of bridge sites." << std::endl;
+      exit(-1);
+    }
+    else if (p->torsionSite < 0) {
+      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
+      exit(-1);
+    }
+
+    if (!fileExists(p->torsionFile)) {
+      std::cerr << "ERROR: torsion file " << p->torsionFile << " does not exist." << std::endl;
+    }
+
+    // create spline
+    p->torsionV = new Spline(p->torsionFile.c_str());
+    if (p->torsionV->getFirstX() != 0.0) {
+      std::cerr << "ERROR: time in " << p->torsionFile << " should start at 0.0." << std::endl;
+      exit(-1);
+    }
+    if (p->torsionV->getLastX() < p->tout) {
+      std::cerr << "ERROR: time in " << p->torsionFile << " should be >= tout." << std::endl;
+      exit(-1);
+    }
   }
 
   return;
