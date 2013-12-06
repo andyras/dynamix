@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 
+#include "constants.hpp"
 #include "params.hpp"
 
 // initiator for a string->bool map

@@ -235,6 +235,41 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "torsionFile is " << p->torsionFile << std::endl;
   std::cout << "torsionSite is " << p->torsionSite << std::endl;
 #endif
+
+  // Error checking
+  if ((p->bulk_FDD && p->qd_pops) || (p->bulk_constant && p->qd_pops) || (p->bulk_Gauss && p->qd_pops)) {
+    std::cerr << "\nWARNING: population starting both in bulk and QD.\n";
+  }
+  if (p->Nk_first > p->Nk || p->Nk_first < 1) {
+    fprintf(stderr, "ERROR [Inputs]: Nk_first greater than Nk or less than 1.\n");
+    exit(-1);
+  }
+  if (p->bulk_constant || (p->CBPopFlag == POP_CONSTANT)) {
+    if (p->Nk_final > p->Nk || p->Nk_final < 1) {
+      fprintf(stderr, "ERROR [Inputs]: Nk_final greater than Nk or less than 1.\n");
+      exit(-1);
+    }
+    if (p->Nk_final < p->Nk_first) {
+      fprintf(stderr, "ERROR [Inputs]: Nk_final is less than Nk_first.\n");
+      exit(-1);
+    }
+  }
+  if (p->Nl < 0) {
+    fprintf(stderr, "ERROR [Inputs]: Nl less than 0.\n");
+    exit(-1);
+  }
+  if ((p->bulk_FDD && p->bulk_constant) || (p->bulk_FDD && p->bulk_Gauss) || (p->bulk_constant && p->bulk_Gauss)) {
+    std::cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
+    exit(-1);
+  }
+  if (p->random_seed < -1) {
+    std::cerr << "\nERROR: random_phase must be -1 or greater.\n";
+    exit(-1);
+  }
+  if ((p->Nk < 2) && (p->rta)) {
+    std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
+  }
+
   return;
 }
 
