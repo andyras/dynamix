@@ -94,6 +94,7 @@ int main (int argc, char * argv[]) {
   std::cout << "Assigning outputs as specified in " << inputFile << "\n";
 #endif
   assignOutputs(inputFile, outs);
+
 #ifdef DEBUG
   // print out which outputs will be made
   for (std::map<const std::string, bool>::iterator it = outs.begin(); it != outs.end(); it++) {
@@ -318,6 +319,29 @@ int main (int argc, char * argv[]) {
   }
 
   bash_in.close();
+
+  // if creating plot files, make sure that the appropriate outputs are being created.
+  if (isOutput(outs, "projections.plt")) {
+    outs.insert(std::pair<const std::string,bool>("tkprob.out", true));
+    outs.insert(std::pair<const std::string,bool>("tcprob.out", true));
+
+    // create bridge output if bridge is on
+    if (p.bridge_on) {
+      outs.insert(std::pair<const std::string,bool>("tbprob.out", true));
+    }
+  }
+
+  if (isOutput(outs, "cprobs.plt")) {
+    outs.insert(std::pair<const std::string,bool>("cprobs.out", true));
+  }
+
+  if ((isOutput(outs, "kprobs.plt")) || (isOutput(outs, "kprobs_movie.plt"))) {
+    outs.insert(std::pair<const std::string,bool>("kprobs.out", true));
+  }
+
+  if ((isOutput(outs, "dmt_z.plt")) && (! p.wavefunction)) {
+    outs.insert(std::pair<const std::string,bool>("dmt_z.out", true));
+  }
 
   // DONE ASSIGNING VARIABLES FROM RUN SCRIPT //
 

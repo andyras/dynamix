@@ -1,5 +1,5 @@
 ## FLAGS FOR RUN ##
-do_compile=0
+do_compile=1
 do_run=1
 do_plot=1
 do_backup=0
@@ -136,7 +136,7 @@ times.out
 #tkderiv.out
 tbprob.out
 tcprob.out
-tkprob.out
+#tkprob.out
 #tkrate.out
 #tlprob.out
 torsion.out
@@ -147,5 +147,5 @@ populations.plt
 cprobs.plt
 kprobs.plt
 #dmt_z.plt
-kprobs_movie.plt
+#kprobs_movie.plt
 [[End]]
