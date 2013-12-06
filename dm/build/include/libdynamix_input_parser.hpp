@@ -6,22 +6,6 @@
 #include <string>
 #include <map>
 
-class outputFile {
-  private:
-    // variables
-    bool createMe;
-    char * name;
-    //constructor
-    outputFile() {};
-
-  public:
-    // public constructor
-    outputFile(char * fileName);
-    // methods
-    void create();
-    char * getName();
-};
-
 // initiator for a string->bool map
 std::map<const std::string, bool> initOutputMap();
 

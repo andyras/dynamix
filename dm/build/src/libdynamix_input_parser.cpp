@@ -2,29 +2,6 @@
 
 //#define DEBUG_INPUT_PARSER
 
-// Methods for the outputFile class
-
-// Construct an outputFile object
-outputFile::outputFile(char * fileName) {
-  name = fileName;
-}
-
-// Get the name of an output file.
-char * outputFile::getName() {
-  return name;
-}
-
-// Toggle the creation of an output file
-void outputFile::create() {
-  createMe = true;
-}
-
-// returns a const string for input to outputs map
-const std::string makeConstString(std::string inputString) {
-  return inputString;
-}
-
-//void parseInput(const char * inputFile)
 
 void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outputs) {
   std::string line;
@@ -56,7 +33,7 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
     }
   }
 
-  // read inputs until [[End]] header or EOF
+  // read inputs until [[End]] line or EOF
   while (getline(input, line)) {
     if (line != "[[End]]") {
 
@@ -82,8 +59,6 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
 #ifdef DEBUG_INPUT_PARSER
 	std::cout << "Creating output file:  " << line << "\n";
 #endif
-	//outputs[line] = true;
-	//outputs[makeConstString(line)] = true;
 	outputs.insert(std::pair<const std::string,bool>(line,true));
 	if ((line.substr(line.length()-4, line.length()) != ".out")
 	    && (line.substr(line.length()-4, line.length()) != ".plt")) {
