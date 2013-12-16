@@ -110,6 +110,14 @@ void outputCouplings(struct PARAMETERS * p, char * fileName);
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
     struct PARAMETERS * p);
 
+void outputDeriv(std::string outFile, int n, realtype * deriv, struct PARAMETERS * p);
+
+void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
+    struct PARAMETERS * p);
+
+void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
+    struct PARAMETERS * p);
+
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p);
 

@@ -66,6 +66,8 @@ int Normalize_NV(N_Vector nv, realtype total);
  */
 int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep);
 
+void arrayDeriv(double * in, int n, int m, int dim, double * out, double dt);
+
 /* Riemann sum of an array (values) at time points (time).
  * Does not assume equal spacing in time.
  */

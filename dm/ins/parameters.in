@@ -95,6 +95,15 @@ cumItkprob.out
 cumItcprob.out
 cumItbprob.out
 cumItlprob.out
+derivTkprob.out
+derivTcprob.out
+derivTbprob.out
+derivTlprob.out
+derivKprobs.out
+derivCprobs.out
+derivBprobs.out
+derivLprobs.out
+derivAllprobs.out
 dmt_z.out
 #dmt_re.out
 #dmt_im.out

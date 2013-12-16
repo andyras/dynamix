@@ -87,7 +87,7 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   int info = 0;
 
   mkl_ddnscsr(&job[0], &(p->NEQ), &(p->NEQ), &(p->H)[0], &(p->NEQ), &(p->H_sp)[0],
-              &(p->H_cols)[0], &(p->H_rowind)[0], &info);
+      &(p->H_cols)[0], &(p->H_rowind)[0], &info);
 
   return;
 }
@@ -320,6 +320,36 @@ int Derivative(double *inputArray, int inputLength, double *outputArray, double 
   }
 
   return 0;
+}
+
+/* Compute the six-point time derivative of a 2D array.
+ * Assumes array elements are evenly spaced in time.
+ * Output array is six elements shorter than the input, skipping first two and
+ * last three points.  The output array must be preallocated.
+ */
+void arrayDeriv(double * in, int nt, int m, int dim, double * out, double dt) {
+  // n is length of array (number of time points)
+  // m is width of array (number of populations)
+  // dim is p->NEQ
+  if (nt < 6) {
+    std::cerr << "Error [" << __FUNCTION__ << "]: array must be at least six elements." << std::endl;
+    _exit(-1);
+  }
+
+  for (int ii = 0; ii < m; ii++) {
+    for (int jj = 2; jj < (nt-3); jj++) {
+      out[ii*nt + (jj-2)] = (2*in[ii*nt + jj+3]
+	  - 15*in[ii*nt + jj+2]
+	  + 60*in[ii*nt + jj+1]
+	  - 20*in[ii*nt + jj]
+	  - 30*in[ii*nt + jj-1]
+	  +  3*in[ii*nt + jj-2])
+	/
+	(60*dt);
+    }
+  }
+
+  return;
 }
 
 /* Riemann sum of an array (values) at time points (time).
@@ -594,12 +624,12 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) 
   int N = 2*p->NEQ2;
   memcpy(&dmt[N*timeStep], N_VGetArrayPointer(dm), N*sizeof(realtype));
   /*
-  realtype * nv = N_VGetArrayPointer(dm);
-  nv_tp = &dmt[N*timeStep];
-  for (int ii = 0; ii < N; ii++) {
-    nv_tp[ii] = nv[ii];
-  }
-  */
+     realtype * nv = N_VGetArrayPointer(dm);
+     nv_tp = &dmt[N*timeStep];
+     for (int ii = 0; ii < N; ii++) {
+     nv_tp[ii] = nv[ii];
+     }
+     */
 #ifdef DEBUG_UPDATEDM
   std::cout << "done.\n";
 #endif
@@ -617,10 +647,10 @@ void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * 
   int N = 2*p->NEQ;
   memcpy(&wfnt[N*timeStep], N_VGetArrayPointer(wfn), N*sizeof(realtype));
   /*
-  for (int ii = 0; ii < N; ii++) {
-    wfnt[N*timeStep + ii] = NV_Ith_S(wfnt, ii);
-  }
-  */
+     for (int ii = 0; ii < N; ii++) {
+     wfnt[N*timeStep + ii] = NV_Ith_S(wfnt, ii);
+     }
+     */
 #ifdef DEBUG_UPDATEWFN
   std::cout << "done updating wavefunction." << std::endl;
 #endif

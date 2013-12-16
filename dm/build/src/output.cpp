@@ -1008,6 +1008,54 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   return;
 }
 
+void outputDeriv(std::string outFile, int n, realtype * deriv, struct PARAMETERS * p) {
+  std::ofstream o (outFile.c_str());
+  int nt = p->numOutputSteps;
+
+  // major index of array is state, so this loop outputs the transpose
+  for (int ii = 0; ii < (nt-5); ii++) {
+    o << std::setw(8) << std::scientific << p->times[ii+2];
+    for (int jj = 0; jj < n; jj++) {
+      o << " " << std::setw(8) << std::scientific << deriv[jj*nt + ii];
+    }
+    o << std::endl;
+  }
+
+  return;
+}
+
+void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
+    struct PARAMETERS * p){
+  // unpack values from p
+  int N = p->NEQ;
+  int nt = p->numOutputSteps;
+
+  // create array of populations
+  std::vector<realtype> pops (N*nt, 0.0);
+  // fill array of populations
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < nt; jj++) {
+      pops[ii*nt + jj] = pow(wfnt[jj*2*N + ii], 2) + pow(wfnt[jj*2*N + ii + N], 2);
+    }
+  }
+
+  // create output array for CB population
+  std::vector<realtype> kpops (p->Nk*(p->numOutputSteps-5), 0.0);
+
+  // take derivative
+  arrayDeriv(&(pops[p->Ik*nt]), nt, p->Nk, N, &(kpops[0]), p->tout/(nt-1));
+
+  // print derivative
+  outputDeriv("derivKprobs.out", p->Nk, &(kpops[0]), p);
+
+  return;
+}
+
+void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
+    struct PARAMETERS * p){
+  return;
+}
+
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
@@ -1139,6 +1187,9 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
     findPeaksWfn("peaksTlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
+  // derivatives of populations
+  outputDerivsWfn(outs, wfnt, p);
+
   return;
 }
 
@@ -1240,6 +1291,9 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   if (isOutput(outs, "energyexp.out")) {
     outputEnergyExp("energyexp.out", dmt, p);
   }
+
+  // derivatives of populations
+  outputDerivsDM(outs, dmt, p);
 
   // RTA outputs are tied together
   outputRTA(outs, dmt, p);
