@@ -1039,14 +1039,43 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
     }
   }
 
-  // create output array for CB population
-  std::vector<realtype> kpops (p->Nk*(p->numOutputSteps-5), 0.0);
+  // deriv of CB populations
+  if (isOutput(outs, "derivKprobs.out")) {
+    // create output array
+    std::vector<realtype> kderivs (p->Nk*(p->numOutputSteps-5), 0.0);
+    // take derivative
+    arrayDeriv(&(pops[p->Ik*nt]), nt, p->Nk, N, &(kderivs[0]), p->tout/(nt-1));
+    // print derivative
+    outputDeriv("derivKprobs.out", p->Nk, &(kderivs[0]), p);
+  }
 
-  // take derivative
-  arrayDeriv(&(pops[p->Ik*nt]), nt, p->Nk, N, &(kpops[0]), p->tout/(nt-1));
+  // deriv of QD populations
+  if (isOutput(outs, "derivCprobs.out")) {
+    std::vector<realtype> cderivs (p->Nc*(nt-5), 0.0);
+    arrayDeriv(&(pops[p->Ic*nt]), nt, p->Nc, N, &(cderivs[0]), p->tout/(nt-1));
+    outputDeriv("derivCprobs.out", p->Nc, &(cderivs[0]), p);
+  }
 
-  // print derivative
-  outputDeriv("derivKprobs.out", p->Nk, &(kpops[0]), p);
+  // deriv of bridge populations
+  if (isOutput(outs, "derivBprobs.out")) {
+    std::vector<realtype> bderivs (p->Nb*(nt-5), 0.0);
+    arrayDeriv(&(pops[p->Ib*nt]), nt, p->Nb, N, &(bderivs[0]), p->tout/(nt-1));
+    outputDeriv("derivBprobs.out", p->Nb, &(bderivs[0]), p);
+  }
+
+  // deriv of VB populations
+  if (isOutput(outs, "derivLprobs.out")) {
+    std::vector<realtype> lderivs (p->Nl*(nt-5), 0.0);
+    arrayDeriv(&(pops[p->Il*nt]), nt, p->Nl, N, &(lderivs[0]), p->tout/(nt-1));
+    outputDeriv("derivLprobs.out", p->Nl, &(lderivs[0]), p);
+  }
+
+  // deriv of all populations
+  if (isOutput(outs, "derivAllprobs.out")) {
+    std::vector<realtype> derivs (N*(nt-5));
+    arrayDeriv(&(pops[0]), nt, N, N, &(derivs[0]), p->tout/(nt-1));
+    outputDeriv("derivAllprobs.out", N, &(derivs[0]), p);
+  }
 
   return;
 }
