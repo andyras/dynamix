@@ -1077,6 +1077,62 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
     outputDeriv("derivAllprobs.out", N, &(derivs[0]), p);
   }
 
+  // deriv of total CB population
+  if (isOutput(outs, "derivTkprob.out")) {
+    // create population array
+    std::vector<realtype> tkpops (nt, 0.0);
+    for (int ii = 0; ii < nt; ii++) {
+      for (int jj = p->Ik; jj < (p->Ik+p->Nk); jj++) {
+	tkpops[ii] += pops[jj*nt + ii];
+      }
+    }
+    // create deriv array
+    std::vector<realtype> tkderivs (nt-5);
+    // take derivative
+    arrayDeriv(&(tkpops[0]), nt, 1, 1, &(tkderivs[0]), p->tout/(nt-1));
+    // print derivative
+    outputDeriv("derivTkprob.out", 1, &(tkderivs[0]), p);
+  }
+
+  // deriv of total QD population
+  if (isOutput(outs, "derivTcprob.out")) {
+    std::vector<realtype> tcpops (nt, 0.0);
+    for (int ii = 0; ii < nt; ii++) {
+      for (int jj = p->Ic; jj < (p->Ic+p->Nc); jj++) {
+	tcpops[ii] += pops[jj*nt + ii];
+      }
+    }
+    std::vector<realtype> tcderivs (nt-5);
+    arrayDeriv(&(tcpops[0]), nt, 1, 1, &(tcderivs[0]), p->tout/(nt-1));
+    outputDeriv("derivTcprob.out", 1, &(tcderivs[0]), p);
+  }
+
+  // deriv of total bridge population
+  if (isOutput(outs, "derivTbprob.out")) {
+    std::vector<realtype> tbpops (nt, 0.0);
+    for (int ii = 0; ii < nt; ii++) {
+      for (int jj = p->Ib; jj < (p->Ib+p->Nb); jj++) {
+	tbpops[ii] += pops[jj*nt + ii];
+      }
+    }
+    std::vector<realtype> tbderivs (nt-5);
+    arrayDeriv(&(tbpops[0]), nt, 1, 1, &(tbderivs[0]), p->tout/(nt-1));
+    outputDeriv("derivTbprob.out", 1, &(tbderivs[0]), p);
+  }
+
+  // deriv of total VB population
+  if (isOutput(outs, "derivTlprob.out")) {
+    std::vector<realtype> tlpops (nt, 0.0);
+    for (int ii = 0; ii < nt; ii++) {
+      for (int jj = p->Il; jj < (p->Il+p->Nl); jj++) {
+	tlpops[ii] += pops[jj*nt + ii];
+      }
+    }
+    std::vector<realtype> tlderivs (nt-5);
+    arrayDeriv(&(tlpops[0]), nt, 1, 1, &(tlderivs[0]), p->tout/(nt-1));
+    outputDeriv("derivTlprob.out", 1, &(tlderivs[0]), p);
+  }
+
   return;
 }
 
