@@ -38,9 +38,12 @@ struct PARAMETERS {
   double bulkGaussMu = 0.01;		// position of initial Gaussian above band edge
   double me = 1.0;			// effective mass of electron
   double mh = 1.0;			// effective mass of hole
+  double me_c = 1.0;			// effective mass of electron on QD
+  double mh_c = 1.0;			// effective mass of hole on QD
   double X2 = 1512.2873345935727;	// "Bohr radius" of material, inverse spacing in k-space
   realtype temperature = 3e2;		// temperature of the system
   realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
+  realtype gamma1_c = 1e-3;		// \gamma_1 in RTA (relaxation rate) on QD
   realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)
   double muLK = 1.0;                    // transition dipole moment from l to k (energy a.u.)
   double pumpFWHM = 1000;               // FWHM of pump pulse (time a.u.)

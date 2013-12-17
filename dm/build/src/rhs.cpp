@@ -292,20 +292,34 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 }
 
 /* gives the equilibrated FDD for the system */
-void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
+void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd, int flag) {
 #ifdef DEBUG_RTA
   //// "fine structure constant" -- conversion from index to wave vector
   std::cout << "p->X2   " << p->X2 << std::endl;
 #endif
   // unpack parameters
   int N = p->NEQ;
-  int Nk = p->Nk;
-  int Nc = p->Nc;
-  double me = p->me;
+  int Ni;		// number of states
+  int Ii;		// index of states
+  if (flag == 1) {	// FDD in conduction band
+    Ni = p->Nk;
+    Ii = p->Ik;
+  }
+  else {		// FDD in QD
+    Ni = p->Nc;
+    Ii = p->Ic;
+  }
+  double me;		// electron effective mass
+  if (flag == 1) {
+    me = p->me;
+  }
+  else {
+    me = p->me_c;
+  }
   double X2 = p->X2;
 
-  // FDD is unity when number of states is 1, or if all are at the same energy
-  if (Nk < 2) {
+  // FDD is unity when number of states is 1
+  if (Ni < 2) {
     fdd[0] = 1.0;
     return;
   }
@@ -318,9 +332,9 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
   std::cout << "factor   " << factor << std::endl;
 #endif
   // assign vector of energies
-  // std::vector<double> E (Nk,0.0);
-  realtype * E = new realtype [Nk];
-  for (int ii = 0; ii < Nk; ii++) {
+  std::vector<double> Ev (Ni,0.0);
+  realtype * E = &(Ev[0]);		// TODO don't need this if have Intel/GCC flag
+  for (int ii = 0; ii < Ni; ii++) {
     E[ii] = pow(ii,2)/(2*me*pow(X2,2));
   }
 
@@ -331,9 +345,9 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
   // skip the first point because the value will be zero
   double SF = 4.0;	// Simpson's factor
   int sign = -1;	// sign
-  for (int ii = 1; ii < (Nk-1); ii++) {
-    ne += SF*factor*ii*ii*y[ii*N + ii];
-    ekin += SF*factor*pow(ii,2)*y[ii*N + ii]*E[ii];
+  for (int ii = 1; ii < (Ni-1); ii++) {
+    ne += SF*factor*ii*ii*y[(Ii + ii)*N + (Ii + ii)];
+    ekin += SF*factor*pow(ii,2)*y[(Ii + ii)*N + (Ii + ii)]*E[ii];
 #ifdef DEBUG_RTA
     std::cout << "Ne " << ii*ii << "*" << SF << "/3.0*" << y[ii*N + ii] << "/" << pow(5.29e-11,3)/factor << std::endl;
     std::cout << "ekin " << pow(ii,4) << "*" << SF << "/3.0*" << y[ii*N + ii] << "*" << 4.3597482e-18/(2*me*pow(X2,2)) << "/" << pow(5.29e-11,3)/factor << std::endl;
@@ -344,8 +358,8 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
     sign *= -1;
   }
   // add last point
-  ne += factor*pow(Nk-1,2)*y[(Nk - 1)*N + Nk - 1];
-  ekin += factor*pow(Nk-1,2)*y[(Nk - 1)*N + Nk - 1]*E[Nk - 1];
+  ne += factor*pow(Ni-1,2)*y[(Ii + Ni - 1)*N + Ii + Ni - 1];
+  ekin += factor*pow(Ni-1,2)*y[(Ii + Ni - 1)*N + Ii + Ni - 1]*E[Ni - 1];
   // divide by three
   ne /= 3.0;
   ekin /= 3.0;
@@ -416,7 +430,7 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
 #endif
 
   //// assign Fermi-Dirac function
-  for (int ii = 0; ii < Nk; ii++) {
+  for (int ii = 0; ii < Ni; ii++) {
     // TODO factor in Boltzmann constant?
     fdd[ii] = 1.0/(1.0 + exp((E[ii] - mue)*bn));
 #ifdef DEBUG_RTA
@@ -494,7 +508,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #ifdef DEBUG_RTA
   std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
 #endif
-  buildFDD(p, N_VGetArrayPointer(y), fdd);
+  buildFDD(p, N_VGetArrayPointer(y), fdd, 1);
 
   //// normalize FDD to amount of population in conduction band
   double fddSum = 0.0;
@@ -656,7 +670,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #ifdef DEBUG_RTA
   std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
 #endif
-  buildFDD(p, N_VGetArrayPointer(y), fdd);
+  buildFDD(p, N_VGetArrayPointer(y), fdd, 1);
 
   //// normalize FDD to amount of population in conduction band
   double fddSum = 0.0;

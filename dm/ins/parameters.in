@@ -39,10 +39,13 @@ bulkGaussSigma=0.001			# width of initial Gaussian in bulk (a.u.)
 bulkGaussMu=0.005			# position of initial Gaussian above band edge (a.u.)
 me=0.078				# effective mass of electron
 mh=0.11					# effective mass of hole
+me_c=0.4				# effective mass of electron on QD
+mh_c=0.4				# effective mass of hole on QD
 X2=1512.2873345935727			# "Bohr radius" for material, inverse spacing in k-space
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 gamma1=1e-3				# \gamma_1 in RTA (relaxation rate)
+gamma1_c=1e-3				# \gamma_1 in RTA (relaxation rate) on QD
 gamma2=1e-3				# \gamma_2 in RTA (dephasing rate)
 # laser parameters #
 muLK=1e0				# transition dipole moment from l to k (dipole a.u.)

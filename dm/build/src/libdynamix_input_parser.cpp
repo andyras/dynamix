@@ -163,9 +163,12 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "bulkGaussMu" ) { p->bulkGaussMu = atof(param_val.c_str()); }
     else if (input_param == "me" ) { p->me = atof(param_val.c_str()); }
     else if (input_param == "mh" ) { p->mh = atof(param_val.c_str()); }
+    else if (input_param == "me_c" ) { p->me_c = atof(param_val.c_str()); }
+    else if (input_param == "mh_c" ) { p->mh_c = atof(param_val.c_str()); }
     else if (input_param == "X2" ) { p->X2 = atof(param_val.c_str()); }
     else if (input_param == "temperature" ) { p->temperature = atof(param_val.c_str()); }
     else if (input_param == "gamma1" ) { p->gamma1 = atof(param_val.c_str()); }
+    else if (input_param == "gamma1_c" ) { p->gamma1_c = atof(param_val.c_str()); }
     else if (input_param == "gamma2" ) { p->gamma2 = atof(param_val.c_str()); }
     else if (input_param == "muLK" ) { p->muLK = atof(param_val.c_str()); }
     else if (input_param == "pumpFWHM" ) { p->pumpFWHM = atof(param_val.c_str()); }
@@ -229,9 +232,12 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "bulkGaussMu is " << p->bulkGaussMu << std::endl;
   std::cout << "me is " << p->me << std::endl;
   std::cout << "mh is " << p->mh << std::endl;
+  std::cout << "me_c is " << p->me_c << std::endl;
+  std::cout << "mh_c is " << p->mh_c << std::endl;
   std::cout << "X2 is " << p->X2 << std::endl;
   std::cout << "temperature is " << p->temperature << std::endl;
   std::cout << "gamma1 is " << p->gamma1 << std::endl;
+  std::cout << "gamma1_c is " << p->gamma1_c << std::endl;
   std::cout << "gamma2 is " << p->gamma2 << std::endl;
   std::cout << "muLK is " << p->muLK << std::endl;
   std::cout << "pumpFWHM is " << p->pumpFWHM << std::endl;
