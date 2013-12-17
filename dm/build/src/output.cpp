@@ -1024,7 +1024,8 @@ void outputDeriv(std::string outFile, int n, realtype * deriv, struct PARAMETERS
   return;
 }
 
-void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
+/* yt can be either wavefunction or DM over time */
+void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
     struct PARAMETERS * p){
   // unpack values from p
   int N = p->NEQ;
@@ -1032,10 +1033,20 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
 
   // create array of populations
   std::vector<realtype> pops (N*nt, 0.0);
+
   // fill array of populations
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < nt; jj++) {
-      pops[ii*nt + jj] = pow(wfnt[jj*2*N + ii], 2) + pow(wfnt[jj*2*N + ii + N], 2);
+  if (p->wavefunction) {
+    for (int ii = 0; ii < N; ii++) {
+      for (int jj = 0; jj < nt; jj++) {
+	pops[ii*nt + jj] = pow(yt[jj*2*N + ii], 2) + pow(yt[jj*2*N + ii + N], 2);
+      }
+    }
+  }
+  else { // DM
+    for (int ii = 0; ii < N; ii++) {
+      for (int jj = 0; jj < nt; jj++) {
+	pops[ii*nt + jj] = yt[jj*2*N*N + ii*N + ii];
+      }
     }
   }
 
