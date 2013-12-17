@@ -1,7 +1,7 @@
 #include "rhs.hpp"
 
 //#define DEBUG_RHS
-#define DEBUG_RTA
+//#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 //#define DEBUGf
@@ -451,12 +451,9 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd, int flag) {
 #ifdef DEBUG_RTA
   std::cout << "FDD normalization constant is " << fddNorm << std::endl;
 #endif
-  for (int ii = 0; ii < p->Ni; ii++) {
+  for (int ii = 0; ii < Ni; ii++) {
     fdd[ii] *= fddNorm;
   }
-
-  // free array
-  delete [] E;
 
   return;
 }
@@ -526,23 +523,6 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
 #endif
   buildFDD(p, N_VGetArrayPointer(y), fdd, 1);
-
-  //// normalize FDD to amount of population in conduction band
-  double fddSum = 0.0;
-  double CBSum = 0.0;
-  for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-    // sum population in FDD
-    fddSum += fdd[ii - p->Ik];
-    // sum population in CB
-    CBSum += NV_Ith_S(y, ii*N + ii);
-  }
-  double fddNorm = CBSum/fddSum;
-#ifdef DEBUG_RTA
-  std::cout << "FDD normalization constant is " << fddNorm << std::endl;
-#endif
-  for (int ii = 0; ii < p->Nk; ii++) {
-    fdd[ii] *= fddNorm;
-  }
 
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
