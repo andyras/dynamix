@@ -438,6 +438,23 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd, int flag) {
 #endif
   }
 
+  //// normalize FDD to amount of population in conduction band
+  double fddSum = 0.0;
+  double CBSum = 0.0;
+  for (int ii = 0; ii < Ni; ii++) {
+    // sum population in FDD
+    fddSum += fdd[ii];
+    // sum population in states
+    CBSum += y[(Ii + ii)*N + Ii + ii];
+  }
+  double fddNorm = CBSum/fddSum;
+#ifdef DEBUG_RTA
+  std::cout << "FDD normalization constant is " << fddNorm << std::endl;
+#endif
+  for (int ii = 0; ii < p->Ni; ii++) {
+    fdd[ii] *= fddNorm;
+  }
+
   // free array
   delete [] E;
 
