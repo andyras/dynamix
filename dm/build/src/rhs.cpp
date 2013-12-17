@@ -293,14 +293,16 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
 /* gives the equilibrated FDD for the system */
 void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
-  //// "fine structure constant" -- conversion from index to wave vector
 #ifdef DEBUG_RTA
+  //// "fine structure constant" -- conversion from index to wave vector
   std::cout << "p->X2   " << p->X2 << std::endl;
 #endif
   // unpack parameters
   int N = p->NEQ;
   int Nk = p->Nk;
   int Nc = p->Nc;
+  double me = p->me;
+  double X2 = p->X2;
 
   // FDD is unity when number of states is 1, or if all are at the same energy
   if (Nk < 2) {
@@ -311,7 +313,7 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
   //// calculate n_e and e_kin
   double ne = 0.0;
   double ekin = 0.0;
-  double factor = 1.0/(M_PI*M_PI*pow(p->X2,3));
+  double factor = 1.0/(M_PI*M_PI*pow(X2,3));
 #ifdef DEBUG_RTA
   std::cout << "factor   " << factor << std::endl;
 #endif
@@ -319,7 +321,7 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
   // std::vector<double> E (Nk,0.0);
   realtype * E = new realtype [Nk];
   for (int ii = 0; ii < Nk; ii++) {
-    E[ii] = pow(ii,2)/(2*p->me*pow(p->X2,2));
+    E[ii] = pow(ii,2)/(2*me*pow(X2,2));
   }
 
 #ifdef DEBUG_RTA
@@ -334,9 +336,9 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
     ekin += SF*factor*pow(ii,2)*y[ii*N + ii]*E[ii];
 #ifdef DEBUG_RTA
     std::cout << "Ne " << ii*ii << "*" << SF << "/3.0*" << y[ii*N + ii] << "/" << pow(5.29e-11,3)/factor << std::endl;
-    std::cout << "ekin " << pow(ii,4) << "*" << SF << "/3.0*" << y[ii*N + ii] << "*" << 4.3597482e-18/(2*p->me*pow(p->X2,2)) << "/" << pow(5.29e-11,3)/factor << std::endl;
+    std::cout << "ekin " << pow(ii,4) << "*" << SF << "/3.0*" << y[ii*N + ii] << "*" << 4.3597482e-18/(2*me*pow(X2,2)) << "/" << pow(5.29e-11,3)/factor << std::endl;
     std::cout << "ekin " << ekin/pow(5.29e-11,3)*4.3597482e-18/3.0 
-      << " += " << SF*factor*pow(ii,4)*y[ii*N + ii]/(2*p->me*pow(p->X2,2))/pow(5.29e-11,3)*4.3597482e-18/3.0 << std::endl;
+      << " += " << SF*factor*pow(ii,4)*y[ii*N + ii]/(2*me*pow(X2,2))/pow(5.29e-11,3)*4.3597482e-18/3.0 << std::endl;
 #endif
     SF += sign*2.0;
     sign *= -1;
@@ -362,7 +364,7 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
   double K1 = 4.8966851;		// constants
   double K2 = 0.04496457;
   double K3 = 0.133376;
-  double X = 4*ne*pow(M_PI/(2*p->me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
+  double X = 4*ne*pow(M_PI/(2*me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
 #ifdef DEBUG_RTA
   std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
 #endif
@@ -401,7 +403,7 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd) {
 
   //// use beta to find chemical potential
   double mue = 0.0;
-  double nue = 4*ne*pow(M_PI*bn/(2*p->me),1.5);	// constant to simplify
+  double nue = 4*ne*pow(M_PI*bn/(2*me),1.5);	// constant to simplify
   mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bn;
 #ifdef DEBUG_RTA
   std::cout << "Chemical potential " << mue*4.3597482e-18 << std::endl;
