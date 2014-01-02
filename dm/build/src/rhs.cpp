@@ -61,6 +61,10 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   PARAMETERS * p;
   p = (PARAMETERS *) data;
 
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -78,10 +82,6 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   //realtype * H = &(p->H_lo)[0];
   int N = p->NEQ;
-
-  // get pointer to y, ydot data
-  realtype * yp = N_VGetArrayPointer(y);
-  realtype * ydotp = N_VGetArrayPointer(ydot);
 
   // set up MKL variables
   char transa = 'n';
@@ -126,6 +126,10 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N = p->NEQ;
   int N2 = p->NEQ2;
 
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -140,14 +144,14 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
 #pragma omp parallel for
   for (int ii = 0; ii < 2*N2; ii++) {
-    NV_Ith_S(ydot, ii) = 0.0;
+    ydotp[ii] = 0.0;
   }
 
   //// diagonal; no need to calculate the imaginary part
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
+      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
     }
   }
 
@@ -157,16 +161,16 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
 	//// real parts of ydot
-	NV_Ith_S(ydot, ii*N + jj) += H[ii*N + kk]*NV_Ith_S(y, kk*N + jj + N2);
-	NV_Ith_S(ydot, ii*N + jj) -= NV_Ith_S(y, ii*N + kk + N2)*H[kk*N + jj];
+	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
 	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	NV_Ith_S(ydot, ii*N + jj + N2) -= H[ii*N + kk]*NV_Ith_S(y, kk*N + jj);
-	NV_Ith_S(ydot, ii*N + jj + N2) += NV_Ith_S(y, ii*N + kk)*H[kk*N + jj];
+	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
-      NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
-      NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
+      ydotp[jj*N + ii] = ydotp[ii*N + jj];
+      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
     }
   }
 
@@ -174,7 +178,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
     }
   }
   fprintf(dmf, "\n");
@@ -205,6 +209,10 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N = p->NEQ;
   int N2 = p->NEQ2;
 
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -214,9 +222,6 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
       p->lastTime = t;
     }
   }
-
-  double * yp = N_VGetArrayPointer(y);
-  double * ydotp = N_VGetArrayPointer(ydot);
 
   // initialize ydot
 
@@ -279,7 +284,7 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
     }
   }
   fprintf(dmf, "\n");
@@ -497,6 +502,10 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype g1 = p->gamma1;
   realtype g2 = p->gamma2;
 
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -512,7 +521,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
 #pragma omp parallel for
   for (int ii = 0; ii < 2*N2; ii++) {
-    NV_Ith_S(ydot, ii) = 0.0;
+    ydotp[ii] = 0.0;
   }
 
   //// diagonal; no need to calculate the imaginary part
@@ -520,19 +529,19 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   //std::vector<double> fdd(p->Nk);
   double * fdd = new double [p->Nk];
 #ifdef DEBUG_RTA
-  std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
+  std::cout << "POPULATION " << yp[0] << std::endl;
 #endif
   buildFDD(p, N_VGetArrayPointer(y), fdd, 1);
 
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
+      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
     }
   }
   // force conduction band toward Fermi-Dirac distribution
   for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-    NV_Ith_S(ydot, ii*N + ii) -= g1*(NV_Ith_S(y, ii*N + ii) - fdd[ii]);
+    ydotp[ii*N + ii] -= g1*(yp[ii*N + ii] - fdd[ii]);
   }
 
   //// off-diagonal
@@ -541,22 +550,22 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
 	//// real parts of ydot
-	NV_Ith_S(ydot, ii*N + jj) += H[ii*N + kk]*NV_Ith_S(y, kk*N + jj + N2);
-	NV_Ith_S(ydot, ii*N + jj) -= NV_Ith_S(y, ii*N + kk + N2)*H[kk*N + jj];
+	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
 	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	NV_Ith_S(ydot, ii*N + jj + N2) -= H[ii*N + kk]*NV_Ith_S(y, kk*N + jj);
-	NV_Ith_S(ydot, ii*N + jj + N2) += NV_Ith_S(y, ii*N + kk)*H[kk*N + jj];
+	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
-      NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
-      NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
+      ydotp[jj*N + ii] = ydotp[ii*N + jj];
+      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
 
       // relaxation
-      NV_Ith_S(ydot, ii*N + jj) -= g2*NV_Ith_S(y, ii*N + jj);
-      NV_Ith_S(ydot, ii*N + jj + N2) -= g2*NV_Ith_S(y, ii*N + jj + N2);
-      NV_Ith_S(ydot, jj*N + ii) -= g2*NV_Ith_S(y, jj*N + ii);
-      NV_Ith_S(ydot, jj*N + ii + N2) -= g2*NV_Ith_S(y, jj*N + ii + N2);
+      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
     }
   }
 
@@ -564,7 +573,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
     }
   }
   fprintf(dmf, "\n");
@@ -603,6 +612,10 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype g1 = p->gamma1;
   realtype g2 = p->gamma2;
 
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -613,15 +626,11 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-  double * yp = N_VGetArrayPointer(y);
-  double * ydotp = N_VGetArrayPointer(ydot);
-
-
   // initialize ydot
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
 #pragma omp parallel for
   for (int ii = 0; ii < 2*N2; ii++) {
-    NV_Ith_S(ydot, ii) = 0.0;
+    ydotp[ii] = 0.0;
   }
   char TRANSA = 'n';
   char TRANSB = 'n';
@@ -665,7 +674,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   //std::vector<double> fdd(p->Nk);
   double * fdd = new double [p->Nk];
 #ifdef DEBUG_RTA
-  std::cout << "POPULATION " << NV_Ith_S(y, 0) << std::endl;
+  std::cout << "POPULATION " << yp[0] << std::endl;
 #endif
   buildFDD(p, N_VGetArrayPointer(y), fdd, 1);
 
@@ -676,7 +685,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
     // sum population in FDD
     fddSum += fdd[ii - p->Ik];
     // sum population in CB
-    CBSum += NV_Ith_S(y, ii*N + ii);
+    CBSum += yp[ii*N + ii];
   }
   double fddNorm = CBSum/fddSum;
 #ifdef DEBUG_RTA
@@ -689,7 +698,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // force conduction band toward Fermi-Dirac distribution
 #pragma omp parallel for
   for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-    NV_Ith_S(ydot, ii*N + ii) -= g1*(NV_Ith_S(y, ii*N + ii) - fdd[ii]);
+    ydotp[ii*N + ii] -= g1*(yp[ii*N + ii] - fdd[ii]);
   }
 
   //// off-diagonal
@@ -697,10 +706,10 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
       // relaxation
-      NV_Ith_S(ydot, ii*N + jj) -= g2*NV_Ith_S(y, ii*N + jj);
-      NV_Ith_S(ydot, ii*N + jj + N2) -= g2*NV_Ith_S(y, ii*N + jj + N2);
-      NV_Ith_S(ydot, jj*N + ii) -= g2*NV_Ith_S(y, jj*N + ii);
-      NV_Ith_S(ydot, jj*N + ii + N2) -= g2*NV_Ith_S(y, jj*N + ii + N2);
+      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
     }
   }
 
@@ -708,7 +717,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
     }
   }
   fprintf(dmf, "\n");
@@ -742,6 +751,10 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N2 = p->NEQ2;
   realtype g2 = p->gamma2;
 
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     updateHamiltonian(p, t);
@@ -751,14 +764,14 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
 #pragma omp parallel for
   for (int ii = 0; ii < 2*N2; ii++) {
-    NV_Ith_S(ydot, ii) = 0.0;
+    ydotp[ii] = 0.0;
   }
 
   //// diagonal; no need to calculate the imaginary part
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      NV_Ith_S(ydot, ii*N + ii) += 2*H[ii*N + jj]*NV_Ith_S(y, jj*N + ii + N2);
+      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
     }
   }
 
@@ -768,22 +781,22 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
 	//// real parts of ydot
-	NV_Ith_S(ydot, ii*N + jj) += H[ii*N + kk]*NV_Ith_S(y, kk*N + jj + N2);
-	NV_Ith_S(ydot, ii*N + jj) -= NV_Ith_S(y, ii*N + kk + N2)*H[kk*N + jj];
+	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
 	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	NV_Ith_S(ydot, ii*N + jj + N2) -= H[ii*N + kk]*NV_Ith_S(y, kk*N + jj);
-	NV_Ith_S(ydot, ii*N + jj + N2) += NV_Ith_S(y, ii*N + kk)*H[kk*N + jj];
+	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
-      NV_Ith_S(ydot, jj*N + ii) = NV_Ith_S(ydot, ii*N + jj);
-      NV_Ith_S(ydot, jj*N + ii + N2) = -1*NV_Ith_S(ydot, ii*N + jj + N2);
+      ydotp[jj*N + ii] = ydotp[ii*N + jj];
+      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
 
       // relaxation
-      NV_Ith_S(ydot, ii*N + jj) -= g2*NV_Ith_S(y, ii*N + jj);
-      NV_Ith_S(ydot, ii*N + jj + N2) -= g2*NV_Ith_S(y, ii*N + jj + N2);
-      NV_Ith_S(ydot, jj*N + ii) -= g2*NV_Ith_S(y, jj*N + ii);
-      NV_Ith_S(ydot, jj*N + ii + N2) -= g2*NV_Ith_S(y, jj*N + ii + N2);
+      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
     }
   }
 
@@ -791,7 +804,7 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", NV_Ith_S(ydot, ii*N + jj), NV_Ith_S(ydot, ii*N + jj + N2));
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
     }
   }
   fprintf(dmf, "\n");
