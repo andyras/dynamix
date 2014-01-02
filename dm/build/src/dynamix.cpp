@@ -699,8 +699,8 @@ int main (int argc, char * argv[]) {
     }
     else {
       if (p.rta) {
-	//flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
-	flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
+	flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+	//flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
       }
       else if (p.dephasing) {
 	flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
