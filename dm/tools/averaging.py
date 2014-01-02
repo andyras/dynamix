@@ -1,7 +1,12 @@
+#!/usr/bin/env python2.7
+
+debug = True
+
 import sys
 import os
 import re
 import numpy as np
+import math as m
 
 
 def dist(dist_fn, Ef, BE, BT, T, Nk):
@@ -25,6 +30,32 @@ def fdd(Ef, BE, BT, T, Nk):
         E = (BT - BE)/(Nk-1)*i + BE
         arr[i] = 1/(1 + np.exp((E - Ef)*3.185e5/T))
     return arr
+
+
+def gauss(mu, sigma, energies, w, readParams=True, paramFile='ins/parameters.in'):
+    '''
+    Returns a Gaussian distribution, defaulting to reading the mean and
+    variance from 'ins/parameters.in'
+    '''
+
+    if (len(energies) != len(w)):
+        print 'DOES NOT COMPUTE: len(energies) != len(w).  WTF'
+        exit()
+
+    if (readParams):
+        sigma = read_param('bulkGaussSigma', paramFile)
+        mu = read_param('bulkGaussMu', paramFile)
+
+    for ii in range(len(energies)):
+        w[ii] = 1/(sigma*m.sqrt(2*m.pi))*m.exp(-(energies[ii]-mu)**2/(2*sigma**2))
+
+    # normalize distribution
+    summ = 0.0
+    for ii in range(len(w)):
+        summ += w[ii]
+
+    for ii in range(len(w)):
+        w[ii] /= summ
 
 
 def read_param(paramname, filename):
@@ -65,6 +96,9 @@ def change_param(paramname, filename, paramvalue):
 def do_runs(infile, w, timesteps, redo=False):
     # create output array variable
     output_avg = np.zeros((timesteps, 2))
+    data = np.zeros((timesteps, 2))
+    dataFlag = False
+
     if redo or not os.path.isdir('avg'):
         # make directory for averaging
         os.system('rm -rf avg')
@@ -74,6 +108,8 @@ def do_runs(infile, w, timesteps, redo=False):
         run_file = 'avg/tcprob_'+str(i+1)+'.out'
         # if current weight is > 0.001 of largest weight
         if w[i] >= 0.001*w.max():
+            if (debug):
+                print 'doing run with weight %f' % w[i]
             # if redo flag is on and file doesn't exist
             if redo or not os.path.isfile(run_file):
                 print '\n\n\nwhooooo\n\n\n'
@@ -81,19 +117,23 @@ def do_runs(infile, w, timesteps, redo=False):
                 change_param('Nk_first', infile, str(i+1))
                 change_param('Nk_final', infile, str(i+1))
                 # run total_dynamix
-                # os.system('./total_dynamix')
-                os.system('../../dynamix')
+                os.system('./total_dynamix')
+                # os.system('../../dynamix')
                 # cp output(s) to folder for averaging
-                os.system('cp tcprob.out '+run_file)
+                os.system('cp outs/tcprob.out '+run_file)
             # load values from output
             data = np.loadtxt('avg/tcprob_'+str(i+1)+'.out')
             # add weighted contribution to output
             print('shape of tcprob data file '+str(i)+' is '+str(data.shape))
             for j in range(data.shape[0]):
                 output_avg[j,1] += data[j,1]*w[i]
-        # add times to output
-        for j in range(data.shape[0]):
-            output_avg[j,0] = data[j,0]
+            if (~dataFlag):
+                # add times to output
+                for j in range(data.shape[0]):
+                    output_avg[j,0] = data[j,0]
+                dataFlag = True
+        else:
+            print 'not doing run with weight %f' % w[i]
     # write output to file
     np.savetxt('avg/tcprob_avg.out', output_avg, '%-.7g')
 
@@ -107,7 +147,17 @@ T = read_param('temp', infile)		# temperature in Kelvin
 Nk = int(read_param('Nk', infile))	# number of states in bulk
 timesteps = int(read_param('numOutputSteps', infile)) + 1 # timesteps
 
+# make array of energies
+energies = np.zeros(Nk)
+for ii in range(len(energies)):
+    energies[ii] = BE + (BT-BE)/(Nk-1)*ii
+
 # array of weights for each run
-w = dist(fdd, Ef, BE, BT, T, Nk)
+#w = dist(fdd, Ef, BE, BT, T, Nk)
+w = np.zeros(Nk)
+gauss(1, 1, energies, w, True, paramFile=infile)
+
+if (debug):
+    print w
 
 do_runs(infile, w, timesteps, True)

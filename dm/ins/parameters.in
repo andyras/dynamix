@@ -26,7 +26,7 @@ numsteps=300				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
-kBandTop=0.00				# upper band edge of bulk conduction band (a.u.)
+kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
 Nk=21					# number of k states to have
 Nk_first=1				# first k state initially populated
