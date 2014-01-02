@@ -15,6 +15,7 @@ justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 rta=1					# use relaxation time approximation (RTA)
+rtaQD=0					# use relaxation time approximation (RTA) on QD
 dephasing=0				# turn on dephasing (gamma2)
 progressFile=1				# create file to show progress of run
 progressStdout=1			# show progress in stdout

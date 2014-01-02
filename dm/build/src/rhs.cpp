@@ -459,8 +459,30 @@ void buildFDD(struct PARAMETERS * p, realtype * y, double * fdd, int flag) {
   for (int ii = 0; ii < Ni; ii++) {
     fdd[ii] *= fddNorm;
   }
-
-  return;
+  if (std::isnan(mue)) {
+#ifdef DEBUG_RTA
+    std::cout << "mue is NaN!!!!!!!!!!!!!!" << std::endl;
+#endif
+    for (int ii = 0; ii < Ni; ii++) {
+      fdd[ii] = y[(Ii + ii)*N + Ii + ii];
+    }
+    return;
+  }
+  else if (std::isnan(bn)) {
+#ifdef DEBUG_RTA
+    std::cout << "bn is NaN!!!!!!!!!!!!!!" << std::endl;
+#endif
+    for (int ii = 0; ii < Ni; ii++) {
+      fdd[ii] = y[(Ii + ii)*N + Ii + ii];
+    }
+    return;
+  }
+  else {
+#ifdef DEBUG_RTA
+    std::cout << "no NaN++++++++++++" << std::endl;
+#endif
+    return;
+  }
 }
 
 /* implements equation B13 from Binder et. al, PRB 1991.
@@ -501,6 +523,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N2 = p->NEQ2;
   realtype g1 = p->gamma1;
   realtype g2 = p->gamma2;
+  realtype g1_c = p->gamma1_c;
 
   // more compact notation for N_Vectors
   realtype * yp = N_VGetArrayPointer(y);
@@ -516,7 +539,6 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-
   // initialize ydot
   // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
 #pragma omp parallel for
@@ -525,23 +547,31 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   //// diagonal; no need to calculate the imaginary part
-  //   get equilibrium FDD populations
-  //std::vector<double> fdd(p->Nk);
-  double * fdd = new double [p->Nk];
-#ifdef DEBUG_RTA
-  std::cout << "POPULATION " << yp[0] << std::endl;
-#endif
-  buildFDD(p, N_VGetArrayPointer(y), fdd, 1);
-
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
       ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
     }
   }
-  // force conduction band toward Fermi-Dirac distribution
+
+  // get bulk CB equilibrium FDD populations
+  std::vector<double> fdd(p->Nk);
+#ifdef DEBUG_RTA
+  std::cout << "POPULATION " << yp[0] << std::endl;
+#endif
+  buildFDD(p, N_VGetArrayPointer(y), &(fdd[0]), 1);
+  // force bulk conduction band toward Fermi-Dirac distribution
   for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-    ydotp[ii*N + ii] -= g1*(yp[ii*N + ii] - fdd[ii]);
+    ydotp[ii*N + ii] -= g1*(yp[ii*N + ii] - fdd[ii-p->Ik]);
+  }
+
+  if (p->rtaQD && (p->Nc > 1)) {
+    //// relaxation in QD band
+    fdd.resize(p->Nc);
+    buildFDD(p, N_VGetArrayPointer(y), &(fdd[0]), 0);
+    for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
+      ydotp[ii*N + ii] -= g1_c*(yp[ii*N + ii] - fdd[ii-p->Ic]);
+    }
   }
 
   //// off-diagonal
@@ -578,9 +608,6 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
   fprintf(dmf, "\n");
 #endif
-
-  // free fdd
-  delete [] fdd;
 
   return 0;
 }

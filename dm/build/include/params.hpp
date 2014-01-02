@@ -17,6 +17,7 @@ struct PARAMETERS {
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
   bool rta = true;			// turn on relaxation time approximation (RTA)
+  bool rtaQD = true;			// turn on relaxation time approximation (RTA)
   bool dephasing = false;		// turn on dephasing
   bool progressFile = false;		// create a file to show progress of the run
   bool progressStdout = false;		// show progress in stdout
