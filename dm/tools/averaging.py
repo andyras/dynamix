@@ -160,4 +160,12 @@ gauss(1, 1, energies, w, True, paramFile=infile)
 if (debug):
     print w
 
+# ensure that dynamix sets things up properly
+change_param('CBPopFlag', infile, '2')
+change_param('QDPopFlag', infile, '0')
+change_param('bulk_FDD', infile, '0')
+change_param('bulk_Gaussian', infile, '0')
+change_param('bulk_constant', infile, '1')
+
+# do runs
 do_runs(infile, w, timesteps, True)
