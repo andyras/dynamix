@@ -23,16 +23,16 @@ progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-8				# absolute tolerance
 reltol=1.0e-8				# relative tolerance
-tout=5000				# final time reached by solver (a.u.)
-numsteps=300				# number of timesteps
+tout=10000				# final time reached by solver (a.u.)
+numsteps=1000				# number of timesteps
 numOutputSteps=300			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=21					# number of k states to have
+Nk=51					# number of k states to have
 Nk_first=1				# first k state initially populated
-Nk_final=11				# final k state initially populated
+Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
@@ -59,12 +59,12 @@ pumpAmpl=5.338027e-8			# intensity of pump pulse (electric field a.u.)
 #pumpAmpl=5.338027e-9			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
-CBPopFlag=2				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
+CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 VBPopFlag=1				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 QDPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 bulk_FDD=0
-bulk_Gauss=0
-bulk_constant=1
+bulk_Gauss=1
+bulk_constant=0
 qd_pops=0
 laser_on=0
 parabolicCoupling=0
@@ -163,5 +163,5 @@ cprobs.plt
 kprobs.plt
 #dmt_z.plt
 kprobs_movie.plt
-cprobs_movie.plt
+#cprobs_movie.plt
 [[End]]

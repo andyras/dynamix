@@ -1,13 +1,13 @@
 #include "rhs.hpp"
 
-#define DEBUG_RHS
+// #define DEBUG_RHS
 //#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 //#define DEBUGf
 //
 // DEBUGf_DM flag: DEBUGf for density matrix EOM
-#define DEBUGf_DM
+// #define DEBUGf_DM
 
 //#define DEBUG_TORSION
 
@@ -110,13 +110,6 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
 /* Right-hand-side equation for density matrix */
 int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
-#ifdef DEBUGf_DM
-  // file for density matrix coeff derivatives in time
-  FILE * dmf;
-  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
-#endif
-
   // data is a pointer to the params struct
   PARAMETERS * p;
   p = (PARAMETERS *) data;
@@ -178,7 +171,7 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
     ePj = fdd[ii+1];
 
     // calculate contribution from relaxation
-    rel = g1*(ePi*yp[Ii] - ePj*yp[Ij])/(ePi + ePj);
+    rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
 
     // equal and opposite for the interaction of the two states
     ydotp[Ii] += rel;
@@ -209,10 +202,19 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
       // the complex conjugate
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
       ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
+
+      // relaxation
+      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
     }
   }
 
 #ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  dmf = fopen("dmf.out", "a");
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
@@ -221,7 +223,6 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
   fprintf(dmf, "\n");
 
-  std::cout << "Closing output file for density matrix coefficients in time.\n";
   fclose(dmf);
 #endif
 

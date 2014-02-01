@@ -801,7 +801,6 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
   if (isOutput(outs, "mu.out")) {
     std::ofstream mu_out("mu.out");
-    std::cout << "WHOOO " << std::endl << std::endl;
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
     }

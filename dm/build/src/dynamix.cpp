@@ -29,10 +29,10 @@
 #include "analytic.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+// #define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-#define DEBUG2
+// #define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -655,6 +655,7 @@ int main (int argc, char * argv[]) {
     y = N_VMake_Serial(2*p.NEQ, wavefunction);
   }
   else {
+    std::cout << "WHOOO " << std::endl << std::endl;
     y = N_VMake_Serial(2*p.NEQ2, dm);
   }
   // put in t = 0 information
