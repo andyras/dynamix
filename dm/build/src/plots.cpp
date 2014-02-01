@@ -15,7 +15,9 @@ void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
     plotKProbs("kprobs.plt", p);
   }
   else {
-    cerr << "WARNING: <= 1 k states, not making kprobs.plt" << endl;
+    if (p->Nk < 2) {
+      cerr << "WARNING: <= 1 k states, not making kprobs.plt" << endl;
+    }
   }
 
   // probabilities in c states
@@ -23,7 +25,9 @@ void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
     plotCProbs(p);
   }
   else {
-    cerr << "WARNING: <= 1 c states, not making cprobs.plt" << endl;
+    if (p->Nc < 2) {
+      cerr << "WARNING: <= 1 c states, not making cprobs.plt" << endl;
+    }
   }
 
   // density matrix in time
@@ -36,7 +40,9 @@ void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
     plotKProbsMovie("kprobs_movie.plt", p);
   }
   else {
-    cerr << "WARNING: <= 1 k states, not making kprobs_movie.plt" << endl;
+    if (p->Nk < 2) {
+      cerr << "WARNING: <= 1 k states, not making kprobs_movie.plt" << endl;
+    }
   }
 
   // populations in c states as a movie
@@ -44,7 +50,9 @@ void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
     plotCProbsMovie("cprobs_movie.plt", p);
   }
   else {
-    cerr << "WARNING: <= 1 c states, not making cprobs_movie.plt" << endl;
+    if (p->Nc < 2) {
+      cerr << "WARNING: <= 1 c states, not making cprobs_movie.plt" << endl;
+    }
   }
 
   return;
