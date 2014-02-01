@@ -14,7 +14,8 @@ coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
-rta=1					# use relaxation time approximation (RTA)
+kinetic=1				# kinetic relaxation model
+rta=0					# use relaxation time approximation (RTA)
 rtaQD=0					# use relaxation time approximation (RTA) on QD
 dephasing=0				# turn on dephasing (gamma2)
 progressFile=1				# create file to show progress of run
@@ -45,6 +46,7 @@ mh_c=0.4				# effective mass of hole on QD
 X2=1512.2873345935727			# "Bohr radius" for material, inverse spacing in k-space
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
+EF=0.0					# Fermi level in bulk
 gamma1=1e-3				# \gamma_1 in RTA (relaxation rate)
 gamma1_c=1e-3				# \gamma_1 in RTA (relaxation rate) on QD
 gamma2=1e-3				# \gamma_2 in RTA (dephasing rate)

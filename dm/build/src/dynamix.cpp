@@ -32,7 +32,7 @@
 #define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
-//#define DEBUG2
+#define DEBUG2
 
 
 int main (int argc, char * argv[]) {
@@ -461,8 +461,9 @@ int main (int argc, char * argv[]) {
 
 
   V = new realtype * [p.NEQ];
-  for (int ii = 0; ii < p.NEQ; ii++)
+  for (int ii = 0; ii < p.NEQ; ii++) {
     V[ii] = new realtype [p.NEQ];
+  }
   buildCoupling(V, &p, outs);
 
   if (isOutput(outs, "log.out")) {
@@ -673,10 +674,8 @@ int main (int argc, char * argv[]) {
   // Make plot files
   makePlots(outs, &p);
 
-  if (p.justPlots) {
-  }
   // only do propagation if not just making plots
-  else {
+  if (! p.justPlots) {
     // Make outputs independent of time propagation
     computeGeneralOutputs(outs, &p);
 
@@ -698,7 +697,10 @@ int main (int argc, char * argv[]) {
       flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
     }
     else {
-      if (p.rta) {
+      if (p.kinetic) {
+	flag = CVodeInit(cvode_mem, &RHS_DM_KINETIC, t0, y);
+      }
+      else if (p.rta) {
 	flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
 	//flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
       }

@@ -16,6 +16,7 @@ struct PARAMETERS {
   bool justPlots = false;		// just make plots, no propagation or other output
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
+  bool kinetic = false;			// kinetic relaxation model
   bool rta = true;			// turn on relaxation time approximation (RTA)
   bool rtaQD = true;			// turn on relaxation time approximation (RTA)
   bool dephasing = false;		// turn on dephasing
@@ -43,6 +44,7 @@ struct PARAMETERS {
   double mh_c = 1.0;			// effective mass of hole on QD
   double X2 = 1512.2873345935727;	// "Bohr radius" of material, inverse spacing in k-space
   realtype temperature = 3e2;		// temperature of the system
+  double EF = 0.0;			// Fermi level in bulk
   realtype gamma1 = 1e-3;		// \gamma_1 in RTA (relaxation rate)
   realtype gamma1_c = 1e-3;		// \gamma_1 in RTA (relaxation rate) on QD
   realtype gamma2 = 1e-3;		// \gamma_2 in RTA (dephasing rate)

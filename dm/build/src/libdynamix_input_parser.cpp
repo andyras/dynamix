@@ -141,6 +141,7 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "wavefunction") { p->wavefunction = atoi(param_val.c_str()); }
     else if (input_param == "coherent") { p->coherent = atoi(param_val.c_str()); }
     else if (input_param == "analytical") { p->analytical = atoi(param_val.c_str()); }
+    else if (input_param == "kinetic") { p->kinetic = atoi(param_val.c_str()); }
     else if (input_param == "rta") { p->rta = atoi(param_val.c_str()); }
     else if (input_param == "rtaQD") { p->rtaQD = atoi(param_val.c_str()); }
     else if (input_param == "dephasing") { p->dephasing = atoi(param_val.c_str()); }
@@ -168,6 +169,7 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "mh_c" ) { p->mh_c = atof(param_val.c_str()); }
     else if (input_param == "X2" ) { p->X2 = atof(param_val.c_str()); }
     else if (input_param == "temperature" ) { p->temperature = atof(param_val.c_str()); }
+    else if (input_param == "EF" ) { p->EF = atof(param_val.c_str()); }
     else if (input_param == "gamma1" ) { p->gamma1 = atof(param_val.c_str()); }
     else if (input_param == "gamma1_c" ) { p->gamma1_c = atof(param_val.c_str()); }
     else if (input_param == "gamma2" ) { p->gamma2 = atof(param_val.c_str()); }
@@ -211,6 +213,7 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "wavefunction is " << p->wavefunction << std::endl;
   std::cout << "coherent is " << p->coherent << std::endl;
   std::cout << "analytical is " << p->analytical << std::endl;
+  std::cout << "kinetic is " << p->kinetic << std::endl;
   std::cout << "rta is " << p->rta << std::endl;
   std::cout << "rtaQD is " << p->rtaQD << std::endl;
   std::cout << "dephasing is " << p->dephasing << std::endl;
@@ -238,6 +241,7 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "mh_c is " << p->mh_c << std::endl;
   std::cout << "X2 is " << p->X2 << std::endl;
   std::cout << "temperature is " << p->temperature << std::endl;
+  std::cout << "EF is " << p->EF << std::endl;
   std::cout << "gamma1 is " << p->gamma1 << std::endl;
   std::cout << "gamma1_c is " << p->gamma1_c << std::endl;
   std::cout << "gamma2 is " << p->gamma2 << std::endl;

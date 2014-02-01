@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <vector>
+#include <numeric>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
@@ -17,11 +18,15 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
 
+int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data);
+
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
 
-void buildFDD(struct PARAMETERS * p, realtype * y, std::vector<double> & fdd, int flag);
+void FDD(double mu, double T, double * fdd, double * E, int N, double P);
+
+void FDD_RTA(struct PARAMETERS * p, realtype * y, std::vector<double> & fdd, int flag);
 
 double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X);
 

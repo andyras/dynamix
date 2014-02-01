@@ -1,4 +1,5 @@
 #include "numerical.hpp"
+#define DEBUG
 
 //#define DEBUG_NUMERICAL
 //#define DEBUG_BUILDCOUPLING
@@ -442,11 +443,14 @@ void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
   }
 
 #ifdef DEBUG_BUILDCOUPLING
-  for (int ii = 0; ii < p->Nb + 1; ii++) {
-    std::cout << "p->Vbridge[" << ii << "] is ";
-    std::cout << p->Vbridge[ii] << "\n";
+  if (p->bridge_on) {
+    for (int ii = 0; ii < p->Nb + 1; ii++) {
+      std::cout << "p->Vbridge[" << ii << "] is ";
+      std::cout << p->Vbridge[ii] << "\n";
+    }
   }
 #endif
+      std::cout << "WHOO" << std::endl;
 
   // bridge
   if (p->bridge_on) {
