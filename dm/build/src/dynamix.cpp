@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
+#include <cvode/cvode_diag.h>
 #include <nvector/nvector_serial.h>
 #include <mkl.h>
 #include <map>
@@ -728,7 +729,8 @@ int main (int argc, char * argv[]) {
       flag = CVDense(cvode_mem, 2*p.NEQ);
     }
     else {
-      flag = CVDense(cvode_mem, 2*p.NEQ2);
+      // Diagonal approximation to the Jacobian saves memory for large systems
+      flag = CVDiag(cvode_mem);
     }
 
     //// CVODE TIME PROPAGATION

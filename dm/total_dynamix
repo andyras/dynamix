@@ -53,6 +53,8 @@ fi
 function run {
 ## RUN THE PROGRAM! ##
 fecho "running dynamix..."
+export OMP_NUM_THREADS=${nproc}
+export MKL_NUM_THREADS=${nproc}
 ./bin/dynamix
 if [ $? == 0 ] ; then
   fecho "dynamix done!"
