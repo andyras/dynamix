@@ -154,14 +154,16 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
     CBPop += yp[ii*N + ii];
   }
 
-  // find equilibrium FDD
-  double * fdd = new double [Nk];
-  FDD(mu, T, fdd, E, Nk, CBPop);
-
   // do the (N-1) pairs of states along diagonal
   double ePi, ePj;	// equilibrium populations, i and j indices
   double rel;		// relaxation term
   int Ii, Ij;		// indices
+
+  //// Kinetic relaxation model here
+
+  // find equilibrium FDD
+  double * fdd = new double [Nk];
+  FDD(mu, T, fdd, E, Nk, CBPop);
 
   for (int ii = 0; ii < (Nk-1); ii++) {
     // precalculate indices and such

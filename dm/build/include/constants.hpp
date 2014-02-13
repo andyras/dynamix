@@ -4,6 +4,8 @@
 // flags for conduction vs. valence bands
 #define CONDUCTION 0
 #define VALENCE 1
+#define BRIDGE 2
+#define QD_CONDUCTION 3
 
 // flags for determining starting populations
 #define POP_EMPTY    0
