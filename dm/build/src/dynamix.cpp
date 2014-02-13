@@ -36,7 +36,7 @@
 // #define DEBUG2
 
 // DEBUGf: debug inner CVode loop
-#define DEBUGf
+// #define DEBUGf
 
 
 int main (int argc, char * argv[]) {
@@ -68,8 +68,8 @@ int main (int argc, char * argv[]) {
   realtype * ydata = NULL;				// pointer to ydata (contains all populations)
   realtype * wavefunction = NULL;			// (initial) wavefunction
   realtype * dm = NULL;					// density matrix
-  realtype * dmt = NULL;				// density matrix in tiinitOutputMapme
-  realtype * wfnt = NULL;				// density matrix in tiinitOutputMapme
+  realtype * dmt = NULL;				// density matrix in time
+  realtype * wfnt = NULL;				// density matrix in time
   realtype * k_energies = NULL;				// pointers to arrays of energies
   realtype * c_energies = NULL;
   realtype * b_energies = NULL;

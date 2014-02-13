@@ -699,8 +699,11 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 #endif
 
   std::ofstream output(fileName);
+  std::ofstream average("muFromPopsAvg.out");
+
   double kT = p->temperature/3.185e5;
   double pop, mu;
+  double summ = 0.0;
   int N = p->NEQ;
   int N2 = p->NEQ2;
 
@@ -709,6 +712,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
     // print time
     output << std::setw(8) << std::scientific << p->times[kk];
 
+    summ = 0.0;
     // loop over k states
     for (int ii = 0; ii < p->Nk; ii++) {
       // inverse of Fermi-Dirac function
@@ -716,9 +720,13 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
       // FIXME this is broken when pop > 1.0
       mu = p->energies[p->Ik + ii] - kT*log((1.0 - pop)/pop);
       output << " " << std::setw(8) << std::scientific << mu;
+      summ += mu;
     }
 
     output << std::endl;
+
+    average << std::setw(8) << std::scientific << p->times[kk] << " "
+      << std::setw(8) << std::scientific << summ/p->Nk << std::endl;
   }
 
 #ifdef DEBUG_OUTPUT
