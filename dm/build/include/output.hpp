@@ -100,6 +100,9 @@ void outputTimes(char * fileName, struct PARAMETERS * p);
 void outputEnergyExp(char * fileName, realtype * dmt,
     struct PARAMETERS * p);
 
+void outputMuFromPops(char * fileName, realtype * dmt,
+    struct PARAMETERS * p);
+
 void outputTorsion(struct PARAMETERS * p, char * fileName);
 
 void outputRTA(std::map<const std::string, bool> &outs,

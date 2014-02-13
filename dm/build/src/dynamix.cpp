@@ -35,6 +35,9 @@
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
 
+// DEBUGf: debug inner CVode loop
+#define DEBUGf
+
 
 int main (int argc, char * argv[]) {
 
@@ -656,7 +659,6 @@ int main (int argc, char * argv[]) {
     y = N_VMake_Serial(2*p.NEQ, wavefunction);
   }
   else {
-    std::cout << "WHOOO " << std::endl << std::endl;
     y = N_VMake_Serial(2*p.NEQ2, dm);
   }
   // put in t = 0 information
@@ -739,13 +741,13 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
     std::cout << "\nAdvancing the solution in time.\n";
 #endif
-    for (int ii = 1; ii <= p.numsteps; ++ii) {
+    for (int ii = 1; ii <= p.numsteps; ii++) {
       t = (p.tout*((double) ii)/((double) p.numsteps));
       flag = CVode(cvode_mem, t, yout, &tret, 1);
 #ifdef DEBUGf
       std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
 #endif
-      if (ii % (p.numsteps/p.numOutputSteps) == 0) {
+      if ((ii % (p.numsteps/p.numOutputSteps) == 0) || (ii == p.numsteps)) {
 	// show progress in stdout
 	if (p.progressStdout) {
 	  fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
