@@ -173,6 +173,9 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
     //// find bounds for Fermi level
     mu = findDynamicMu(CBPop, T, CONDUCTION, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "mu at time " << t << " is " << mu << std::endl;
+#endif
   }
 
   FDD(mu, T, fdd, E, Nk, CBPop);
@@ -440,8 +443,6 @@ double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
   double mu = 0.0;
 
   summ = FDDSum(mu, T, bandFlag, p);
-
-  summ = FDDSum(upper, T, bandFlag, p);
 
   // just in case mu is exactly zero
   if (fabs((summ - pop) > 1e-10)) {
