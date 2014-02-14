@@ -10,7 +10,7 @@
 // #define DEBUGf_DM
 
 //#define DEBUG_TORSION
-#define DEBUG_DYNAMIC_MU
+//#define DEBUG_DYNAMIC_MU
 
 
 /* Right-hand-side equation for wavefunction */
@@ -441,6 +441,12 @@ double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
 
   // starting point
   double mu = 0.0;
+  if (bandFlag == CONDUCTION) {
+    mu = p->lastMu;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    mu = p->lastMuQD;
+  }
 
   summ = FDDSum(mu, T, bandFlag, p);
 
@@ -476,6 +482,14 @@ double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
 
     // do a binary search for mu
     mu = FDDBinarySearch(lower, upper, T, pop, bandFlag, p);
+  }
+
+  // store the mu for the next time step
+  if (bandFlag == CONDUCTION) {
+    p->lastMu = mu;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    p->lastMuQD = mu;
   }
 
   return mu;

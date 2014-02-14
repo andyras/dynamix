@@ -103,6 +103,9 @@ struct PARAMETERS {
   Spline * torsionV;
 
   double lastTime;			// value of most recently calculated timepoint
+
+  double lastMu;			// value of Fermi level at last time point
+  double lastMuQD;			// value of Fermi level in QD at last time point
 };
 
 int bandStartIdx(int bandFlag, PARAMETERS * p);
