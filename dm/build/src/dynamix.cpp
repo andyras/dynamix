@@ -702,7 +702,7 @@ int main (int argc, char * argv[]) {
     }
     else {
       if (p.kinetic) {
-	flag = CVodeInit(cvode_mem, &RHS_DM_KINETIC, t0, y);
+	flag = CVodeInit(cvode_mem, &RHS_DM_RELAX, t0, y);
       }
       else if (p.rta) {
 	flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);

@@ -108,11 +108,77 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   return 0;
 }
 
-void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp) {
+/* apply the kinetic relaxation model to one band of the system */
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
+  double pop = 0.0;
+  int start = bandStartIdx(bandFlag, p);
+  int end = bandEndIdx(bandFlag, p);
+  int Ni = bandNumStates(bandFlag, p);
+  int N = p->NEQ;
+  double g1 = p->gamma1;
+  double g2 = p->gamma2;
+  double mu = p->EF;
+  double T = p->temperature;
+  double * E = &(p->energies[start]);
+
+  // sum current populations in band
+  pop = 0.0;
+  for (int ii = start; ii < end; ii++) {
+    pop += yp[ii*N + ii];
+  }
+
+  // do the (N-1) pairs of states along diagonal
+  double ePi, ePj;	// equilibrium populations, i and j indices
+  double rel;		// relaxation term
+  int Ii, Ij;		// indices
+
+  // find equilibrium FDD
+  double * fdd = new double [Ni];
+
+  if ((p->dynamicMu) && (pop > 0.0)) {
+    if (pop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+      std::cout << "WARNING [" << __FUNCTION__
+	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+    }
+
+    //// find bounds for Fermi level
+    mu = findDynamicMu(pop, T, CONDUCTION, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "mu at time " << t << " is " << mu << std::endl;
+#endif
+  }
+
+  FDD(mu, T, fdd, E, Ni, pop);
+
+  for (int ii = 0; ii < (Ni-1); ii++) {
+    // precalculate indices and such
+    Ii = (start + ii)*N + start + ii;
+    Ij = Ii + N + 1;		// this index is the next diagonal element, so N+1 places up
+    ePi = fdd[ii];
+    ePj = fdd[ii+1];
+
+    //// calculate contribution from relaxation
+
+    // assuming \Gamma = k_{ij} + k_{ji}, "unimolecular" model
+    // rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
+
+    // assuming \Gamma = k_{ij} + k_{ji}, "bimolecular" model
+    // rel = g1*(yp[Ij]*(1-yp[Ii])*ePi*(1-ePj) - yp[Ii]*(1-yp[Ij])*ePj*(1-ePi))/(ePi+ePj-2*ePi*ePj);
+
+    // assuming downward rates (j-->i) are the same, "bimolecular" model
+    rel = g1*(yp[Ij]*(1 - yp[Ii]) - ePj*(1-ePi)/(ePi*(1-ePj))*yp[Ii]*(1-yp[Ij]));
+
+    // equal and opposite for the interaction of the two states
+    ydotp[Ii] += rel;
+    ydotp[Ij] -= rel;
+  }
+
+  delete [] fdd;
+
   return;
 }
 
-void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp) {
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
   return;
 }
 
@@ -127,13 +193,7 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
   int N = p->NEQ;
   int N2 = p->NEQ2;
-  int Nk = p->Nk;
-  int Ik = p->Ik;
-  double * E = &(p->energies[0]);
-  double g1 = p->gamma1;
-  double g2 = p->gamma2;
-  double T = p->temperature;
-  double mu = p->EF;
+  int g2 = p->gamma2;
 
   // more compact notation for N_Vectors
   realtype * yp = N_VGetArrayPointer(y);
@@ -159,66 +219,19 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
   //// relaxation in bulk conduction band
 
   if (p->kinetic) {
-    RELAX_KINETIC(CONDUCTION, yp, ydotp);
+    RELAX_KINETIC(CONDUCTION, yp, ydotp, p);
   }
   else if (p->rta) {
-    RELAX_RTA(CONDUCTION, yp, ydotp);
+    RELAX_RTA(CONDUCTION, yp, ydotp, p);
   }
 
   //// relaxation in QD conduction band
 
   if (p->kineticQD) {
-    RELAX_KINETIC(QD_CONDUCTION, yp, ydotp);
+    RELAX_KINETIC(QD_CONDUCTION, yp, ydotp, p);
   }
   else if (p->rtaQD) {
-    RELAX_RTA(QD_CONDUCTION, yp, ydotp);
-  }
-
-  //// relaxation along diagonal
-  // sum current populations in band
-  double CBPop = 0.0;
-  for (int ii = Ik; ii < (Ik + Nk); ii++) {
-    CBPop += yp[ii*N + ii];
-  }
-
-  // do the (N-1) pairs of states along diagonal
-  double ePi, ePj;	// equilibrium populations, i and j indices
-  double rel;		// relaxation term
-  int Ii, Ij;		// indices
-
-  //// Kinetic relaxation model here
-
-  // find equilibrium FDD
-  double * fdd = new double [Nk];
-
-  if ((p->dynamicMu) && (CBPop > 0.0)) {
-    if (CBPop > 1.001) {	// test is against 1.001 since there may be some numerical drift
-      std::cout << "WARNING [" << __FUNCTION__
-	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
-    }
-
-    //// find bounds for Fermi level
-    mu = findDynamicMu(CBPop, T, CONDUCTION, p);
-#ifdef DEBUG_DYNAMIC_MU
-    std::cout << "mu at time " << t << " is " << mu << std::endl;
-#endif
-  }
-
-  FDD(mu, T, fdd, E, Nk, CBPop);
-
-  for (int ii = 0; ii < (Nk-1); ii++) {
-    // precalculate indices and such
-    Ii = (Ik + ii)*N + Ik + ii;
-    Ij = Ii + N + 1;		// this index is the next diagonal element, so N+1 places up
-    ePi = fdd[ii];
-    ePj = fdd[ii+1];
-
-    // calculate contribution from relaxation
-    rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
-
-    // equal and opposite for the interaction of the two states
-    ydotp[Ii] += rel;
-    ydotp[Ij] -= rel;
+    RELAX_RTA(QD_CONDUCTION, yp, ydotp, p);
   }
 
   //// diagonal; no need to calculate the imaginary part
@@ -246,7 +259,7 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
       ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
 
-      // relaxation
+      // dephasing
       ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
       ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
       ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
@@ -285,7 +298,7 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N2 = p->NEQ2;
   int Nk = p->Nk;
   int Ik = p->Ik;
-  double * E = &(p->energies[0]);
+  double * E = &(p->energies[Ik]);
   double g1 = p->gamma1;
   double g2 = p->gamma2;
   double T = p->temperature;
@@ -406,6 +419,9 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   fclose(dmf);
 #endif
+
+  // free fdd
+  delete [] fdd;
 
   return 0;
 }
@@ -703,7 +719,7 @@ double FDDSum(double mu, double T, int bandFlag, PARAMETERS * p) {
   int start = bandStartIdx(bandFlag, p);
   int end = bandEndIdx(bandFlag, p);
   double beta = 3.185e5/T;
-  double * E = &(p->energies[0]);
+  double * E = &(p->energies[start]);
 
   for (int ii = start; ii < end; ii++) {
     summ += 1.0/(1.0 + exp((E[ii] - mu)*beta));

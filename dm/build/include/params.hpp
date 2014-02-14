@@ -112,4 +112,6 @@ int bandStartIdx(int bandFlag, PARAMETERS * p);
 
 int bandEndIdx(int bandFlag, PARAMETERS * p);
 
+int bandNumStates(int bandFlag, PARAMETERS * p);
+
 #endif

@@ -39,3 +39,23 @@ int bandEndIdx(int bandFlag, PARAMETERS * p) {
     return 0;
   }
 }
+
+/* get number of states in band */
+int bandNumStates(int bandFlag, PARAMETERS * p) {
+  if (bandFlag == CONDUCTION) {
+    return p->Nk;
+  }
+  else if (bandFlag == VALENCE) {
+    return p->Nl;
+  }
+  else if (bandFlag == BRIDGE) {
+    return p->Nb;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    return p->Nc;
+  }
+  else {
+    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    return 0;
+  }
+}
