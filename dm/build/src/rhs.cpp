@@ -160,13 +160,13 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p
     //// calculate contribution from relaxation
 
     // assuming \Gamma = k_{ij} + k_{ji}, "unimolecular" model
-    // rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
+    rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
 
     // assuming \Gamma = k_{ij} + k_{ji}, "bimolecular" model
     // rel = g1*(yp[Ij]*(1-yp[Ii])*ePi*(1-ePj) - yp[Ii]*(1-yp[Ij])*ePj*(1-ePi))/(ePi+ePj-2*ePi*ePj);
 
     // assuming downward rates (j-->i) are the same, "bimolecular" model
-    rel = g1*(yp[Ij]*(1 - yp[Ii]) - ePj*(1-ePi)/(ePi*(1-ePj))*yp[Ii]*(1-yp[Ij]));
+    // rel = g1*(yp[Ij]*(1 - yp[Ii]) - ePj*(1-ePi)/(ePi*(1-ePj))*yp[Ii]*(1-yp[Ij]));
 
     // equal and opposite for the interaction of the two states
     ydotp[Ii] += rel;
@@ -193,7 +193,7 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
   int N = p->NEQ;
   int N2 = p->NEQ2;
-  int g2 = p->gamma2;
+  double g2 = p->gamma2;
 
   // more compact notation for N_Vectors
   realtype * yp = N_VGetArrayPointer(y);

@@ -11,29 +11,29 @@ nproc=8
 # method parameters #
 wavefunction=0				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
-justPlots=1				# just make plots, no propagation or other output
+justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
 kinetic=1				# kinetic relaxation model
 kineticQD=1				# kinetic relaxation model in QD
-dynamicMu=1				# for kinetic model, calculate Fermi level dynamically
-dynamicMuQD=1				# for kinetic model, calculate Fermi level dynamically on QD
+dynamicMu=0				# for kinetic model, calculate Fermi level dynamically
+dynamicMuQD=0				# for kinetic model, calculate Fermi level dynamically on QD
 rta=0					# use relaxation time approximation (RTA)
 rtaQD=0					# use relaxation time approximation (RTA) on QD
 dephasing=0				# turn on dephasing (gamma2)
 progressFile=1				# create file to show progress of run
 progressStdout=1			# show progress in stdout
 # numerical parameters #
-abstol=1.0e-10				# absolute tolerance
-reltol=1.0e-10				# relative tolerance
-tout=10000				# final time reached by solver (a.u.)
-numsteps=1000				# number of timesteps
-numOutputSteps=100			# number of output timesteps
+abstol=1.0e-12				# absolute tolerance
+reltol=1.0e-12				# relative tolerance
+tout=20000				# final time reached by solver (a.u.)
+numsteps=10000				# number of timesteps
+numOutputSteps=200			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=101					# number of k states to have
+Nk=21					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -50,7 +50,7 @@ X2=1512.2873345935727			# "Bohr radius" for material, inverse spacing in k-space
 # physical parameters #
 temperature=4e2				# temperature in Kelvin
 EF=0.0					# Fermi level in bulk
-gamma1=1e-1				# \gamma_1 in RTA (relaxation rate)
+gamma1=1e-2				# \gamma_1 in RTA (relaxation rate)
 gamma1_c=1e-3				# \gamma_1 in RTA (relaxation rate) on QD
 gamma2=1e-3				# \gamma_2 in RTA (dephasing rate)
 # laser parameters #
@@ -73,7 +73,7 @@ laser_on=0
 parabolicCoupling=0
 scale_bubr=0
 scale_brqd=0
-scale_buqd=0
+scale_buqd=1
 scale_laser=1
 bridge_on=0
 random_phase=0				# turning this on may break normalization
@@ -118,7 +118,7 @@ dmt_z.out
 #dmt_im.out
 dmCoherences.out
 dynamicMuBulk.out
-#dynamicMuQD.out
+dynamicMuQD.out
 ekin.out
 energies.out
 energyexp.out
