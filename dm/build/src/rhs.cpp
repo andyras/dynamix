@@ -10,6 +10,7 @@
 // #define DEBUGf_DM
 
 //#define DEBUG_TORSION
+#define DEBUG_DYNAMIC_MU
 
 
 /* Right-hand-side equation for wavefunction */
@@ -163,6 +164,17 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // find equilibrium FDD
   double * fdd = new double [Nk];
+
+  if ((p->dynamicMu) && (CBPop > 0.0)) {
+    if (CBPop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+      std::cout << "WARNING [" << __FUNCTION__
+	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+    }
+
+    //// find bounds for Fermi level
+    mu = findDynamicMu(CBPop, T, CONDUCTION, p);
+  }
+
   FDD(mu, T, fdd, E, Nk, CBPop);
 
   for (int ii = 0; ii < (Nk-1); ii++) {
@@ -418,6 +430,107 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #endif
 
   return 0;
+}
+
+/* find Fermi level based on sum of population in band */
+double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
+  double summ, lower, upper;
+
+  // starting point
+  double mu = 0.0;
+
+  summ = FDDSum(mu, T, bandFlag, p);
+
+  summ = FDDSum(upper, T, bandFlag, p);
+
+  // just in case mu is exactly zero
+  if (fabs((summ - pop) > 1e-10)) {
+    // otherwise search in increments of 1 a.u. energy
+    if (summ < pop) {
+      lower = -1.0;
+      upper = 0.0;
+      while (summ < pop) {
+	lower++;
+	upper++;
+#ifdef DEBUG_DYNAMIC_MU
+	std::cout << "Lower bound for mu: " << lower << std::endl;
+	std::cout << "Upper bound for mu: " << upper << std::endl;
+#endif
+	summ = FDDSum(upper, T, bandFlag, p);
+      }
+    }
+    else {
+      lower = 0.0;
+      upper = 1.0;
+      while (summ > pop) {
+	lower--;
+	upper--;
+#ifdef DEBUG_DYNAMIC_MU
+	std::cout << "Lower bound for mu: " << lower << std::endl;
+	std::cout << "Upper bound for mu: " << upper << std::endl;
+#endif
+	summ = FDDSum(lower, T, bandFlag, p);
+      }
+    }
+
+    // do a binary search for mu
+    mu = FDDBinarySearch(lower, upper, T, pop, bandFlag, p);
+  }
+
+  return mu;
+}
+
+/* Do a binary search to find the value of the Fermi level which makes the
+ * sum of populations in a band add up to a certain value.
+ */
+double FDDBinarySearch(double lower, double upper, double T, double n,
+    int bandFlag, PARAMETERS * p) {
+  double mid, summ;
+
+  if (fabs(upper - lower) < 1e-10) {
+    return lower;
+  }
+  else {
+    mid = (upper + lower)/2.0;
+    summ = FDDSum(mid, T, bandFlag, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "Binary search lower bound: " << lower << std::endl;
+    std::cout << "Binary search upper bound: " << upper << std::endl;
+    std::cout << "Binary search middle: " << mid << std::endl;
+    std::cout << "Binary search target value: " << n << std::endl;
+    std::cout << "Binary search summ value: " << summ << std::endl;
+#endif
+    if (summ > n) {
+#ifdef DEBUG_DYNAMIC_MU
+      std::cout << "value is in lower half of bounds" << std::endl;
+      std::cout << std::endl;
+#endif
+      return FDDBinarySearch(lower, mid, T, n, bandFlag, p);
+    }
+    else {
+#ifdef DEBUG_DYNAMIC_MU
+      std::cout << "value is in upper half of bounds" << std::endl;
+      std::cout << std::endl;
+#endif
+      return FDDBinarySearch(mid, upper, T, n, bandFlag, p);
+    }
+  }
+}
+
+/* Add up the populations in a band with a Fermi-Dirac distribution of population
+ */
+double FDDSum(double mu, double T, int bandFlag, PARAMETERS * p) {
+  double summ = 0.0;
+  int start = bandStartIdx(bandFlag, p);
+  int end = bandEndIdx(bandFlag, p);
+  double beta = 3.185e5/T;
+  double * E = &(p->energies[0]);
+
+  for (int ii = start; ii < end; ii++) {
+    summ += 1.0/(1.0 + exp((E[ii] - mu)*beta));
+  }
+
+  return summ;
 }
 
 /* fills the array fdd with Fermi-Dirac populations, normalized to a population

@@ -6,6 +6,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
+#include "constants.hpp"
 #include "spline.hpp"
 
 // Struct of parameters
@@ -101,5 +102,9 @@ struct PARAMETERS {
 
   double lastTime;			// value of most recently calculated timepoint
 };
+
+int bandStartIdx(int bandFlag, PARAMETERS * p);
+
+int bandEndIdx(int bandFlag, PARAMETERS * p);
 
 #endif
