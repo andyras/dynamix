@@ -18,6 +18,12 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
 
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp);
+
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp);
+
+int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data);
+
 int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);

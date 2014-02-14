@@ -108,6 +108,170 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   return 0;
 }
 
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp) {
+  return;
+}
+
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp) {
+  return;
+}
+
+/* Right-hand-side equation for density matrix */
+int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  std::vector<realtype> H = p->H; // copying vector is OK performance-wise
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+  int Nk = p->Nk;
+  int Ik = p->Ik;
+  double * E = &(p->energies[0]);
+  double g1 = p->gamma1;
+  double g2 = p->gamma2;
+  double T = p->temperature;
+  double mu = p->EF;
+
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
+  }
+
+  // initialize ydot
+  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
+#pragma omp parallel for
+  for (int ii = 0; ii < 2*N2; ii++) {
+    ydotp[ii] = 0.0;
+  }
+
+  //// relaxation in bulk conduction band
+
+  if (p->kinetic) {
+    RELAX_KINETIC(CONDUCTION, yp, ydotp);
+  }
+  else if (p->rta) {
+    RELAX_RTA(CONDUCTION, yp, ydotp);
+  }
+
+  //// relaxation in QD conduction band
+
+  if (p->kineticQD) {
+    RELAX_KINETIC(QD_CONDUCTION, yp, ydotp);
+  }
+  else if (p->rtaQD) {
+    RELAX_RTA(QD_CONDUCTION, yp, ydotp);
+  }
+
+  //// relaxation along diagonal
+  // sum current populations in band
+  double CBPop = 0.0;
+  for (int ii = Ik; ii < (Ik + Nk); ii++) {
+    CBPop += yp[ii*N + ii];
+  }
+
+  // do the (N-1) pairs of states along diagonal
+  double ePi, ePj;	// equilibrium populations, i and j indices
+  double rel;		// relaxation term
+  int Ii, Ij;		// indices
+
+  //// Kinetic relaxation model here
+
+  // find equilibrium FDD
+  double * fdd = new double [Nk];
+
+  if ((p->dynamicMu) && (CBPop > 0.0)) {
+    if (CBPop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+      std::cout << "WARNING [" << __FUNCTION__
+	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+    }
+
+    //// find bounds for Fermi level
+    mu = findDynamicMu(CBPop, T, CONDUCTION, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "mu at time " << t << " is " << mu << std::endl;
+#endif
+  }
+
+  FDD(mu, T, fdd, E, Nk, CBPop);
+
+  for (int ii = 0; ii < (Nk-1); ii++) {
+    // precalculate indices and such
+    Ii = (Ik + ii)*N + Ik + ii;
+    Ij = Ii + N + 1;		// this index is the next diagonal element, so N+1 places up
+    ePi = fdd[ii];
+    ePj = fdd[ii+1];
+
+    // calculate contribution from relaxation
+    rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
+
+    // equal and opposite for the interaction of the two states
+    ydotp[Ii] += rel;
+    ydotp[Ij] -= rel;
+  }
+
+  //// diagonal; no need to calculate the imaginary part
+#pragma omp parallel for
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
+    }
+  }
+
+  //// off-diagonal
+#pragma omp parallel for
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < ii; jj++) {
+      for (int kk = 0; kk < N; kk++) {
+	//// real parts of ydot
+	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+
+	//// imaginary parts of ydot (lower triangle and complex conjugate)
+	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+      }
+      // the complex conjugate
+      ydotp[jj*N + ii] = ydotp[ii*N + jj];
+      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
+
+      // relaxation
+      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
+    }
+  }
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  dmf = fopen("dmf.out", "a");
+  fprintf(dmf, "%+.7e", t);
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
+    }
+  }
+  fprintf(dmf, "\n");
+
+  fclose(dmf);
+#endif
+
+  return 0;
+}
+
 /* Right-hand-side equation for density matrix */
 int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
