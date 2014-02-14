@@ -18,7 +18,9 @@ struct PARAMETERS {
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
   bool kinetic = false;			// kinetic relaxation model
+  bool kineticQD = false;		// kinetic relaxation model in QD
   bool dynamicMu = false;		// for kinetic model, calculate Fermi level dynamically
+  bool dynamicMuQD = false;		// for kinetic model, calculate Fermi level dynamically on QD
   bool rta = true;			// turn on relaxation time approximation (RTA)
   bool rtaQD = true;			// turn on relaxation time approximation (RTA)
   bool dephasing = false;		// turn on dephasing
