@@ -14,6 +14,7 @@
 #include "numerical.hpp"
 #include "fftmanip.hpp"
 #include "params.hpp"
+#include "rhs.hpp"
 
 /* TYPE DEFINITIONS */
 
@@ -99,6 +100,8 @@ void outputTimes(char * fileName, struct PARAMETERS * p);
 
 void outputEnergyExp(char * fileName, realtype * dmt,
     struct PARAMETERS * p);
+
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAMETERS * p);
 
 void outputMuFromPops(char * fileName, realtype * dmt,
     struct PARAMETERS * p);

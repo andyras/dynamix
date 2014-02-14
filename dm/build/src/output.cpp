@@ -692,7 +692,32 @@ void outputEnergyExp(char * fileName, realtype * dmt,
   return;
 }
 
-/* Outputs Fermi level as calculated from populations*/
+/* Output Fermi level calculated from total band populations */
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAMETERS * p) {
+  int start = bandStartIdx(bandFlag, p);
+  int end = bandEndIdx(bandFlag, p);
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+  double summ = 0.0;
+  double T = p->temperature;
+
+  std::ofstream output(fileName);
+
+  for (int kk = 0; kk < p->numOutputSteps; kk++) {
+    summ = 0.0;
+    for (int ii = start; ii < end; ii++) {
+      summ += dmt[kk*N2*2 + ii*N + ii];
+    }
+    output << std::setw(8) << std::scientific
+      << p->times[kk] << " "
+      << std::setw(8) << std::scientific
+      << findDynamicMu(summ, T, bandFlag, p) << std::endl;
+  }
+
+  return;
+}
+
+/* Outputs Fermi level as calculated from populations */
 void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
@@ -1434,6 +1459,16 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   // Fermi level as calculated from populations
   if (isOutput(outs, "muFromPops.out")) {
     outputMuFromPops("muFromPops.out", dmt, p);
+  }
+
+  // Fermi level in bulk as calculated from populations
+  if (isOutput(outs, "dynamicMuBulk.out")) {
+    outputDynamicMu("dynamicMuBulk.out", dmt, CONDUCTION, p);
+  }
+
+  // Fermi level in bulk as calculated from populations
+  if (isOutput(outs, "dynamicMuQD.out")) {
+    outputDynamicMu("dynamicMuQD.out", dmt, QD_CONDUCTION, p);
   }
 
   // derivatives of populations
