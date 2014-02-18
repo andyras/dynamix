@@ -1,6 +1,7 @@
 *.out
 *~
 *.avi
+*.mkv
 *.tmp
 *.log
 *.eps
