@@ -1,11 +1,13 @@
 #!/usr/bin/env python2
 
-debug = True
+debug = False
 
 import pylab as plt
 from matplotlib import animation
 import re
 import matplotlib as mpl
+
+mpl.use("agg")
 
 # this is based on
 # http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
@@ -45,7 +47,6 @@ def animate(ii):
     for rect, w in zip(rects, kprobs[:,ii]):
         rect.set_width(w)
     arr.set_positions((times[ii],0), (times[ii],1))
-    #arr = ax2.arrow(times[ii],0,0,1)
     return rects,arr
 
 # read in data
@@ -100,5 +101,4 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 
 # render a movie (slow step)
 print("saving to movie file...")
-# TODO add threading via mencoder -lavcopts
 anim.save('figures/kprobs.mkv', fps=25, extra_args=['-vcodec', 'libx264', '-threads', '0'])
