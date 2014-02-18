@@ -30,6 +30,14 @@ void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
     }
   }
 
+  // calculated Fermi level
+  if (isOutput(outs, "muFromPops.plt") && (p->Nk > 1)) {
+    if (!isOutput(outs, "muFromPops.out")) {
+      std::cout << "WARNING: making muFromPops.plt although muFromPops.out does not exist." << std::endl;
+    }
+    plotMuFromPops("muFromPops.plt", p);
+  }
+
   // density matrix in time
   if (isOutput(outs, "dmt_z.plt")) {
     plotDMt_z("dmt_z.plt", p);
@@ -217,6 +225,57 @@ void plotCProbs(struct PARAMETERS * p) {
   o << "set border 0" << endl;
   o << "set tics scale 0" << endl;
   o << "set ylabel 'State (index above band edge)'" << endl;
+  o << "set xlabel 'Time (a.u.)'" << endl;
+  o << "set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]" << endl;
+  o << "set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]" << endl;
+  o << endl;
+  o << "set palette defined(\\" << endl;
+  o << "0.0    0.8667  0.8667  0.8667,\\" << endl;
+  o << "0.0625 0.8980  0.8471  0.8196,\\" << endl;
+  o << "0.125  0.9255  0.8275  0.7725,\\" << endl;
+  o << "0.1875 0.9451  0.8000  0.7255,\\" << endl;
+  o << "0.25   0.9608  0.7686  0.6784,\\" << endl;
+  o << "0.3125 0.9686  0.7333  0.6275,\\" << endl;
+  o << "0.375  0.9686  0.6941  0.5804,\\" << endl;
+  o << "0.4375 0.9686  0.6510  0.5294,\\" << endl;
+  o << "0.5    0.9569  0.6039  0.4824,\\" << endl;
+  o << "0.5625 0.9451  0.5529  0.4353,\\" << endl;
+  o << "0.625  0.9255  0.4980  0.3882,\\" << endl;
+  o << "0.6875 0.8980  0.4392  0.3451,\\" << endl;
+  o << "0.75   0.8706  0.3765  0.3020,\\" << endl;
+  o << "0.8125 0.8353  0.3137  0.2588,\\" << endl;
+  o << "0.875  0.7961  0.2431  0.2196,\\" << endl;
+  o << "0.9375 0.7529  0.1569  0.1843,\\" << endl;
+  o << "1      0.7059  0.0157  0.1490\\" << endl;
+  o << ")" << endl;
+  o << endl;
+  o << "replot" << endl;
+
+  return;
+}
+
+void plotMuFromPops(char * fileName, struct PARAMETERS * p) {
+#ifdef DEBUG_PLOT
+  cout << "\nMaking muFromPops.plt" << endl;
+#endif
+  ofstream o(fileName);
+
+  o << "#!/usr/bin/env gnuplot" << endl;
+  o << endl;
+  o << "set terminal pdfcairo size 5,3 font 'Arial-Bold,12'" << endl;
+  o << endl;
+  o << "set output '/dev/null'" << endl;
+  o << "plot '<cut -d \" \" -f 2- ./outs/muFromPops.out' u ($2*"
+    << p->tout << "/" << p->numOutputSteps << "):($1*(" 
+    << p->kBandTop << "-" << p->kBandEdge << ")/(";
+  o << p->Nk << "-1)):3 matrix with image" << endl;
+  o << endl;
+  o << "set output 'figures/muFromPops.pdf'" << endl;
+  o << "set title 'Calculated Fermi level in bulk conduction band'" << endl;
+  o << "unset key " << endl;
+  o << "set border 0" << endl;
+  o << "set tics scale 0" << endl;
+  o << "set ylabel 'Energy above band edge (a.u.)'" << endl;
   o << "set xlabel 'Time (a.u.)'" << endl;
   o << "set xrange [GPVAL_DATA_X_MIN:GPVAL_DATA_X_MAX]" << endl;
   o << "set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]" << endl;

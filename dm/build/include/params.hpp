@@ -6,6 +6,7 @@
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
 
+#include "constants.hpp"
 #include "spline.hpp"
 
 // Struct of parameters
@@ -17,6 +18,9 @@ struct PARAMETERS {
   bool timedepH = true;			// if H is TD, use CVODE, else diag H and propogate
   bool analytical = false;		// turn on analytical propagation
   bool kinetic = false;			// kinetic relaxation model
+  bool kineticQD = false;		// kinetic relaxation model in QD
+  bool dynamicMu = false;		// for kinetic model, calculate Fermi level dynamically
+  bool dynamicMuQD = false;		// for kinetic model, calculate Fermi level dynamically on QD
   bool rta = true;			// turn on relaxation time approximation (RTA)
   bool rtaQD = true;			// turn on relaxation time approximation (RTA)
   bool dephasing = false;		// turn on dephasing
@@ -99,6 +103,15 @@ struct PARAMETERS {
   Spline * torsionV;
 
   double lastTime;			// value of most recently calculated timepoint
+
+  double lastMu;			// value of Fermi level at last time point
+  double lastMuQD;			// value of Fermi level in QD at last time point
 };
+
+int bandStartIdx(int bandFlag, PARAMETERS * p);
+
+int bandEndIdx(int bandFlag, PARAMETERS * p);
+
+int bandNumStates(int bandFlag, PARAMETERS * p);
 
 #endif

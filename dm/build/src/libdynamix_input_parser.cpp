@@ -142,6 +142,9 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "coherent") { p->coherent = atoi(param_val.c_str()); }
     else if (input_param == "analytical") { p->analytical = atoi(param_val.c_str()); }
     else if (input_param == "kinetic") { p->kinetic = atoi(param_val.c_str()); }
+    else if (input_param == "kineticQD") { p->kineticQD = atoi(param_val.c_str()); }
+    else if (input_param == "dynamicMu") { p->dynamicMu = atoi(param_val.c_str()); }
+    else if (input_param == "dynamicMuQD") { p->dynamicMuQD = atoi(param_val.c_str()); }
     else if (input_param == "rta") { p->rta = atoi(param_val.c_str()); }
     else if (input_param == "rtaQD") { p->rtaQD = atoi(param_val.c_str()); }
     else if (input_param == "dephasing") { p->dephasing = atoi(param_val.c_str()); }
@@ -214,6 +217,9 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "coherent is " << p->coherent << std::endl;
   std::cout << "analytical is " << p->analytical << std::endl;
   std::cout << "kinetic is " << p->kinetic << std::endl;
+  std::cout << "kineticQD is " << p->kineticQD << std::endl;
+  std::cout << "dynamicMu is " << p->dynamicMu << std::endl;
+  std::cout << "dynamicMuQD is " << p->dynamicMuQD << std::endl;
   std::cout << "rta is " << p->rta << std::endl;
   std::cout << "rtaQD is " << p->rtaQD << std::endl;
   std::cout << "dephasing is " << p->dephasing << std::endl;

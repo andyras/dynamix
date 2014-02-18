@@ -18,11 +18,24 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
 
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p);
+
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p);
+
+int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data);
+
 int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
+
+double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p);
+
+double FDDBinarySearch(double lower, double upper, double T, double n,
+    int bandFlag, PARAMETERS * p);
+
+double FDDSum(double mu, double T, int bandFlag, PARAMETERS * p);
 
 void FDD(double mu, double T, double * fdd, double * E, int N, double P);
 

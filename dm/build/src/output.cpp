@@ -692,6 +692,75 @@ void outputEnergyExp(char * fileName, realtype * dmt,
   return;
 }
 
+/* Output Fermi level calculated from total band populations */
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAMETERS * p) {
+  int start = bandStartIdx(bandFlag, p);
+  int end = bandEndIdx(bandFlag, p);
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+  double summ = 0.0;
+  double T = p->temperature;
+
+  std::ofstream output(fileName);
+
+  for (int kk = 0; kk < p->numOutputSteps; kk++) {
+    summ = 0.0;
+    for (int ii = start; ii < end; ii++) {
+      summ += dmt[kk*N2*2 + ii*N + ii];
+    }
+    output << std::setw(8) << std::scientific
+      << p->times[kk] << " "
+      << std::setw(8) << std::scientific
+      << findDynamicMu(summ, T, bandFlag, p) << std::endl;
+  }
+
+  return;
+}
+
+/* Outputs Fermi level as calculated from populations */
+void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nMaking " << fileName << "\n";
+#endif
+
+  std::ofstream output(fileName);
+  std::ofstream average("muFromPopsAvg.out");
+
+  double kT = p->temperature/3.185e5;
+  double pop, mu;
+  double summ = 0.0;
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+
+  // loop over timesteps
+  for (int kk = 0; kk <= p->numOutputSteps; kk++) {
+    // print time
+    output << std::setw(8) << std::scientific << p->times[kk];
+
+    summ = 0.0;
+    // loop over k states
+    for (int ii = 0; ii < p->Nk; ii++) {
+      // inverse of Fermi-Dirac function
+      pop = dmt[kk*N2*2 + ii*N + ii];
+      // FIXME this is broken when pop > 1.0
+      mu = p->energies[p->Ik + ii] - kT*log((1.0 - pop)/pop);
+      output << " " << std::setw(8) << std::scientific << mu;
+      summ += mu;
+    }
+
+    output << std::endl;
+
+    average << std::setw(8) << std::scientific << p->times[kk] << " "
+      << std::setw(8) << std::scientific << summ/p->Nk << std::endl;
+  }
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "\nDone making " << fileName << std::endl;
+#endif
+
+  return;
+}
+
 /* Outputs torsional potential at simulation time points */
 void outputTorsion(struct PARAMETERS * p, char * fileName) {
   std::ofstream output(fileName);
@@ -1385,6 +1454,21 @@ void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
   // expectation value of energy
   if (isOutput(outs, "energyexp.out")) {
     outputEnergyExp("energyexp.out", dmt, p);
+  }
+
+  // Fermi level as calculated from populations
+  if (isOutput(outs, "muFromPops.out")) {
+    outputMuFromPops("muFromPops.out", dmt, p);
+  }
+
+  // Fermi level in bulk as calculated from populations
+  if (isOutput(outs, "dynamicMuBulk.out")) {
+    outputDynamicMu("dynamicMuBulk.out", dmt, CONDUCTION, p);
+  }
+
+  // Fermi level in bulk as calculated from populations
+  if (isOutput(outs, "dynamicMuQD.out")) {
+    outputDynamicMu("dynamicMuQD.out", dmt, QD_CONDUCTION, p);
   }
 
   // derivatives of populations

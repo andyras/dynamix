@@ -10,6 +10,7 @@
 // #define DEBUGf_DM
 
 //#define DEBUG_TORSION
+//#define DEBUG_DYNAMIC_MU
 
 
 /* Right-hand-side equation for wavefunction */
@@ -107,6 +108,183 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   return 0;
 }
 
+/* apply the kinetic relaxation model to one band of the system */
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
+  double pop = 0.0;
+  int start = bandStartIdx(bandFlag, p);
+  int end = bandEndIdx(bandFlag, p);
+  int Ni = bandNumStates(bandFlag, p);
+  int N = p->NEQ;
+  double g1 = p->gamma1;
+  double g2 = p->gamma2;
+  double mu = p->EF;
+  double T = p->temperature;
+  double * E = &(p->energies[start]);
+
+  // sum current populations in band
+  pop = 0.0;
+  for (int ii = start; ii < end; ii++) {
+    pop += yp[ii*N + ii];
+  }
+
+  // do the (N-1) pairs of states along diagonal
+  double ePi, ePj;	// equilibrium populations, i and j indices
+  double rel;		// relaxation term
+  int Ii, Ij;		// indices
+
+  // find equilibrium FDD
+  double * fdd = new double [Ni];
+
+  if ((p->dynamicMu) && (pop > 0.0)) {
+    if (pop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+      std::cout << "WARNING [" << __FUNCTION__
+	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+    }
+
+    //// find bounds for Fermi level
+    mu = findDynamicMu(pop, T, CONDUCTION, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "mu at time " << t << " is " << mu << std::endl;
+#endif
+  }
+
+  FDD(mu, T, fdd, E, Ni, pop);
+
+  for (int ii = 0; ii < (Ni-1); ii++) {
+    // precalculate indices and such
+    Ii = (start + ii)*N + start + ii;
+    Ij = Ii + N + 1;		// this index is the next diagonal element, so N+1 places up
+    ePi = fdd[ii];
+    ePj = fdd[ii+1];
+
+    //// calculate contribution from relaxation
+
+    // assuming \Gamma = k_{ij} + k_{ji}, "unimolecular" model
+    rel = g1*(ePi*yp[Ij] - ePj*yp[Ii])/(ePi + ePj);
+
+    // assuming \Gamma = k_{ij} + k_{ji}, "bimolecular" model
+    // rel = g1*(yp[Ij]*(1-yp[Ii])*ePi*(1-ePj) - yp[Ii]*(1-yp[Ij])*ePj*(1-ePi))/(ePi+ePj-2*ePi*ePj);
+
+    // assuming downward rates (j-->i) are the same, "bimolecular" model
+    // rel = g1*(yp[Ij]*(1 - yp[Ii]) - ePj*(1-ePi)/(ePi*(1-ePj))*yp[Ii]*(1-yp[Ij]));
+
+    // equal and opposite for the interaction of the two states
+    ydotp[Ii] += rel;
+    ydotp[Ij] -= rel;
+  }
+
+  delete [] fdd;
+
+  return;
+}
+
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
+  return;
+}
+
+/* Right-hand-side equation for density matrix */
+int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
+
+  // data is a pointer to the params struct
+  PARAMETERS * p;
+  p = (PARAMETERS *) data;
+
+  // extract parameters from p
+  std::vector<realtype> H = p->H; // copying vector is OK performance-wise
+  int N = p->NEQ;
+  int N2 = p->NEQ2;
+  double g2 = p->gamma2;
+
+  // more compact notation for N_Vectors
+  realtype * yp = N_VGetArrayPointer(y);
+  realtype * ydotp = N_VGetArrayPointer(ydot);
+
+  // update Hamiltonian if it is time-dependent
+  if (p->torsion || p->laser_on) {
+    // only update if at a new time point
+    if ((t > 0.0) && (t != p->lastTime)) {
+      updateHamiltonian(p, t);
+      // update time point
+      p->lastTime = t;
+    }
+  }
+
+  // initialize ydot
+  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
+#pragma omp parallel for
+  for (int ii = 0; ii < 2*N2; ii++) {
+    ydotp[ii] = 0.0;
+  }
+
+  //// relaxation in bulk conduction band
+
+  if (p->kinetic) {
+    RELAX_KINETIC(CONDUCTION, yp, ydotp, p);
+  }
+  else if (p->rta) {
+    RELAX_RTA(CONDUCTION, yp, ydotp, p);
+  }
+
+  //// relaxation in QD conduction band
+
+  if (p->kineticQD) {
+    RELAX_KINETIC(QD_CONDUCTION, yp, ydotp, p);
+  }
+  else if (p->rtaQD) {
+    RELAX_RTA(QD_CONDUCTION, yp, ydotp, p);
+  }
+
+  //// diagonal; no need to calculate the imaginary part
+#pragma omp parallel for
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
+    }
+  }
+
+  //// off-diagonal
+#pragma omp parallel for
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < ii; jj++) {
+      for (int kk = 0; kk < N; kk++) {
+	//// real parts of ydot
+	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+
+	//// imaginary parts of ydot (lower triangle and complex conjugate)
+	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+      }
+      // the complex conjugate
+      ydotp[jj*N + ii] = ydotp[ii*N + jj];
+      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
+
+      // dephasing
+      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
+    }
+  }
+
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  dmf = fopen("dmf.out", "a");
+  fprintf(dmf, "%+.7e", t);
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
+    }
+  }
+  fprintf(dmf, "\n");
+
+  fclose(dmf);
+#endif
+
+  return 0;
+}
+
 /* Right-hand-side equation for density matrix */
 int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
@@ -120,7 +298,7 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int N2 = p->NEQ2;
   int Nk = p->Nk;
   int Ik = p->Ik;
-  double * E = &(p->energies[0]);
+  double * E = &(p->energies[Ik]);
   double g1 = p->gamma1;
   double g2 = p->gamma2;
   double T = p->temperature;
@@ -154,14 +332,30 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
     CBPop += yp[ii*N + ii];
   }
 
-  // find equilibrium FDD
-  double * fdd = new double [Nk];
-  FDD(mu, T, fdd, E, Nk, CBPop);
-
   // do the (N-1) pairs of states along diagonal
   double ePi, ePj;	// equilibrium populations, i and j indices
   double rel;		// relaxation term
   int Ii, Ij;		// indices
+
+  //// Kinetic relaxation model here
+
+  // find equilibrium FDD
+  double * fdd = new double [Nk];
+
+  if ((p->dynamicMu) && (CBPop > 0.0)) {
+    if (CBPop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+      std::cout << "WARNING [" << __FUNCTION__
+	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+    }
+
+    //// find bounds for Fermi level
+    mu = findDynamicMu(CBPop, T, CONDUCTION, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "mu at time " << t << " is " << mu << std::endl;
+#endif
+  }
+
+  FDD(mu, T, fdd, E, Nk, CBPop);
 
   for (int ii = 0; ii < (Nk-1); ii++) {
     // precalculate indices and such
@@ -225,6 +419,9 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   fclose(dmf);
 #endif
+
+  // free fdd
+  delete [] fdd;
 
   return 0;
 }
@@ -416,6 +613,119 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #endif
 
   return 0;
+}
+
+/* find Fermi level based on sum of population in band */
+double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
+  double summ, lower, upper;
+
+  // starting point
+  double mu = 0.0;
+  if (bandFlag == CONDUCTION) {
+    mu = p->lastMu;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    mu = p->lastMuQD;
+  }
+
+  summ = FDDSum(mu, T, bandFlag, p);
+
+  // just in case mu is exactly zero
+  if (fabs((summ - pop) > 1e-10)) {
+    // otherwise search in increments of 1 a.u. energy
+    if (summ < pop) {
+      lower = -1.0;
+      upper = 0.0;
+      while (summ < pop) {
+	lower++;
+	upper++;
+#ifdef DEBUG_DYNAMIC_MU
+	std::cout << "Lower bound for mu: " << lower << std::endl;
+	std::cout << "Upper bound for mu: " << upper << std::endl;
+#endif
+	summ = FDDSum(upper, T, bandFlag, p);
+      }
+    }
+    else {
+      lower = 0.0;
+      upper = 1.0;
+      while (summ > pop) {
+	lower--;
+	upper--;
+#ifdef DEBUG_DYNAMIC_MU
+	std::cout << "Lower bound for mu: " << lower << std::endl;
+	std::cout << "Upper bound for mu: " << upper << std::endl;
+#endif
+	summ = FDDSum(lower, T, bandFlag, p);
+      }
+    }
+
+    // do a binary search for mu
+    mu = FDDBinarySearch(lower, upper, T, pop, bandFlag, p);
+  }
+
+  // store the mu for the next time step
+  if (bandFlag == CONDUCTION) {
+    p->lastMu = mu;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    p->lastMuQD = mu;
+  }
+
+  return mu;
+}
+
+/* Do a binary search to find the value of the Fermi level which makes the
+ * sum of populations in a band add up to a certain value.
+ */
+double FDDBinarySearch(double lower, double upper, double T, double n,
+    int bandFlag, PARAMETERS * p) {
+  double mid, summ;
+
+  if (fabs(upper - lower) < 1e-10) {
+    return lower;
+  }
+  else {
+    mid = (upper + lower)/2.0;
+    summ = FDDSum(mid, T, bandFlag, p);
+#ifdef DEBUG_DYNAMIC_MU
+    std::cout << "Binary search lower bound: " << lower << std::endl;
+    std::cout << "Binary search upper bound: " << upper << std::endl;
+    std::cout << "Binary search middle: " << mid << std::endl;
+    std::cout << "Binary search target value: " << n << std::endl;
+    std::cout << "Binary search summ value: " << summ << std::endl;
+#endif
+    if (summ > n) {
+#ifdef DEBUG_DYNAMIC_MU
+      std::cout << "value is in lower half of bounds" << std::endl;
+      std::cout << std::endl;
+#endif
+      return FDDBinarySearch(lower, mid, T, n, bandFlag, p);
+    }
+    else {
+#ifdef DEBUG_DYNAMIC_MU
+      std::cout << "value is in upper half of bounds" << std::endl;
+      std::cout << std::endl;
+#endif
+      return FDDBinarySearch(mid, upper, T, n, bandFlag, p);
+    }
+  }
+}
+
+/* Add up the populations in a band with a Fermi-Dirac distribution of population
+ */
+double FDDSum(double mu, double T, int bandFlag, PARAMETERS * p) {
+  double summ = 0.0;
+  int start = bandStartIdx(bandFlag, p);
+  int end = bandEndIdx(bandFlag, p);
+  double beta = 3.185e5/T;
+  double * E = &(p->energies[start]);
+
+  for (int ii = start; ii < end; ii++) {
+    summ += 1.0/(1.0 + exp((E[ii] - mu)*beta));
+  }
+
+  return summ;
 }
 
 /* fills the array fdd with Fermi-Dirac populations, normalized to a population
