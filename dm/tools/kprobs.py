@@ -46,7 +46,7 @@ def animate(ii):
     '''
     for rect, w in zip(rects, kprobs[:,ii]):
         rect.set_width(w)
-    arr.set_positions((times[ii],0), (times[ii],1))
+    arr.set_positions((times[ii],min(E)), (times[ii],max(E)))
     return rects,arr
 
 # read in data
