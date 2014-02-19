@@ -89,7 +89,7 @@ ax2.contourf(X, Y, kprobs, origin='lower', levels=levels, cmap=plt.cm.OrRd)
 ax2.set_xlabel('Time (a.u.)')
 ax2.set_ylabel('Energy (a.u.)')
 ax2.set_ylim([min(E), max(E)])
-arr = mpl.patches.FancyArrowPatch((0,0),(1,0))
+arr = mpl.patches.FancyArrowPatch((0,min(E)),(0,max(E)))
 ax2.add_patch(arr)
 
 fig.tight_layout()
