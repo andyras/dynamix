@@ -50,17 +50,20 @@ def onKey(e):
 
 def animate(getIdx):
     ii = getIdx
-    time_text.set_text(time_template%(ii))
+    # update populations
     for r,w in zip(kRects, kprobs[:,ii]):
         r.set_width(w)
     for r,w in zip(cRects, cprobs[:,ii]):
         r.set_width(w)
+    # progress bars
     tRect[0].set_width(times[ii])
     arr2.set_positions((times[ii],min(Ek)), (times[ii],max(Ek)))
     arr3.set_positions((times[ii],0), (times[ii],max(tkprob)))
     arr5.set_positions((times[ii],min(Ec)), (times[ii],max(Ec)))
     arr6.set_positions((times[ii],0), (times[ii],max(tcprob)))
-    return kRects, cRects, time_text, arr2, arr3, arr5, arr6
+    # time text
+    ax7.set_title('Time = %.2f fs' % times[ii])
+    return kRects, cRects, tRect, arr2, arr3, arr5, arr6
 
 # read in data
 kprobs = np.loadtxt('outs/kprobs.out')
@@ -157,15 +160,20 @@ ax6.add_patch(arr6)
 
 # progress bar
 tRect = ax7.barh([0], height=1, width=times[0], color='b', ec='b')
+ax7.set_title('Time = %.2f fs' % times[0])
 ax7.set_xlim([0, times[-1]])
 ax7.set_ylim([0, 1])
 
-axes = [ax1, ax2, ax3, ax4, ax5, ax6]
+# remove useless ticks
+noTickAxes = [ax2, ax5, ax7]
+[ax.tick_params(left='off', right='off', top='off', bottom='off') for ax in noTickAxes]
+
+# remove useless labels
+ax7.tick_params(labelbottom='off', labelleft='off')
+
+axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
 [ax.set_xticks(ax.get_xlim()) for ax in axes]
 [ax.set_yticks(ax.get_ylim()) for ax in axes]
-
-time_template = 'Time = %.1f s'    # prints running simulation time
-time_text = ax6.text(0.05, 0.9, '', transform=ax6.transAxes)
 
 # link clicking to pause
 fig.canvas.mpl_connect('button_press_event', onClick)
