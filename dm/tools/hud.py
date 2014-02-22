@@ -24,7 +24,7 @@ def getIdx():
 
 pause = False
 def onClick(e):
-    timeAxes = [ax2, ax5, ax3, ax6, ax7]
+    timeAxes = [ax2, ax5, ax3, ax6]
     if (e.inaxes in timeAxes):
         global ii
         dt = times[1] - times[0]
@@ -56,14 +56,11 @@ def animate(getIdx):
     for r,w in zip(cRects, cprobs[:,ii]):
         r.set_width(w)
     # progress bars
-    tRect[0].set_width(times[ii])
     arr2.set_positions((times[ii],min(Ek)), (times[ii],max(Ek)))
     arr3.set_positions((times[ii],0), (times[ii],max(tkprob)))
     arr5.set_positions((times[ii],min(Ec)), (times[ii],max(Ec)))
     arr6.set_positions((times[ii],0), (times[ii],max(tcprob)))
-    # time text
-    ax7.set_title('Time = %.2f fs' % times[ii])
-    return kRects, cRects, tRect, arr2, arr3, arr5, arr6
+    return kRects, cRects, arr2, arr3, arr5, arr6
 
 # read in data
 kprobs = np.loadtxt('outs/kprobs.out')
@@ -98,15 +95,13 @@ X2, Y2 = np.meshgrid(times, Ec)
 cLevels = np.linspace(cprobs.flatten().min(), cprobs.flatten().max(), 256)
 
 # set up figure and axis opjects
-#fig, ((ax1, ax4), (ax2, ax5), (ax3, ax6)) = plt.subplots(nrows=3, ncols=2)
 fig = plt.figure(figsize=(8,8))
-ax1 = plt.subplot2grid((7,2), (0,0), rowspan=2)
-ax4 = plt.subplot2grid((7,2), (0,1), rowspan=2)
-ax2 = plt.subplot2grid((7,2), (2,0), rowspan=2)
-ax5 = plt.subplot2grid((7,2), (2,1), rowspan=2)
-ax3 = plt.subplot2grid((7,2), (4,0), rowspan=2)
-ax6 = plt.subplot2grid((7,2), (4,1), rowspan=2)
-ax7 = plt.subplot2grid((7,2), (6,0), colspan=2)
+ax1 = plt.subplot2grid((3,2), (0,0))
+ax4 = plt.subplot2grid((3,2), (0,1))
+ax2 = plt.subplot2grid((3,2), (1,0))
+ax5 = plt.subplot2grid((3,2), (1,1))
+ax3 = plt.subplot2grid((3,2), (2,0))
+ax6 = plt.subplot2grid((3,2), (2,1))
 plt.set_cmap(plt.cm.coolwarm)
 
 # population bar charts
@@ -158,20 +153,11 @@ ax6.set_xlim([0, max(times)])
 arr6 = mpl.patches.FancyArrowPatch((0,0), (0,max(tcprob)))
 ax6.add_patch(arr6)
 
-# progress bar
-tRect = ax7.barh([0], height=1, width=times[0], color='b', ec='b')
-ax7.set_title('Time = %.2f fs' % times[0])
-ax7.set_xlim([0, times[-1]])
-ax7.set_ylim([0, 1])
-
 # remove useless ticks
-noTickAxes = [ax2, ax5, ax7]
+noTickAxes = [ax2, ax5]
 [ax.tick_params(left='off', right='off', top='off', bottom='off') for ax in noTickAxes]
 
-# remove useless labels
-ax7.tick_params(labelbottom='off', labelleft='off')
-
-axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
+axes = [ax1, ax2, ax3, ax4, ax5, ax6]
 [ax.set_xticks(ax.get_xlim()) for ax in axes]
 [ax.set_yticks(ax.get_ylim()) for ax in axes]
 
