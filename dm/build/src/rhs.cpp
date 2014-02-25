@@ -115,7 +115,18 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p
   int end = bandEndIdx(bandFlag, p);
   int Ni = bandNumStates(bandFlag, p);
   int N = p->NEQ;
-  double g1 = p->gamma1;
+  double g1;
+  if (bandFlag == CONDUCTION) {
+    g1 = p->gamma1;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    g1 = p->gamma1_c;
+  }
+  else {
+    std::cerr << "WARNING [" << __FUNCTION__ << "]: unexpected bandFlag " << bandFlag << std::endl;
+    std::cerr << "        setting g1 to 1.0" << std::endl;
+    g1 = 1.0;
+  }
   double g2 = p->gamma2;
   double mu = p->EF;
   double T = p->temperature;
