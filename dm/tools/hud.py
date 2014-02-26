@@ -24,7 +24,12 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
-with cd(os.path.expanduser(args.dir)):
+if (args.dir == ''):
+    workingDir = os.getcwd()
+else:
+    workingDir = args.dir
+
+with cd(workingDir):
     import matplotlib as mpl
     # optionally set up mpl things
     #mpl.use("TkAgg")
@@ -192,6 +197,7 @@ with cd(os.path.expanduser(args.dir)):
 
     # create space for axis labels
     fig.set_tight_layout(True)
+    fig.canvas.set_window_title(os.getcwd())
 
     anim = animation.FuncAnimation(fig, animate, getIdx, blit=False, interval=100,
         repeat=True)
