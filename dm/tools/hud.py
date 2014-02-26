@@ -93,18 +93,29 @@ with cd(workingDir):
     # read in data
     kprobs = np.loadtxt('outs/kprobs.out')
     cprobs = np.loadtxt('outs/cprobs.out')
-    Ek = np.loadtxt('outs/energies.out')*27.211
-    Ec = np.loadtxt('ins/c_energies.in')*27.211
-    tkprob = np.loadtxt('outs/tkprob.out')[:,1]
-    tcprob = np.loadtxt('outs/tcprob.out')[:,1]
-
     # split kprobs into times and kprobs
     times = kprobs[:,0]
     kprobs = kprobs[:,1:].transpose()
     cprobs = cprobs[:,1:].transpose()
-
+    # set number of states
     Nk = kprobs.shape[0]
     Nc = cprobs.shape[0]
+    # read in k energies
+    try:
+        Ek = np.loadtxt('outs/energies.out')*27.211
+    except IOError:
+        print("outs/energies.out missing, substituting default")
+        Ek = np.arange(Nk)
+    # read in c energies
+    try:
+        Ec = np.loadtxt('ins/c_energies.in')*27.211
+    except IOError:
+        print("ins/c_energies.out missing, substituting default")
+        Ec = np.arange(Nc)
+    # read in populations over time
+    tkprob = np.loadtxt('outs/tkprob.out')[:,1]
+    tcprob = np.loadtxt('outs/tcprob.out')[:,1]
+
 
     # account for k energies being at beginning of E array
     Ek = Ek[0:Nk]
