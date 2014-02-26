@@ -7,6 +7,7 @@ import os
 
 parser = argparse.ArgumentParser(description='This script displays population dynamics between two sets of electronic states')
 parser.add_argument('--dir', '-d', help='directory containing job outputs', type=str, metavar='<job dir>', default='')
+parser.add_argument('--outs', '-o', help='toggle "outs" directory', action='store_true')
 
 args = parser.parse_args()
 
@@ -91,8 +92,18 @@ with cd(workingDir):
         return kRects, cRects, arr2, arr3, arr5, arr6
 
     # read in data
-    kprobs = np.loadtxt('outs/kprobs.out')
-    cprobs = np.loadtxt('outs/cprobs.out')
+    if (args.outs):
+        outsPre = ''
+    else:
+        outsPre = 'outs/'
+    kprobsFile = outsPre+'kprobs.out'
+    cprobsFile = outsPre+'cprobs.out'
+    energiesFile = outsPre+'energies.out'
+    tkprobFile = outsPre+'tkprob.out'
+    tcprobFile = outsPre+'tcprob.out'
+
+    kprobs = np.loadtxt(kprobsFile)
+    cprobs = np.loadtxt(cprobsFile)
     # split kprobs into times and kprobs
     times = kprobs[:,0]
     kprobs = kprobs[:,1:].transpose()
@@ -102,9 +113,9 @@ with cd(workingDir):
     Nc = cprobs.shape[0]
     # read in k energies
     try:
-        Ek = np.loadtxt('outs/energies.out')*27.211
+        Ek = np.loadtxt(energiesFile)*27.211
     except IOError:
-        print("outs/energies.out missing, substituting default")
+        print(energiesFile,"missing, substituting default")
         Ek = np.arange(Nk)
     # read in c energies
     try:
@@ -113,8 +124,8 @@ with cd(workingDir):
         print("ins/c_energies.out missing, substituting default")
         Ec = np.arange(Nc)
     # read in populations over time
-    tkprob = np.loadtxt('outs/tkprob.out')[:,1]
-    tcprob = np.loadtxt('outs/tcprob.out')[:,1]
+    tkprob = np.loadtxt(tkprobFile)[:,1]
+    tcprob = np.loadtxt(tcprobFile)[:,1]
 
 
     # account for k energies being at beginning of E array
