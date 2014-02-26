@@ -7,7 +7,6 @@ import os
 
 parser = argparse.ArgumentParser(description='This script displays population dynamics between two sets of electronic states')
 parser.add_argument('--dir', '-d', help='directory containing job outputs', type=str, metavar='<job dir>', default='')
-parser.add_argument('--outs', '-o', help='toggle "outs" directory', action='store_true')
 
 args = parser.parse_args()
 
@@ -92,18 +91,26 @@ with cd(workingDir):
         return kRects, cRects, arr2, arr3, arr5, arr6
 
     # read in data
-    if (args.outs):
-        outsPre = ''
-    else:
-        outsPre = 'outs/'
-    kprobsFile = outsPre+'kprobs.out'
-    cprobsFile = outsPre+'cprobs.out'
-    energiesFile = outsPre+'energies.out'
-    tkprobFile = outsPre+'tkprob.out'
-    tcprobFile = outsPre+'tcprob.out'
+    try:
+        kprobsFile = 'outs/kprobs.out'
+        kprobs = np.loadtxt(kprobsFile)
+    except IOError:
+        try:
+            kprobsFile = 'kprobs.out'
+            kprobs = np.loadtxt(kprobsFile)
+        except IOError:
+            print(kprobsFile,"not found.")
 
-    kprobs = np.loadtxt(kprobsFile)
-    cprobs = np.loadtxt(cprobsFile)
+    try:
+        cprobsFile = 'outs/cprobs.out'
+        cprobs = np.loadtxt(cprobsFile)
+    except IOError:
+        try:
+            cprobsFile = 'cprobs.out'
+            cprobs = np.loadtxt(cprobsFile)
+        except IOError:
+            print(cprobsFile,"not found.")
+
     # split kprobs into times and kprobs
     times = kprobs[:,0]
     kprobs = kprobs[:,1:].transpose()
@@ -113,10 +120,15 @@ with cd(workingDir):
     Nc = cprobs.shape[0]
     # read in k energies
     try:
+        energiesFile = 'outs/energies.out'
         Ek = np.loadtxt(energiesFile)*27.211
     except IOError:
-        print(energiesFile,"missing, substituting default")
-        Ek = np.arange(Nk)
+        try:
+            energiesFile = 'energies.out'
+            Ek = np.loadtxt(energiesFile)*27.211
+        except IOError:
+            print(energiesFile,"missing, substituting default")
+            Ek = np.arange(Nk)
     # read in c energies
     try:
         Ec = np.loadtxt('ins/c_energies.in')*27.211
