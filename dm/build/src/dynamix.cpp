@@ -42,6 +42,7 @@
 int main (int argc, char * argv[]) {
 
 
+
   //// DECLARING VARIABLES
 
 
@@ -92,12 +93,38 @@ int main (int argc, char * argv[]) {
   realtype * times = NULL;
   realtype * qd_est = NULL;
   realtype * qd_est_diag = NULL;
-  const char * inputFile = "ins/parameters.in";			// name of input file
+  char * inputFile = "ins/parameters.in";			// name of input file
   std::map<const std::string, bool> outs;	// map of output file names to bool
 
   double summ = 0;			// sum variable
 
-
+  // ---- process command line flags ---- //
+  opterr = 0;
+  int c;
+  std::string insFile;
+  /* process command line options */
+  while ((c = getopt(argc, argv, "i:")) != -1) {
+    switch (c) {
+      case 'i':
+	std::cout << "BUTTS\n";
+	inputFile = optarg;
+	std::cout << inputFile << std::endl;
+	break;
+      case '?':
+	if (optopt == 'i') {
+	  fprintf(stderr, "Option -%c requires a filename argument.\n", optopt);
+	}
+	else if (isprint(optopt)) {
+	  fprintf(stderr, "Unknown option -%c.\n", optopt);
+	}
+	else {
+	  fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+	}
+	return 1;
+      default:
+	continue;
+    }
+  }
   //// ASSIGN PARAMETERS FROM INPUT FILE
 
 
@@ -189,7 +216,7 @@ int main (int argc, char * argv[]) {
     // error checking
     if (p.torsionSite > p.Nb) {
       std::cerr << "ERROR: torsion site (" << p.torsionSite
-        << ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
+	<< ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
       exit(-1);
     }
     else if (p.torsionSite < 0) {
