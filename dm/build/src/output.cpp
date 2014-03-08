@@ -15,6 +15,19 @@ bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr)
   }
 }
 
+/* returns output file name as char * */
+std::string outputFileName(char * fileName, PARAMETERS * p) {
+  // start with output directory name
+  std::string fullFileName (p->outputDir);
+  // add trailing slash if it is not there
+  if (strcmp(&(fullFileName.at(fullFileName.length() - 1)), "/")) {
+    fullFileName += "/";
+  }
+  fullFileName += fileName;
+
+  return fullFileName;
+}
+
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
  */
@@ -425,7 +438,8 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
+  std::cout << "OUTPUT IS THE " << outputFileName(fileName, p) << std::endl;
   realtype summ;
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {

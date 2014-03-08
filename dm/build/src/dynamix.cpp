@@ -101,6 +101,9 @@ int main (int argc, char * argv[]) {
   std::string VBridgeInput = "ins/Vbridge.in";
   std::map<const std::string, bool> outs;	// map of output file names to bool
 
+  // default output directory
+  p.outputDir = "outs/";
+
   double summ = 0;			// sum variable
 
   // ---- process command line flags ---- //
@@ -146,6 +149,8 @@ int main (int argc, char * argv[]) {
 
   //// ASSIGN PARAMETERS FROM INPUT FILE
 
+
+  // ---- TODO create output directory if it does not exist ---- //
 
   assignParams(inputFile.c_str(), &p);
 
