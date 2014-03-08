@@ -8,6 +8,8 @@
 #include <numeric>
 #include <complex>
 #include <stdexcept>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <cvode/cvode_diag.h>
@@ -151,6 +153,7 @@ int main (int argc, char * argv[]) {
 
 
   // ---- TODO create output directory if it does not exist ---- //
+  flag = mkdir(p.outputDir.c_str(), 0755);
 
   assignParams(inputFile.c_str(), &p);
 

@@ -188,7 +188,7 @@ void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     output << std::setw(8) << std::scientific << p->times[ii];
@@ -207,12 +207,12 @@ void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
 }
 
 /* Output the integrated population on a set of states. */
-void outputIntegralDM(const std::string fileName, const int start, const int end,
+void outputIntegralDM(char * fileName, const int start, const int end,
     const realtype * dmt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
-  std::ofstream output(fileName.c_str());
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   double summ1 = 0.0;	// accumulator variable, population at current time point
   double summ2 = 0.0;	// accumulator variable, population at previous time point
@@ -251,7 +251,7 @@ void outputIntegralDM(const std::string fileName, const int start, const int end
 }
 
 /* Output the integrated population on a set of states. */
-void outputIntegratedDM(const std::string fileName, const int start, const int end,
+void outputIntegratedDM(char * fileName, const int start, const int end,
     const realtype * dmt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
@@ -280,7 +280,7 @@ void outputIntegratedDM(const std::string fileName, const int start, const int e
   }
 
   // write to output
-  std::ofstream output(fileName.c_str());
+  std::ofstream output(outputFileName(fileName, p).c_str());
   output << std::setw(8) << std::scientific << total << std::endl;
   output.close();
 
@@ -292,7 +292,7 @@ void outputIntegratedDM(const std::string fileName, const int start, const int e
 }
 
 /* Output the integrated population on a set of states. */
-void outputIntegratedWfn(const std::string fileName, const int start, const int end,
+void outputIntegratedWfn(char * fileName, const int start, const int end,
     const realtype * wfnt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
@@ -320,7 +320,7 @@ void outputIntegratedWfn(const std::string fileName, const int start, const int 
   }
 
   // write to output
-  std::ofstream output(fileName.c_str());
+  std::ofstream output(outputFileName(fileName, p).c_str());
   output << std::setw(8) << std::scientific << total << std::endl;
   output.close();
 
@@ -332,12 +332,12 @@ void outputIntegratedWfn(const std::string fileName, const int start, const int 
 }
 
 /* Output the integrated population on a set of states. */
-void outputIntegralWfn(const std::string fileName, const int start, const int end,
+void outputIntegralWfn(char * fileName, const int start, const int end,
     const realtype * wfnt, struct PARAMETERS * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
-  std::ofstream output(fileName.c_str());
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   double summ1 = 0.0;	// accumulator variable, population at current time point
   double summ2 = 0.0;	// accumulator variable, population at previous time point
@@ -382,7 +382,7 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     output << std::setw(8) << std::scientific << p->times[ii];
@@ -410,7 +410,7 @@ void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
 #endif
   int N = p->NEQ;
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   realtype summ;
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -439,7 +439,6 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
   std::cout << "Creating file " << fileName << ".\n";
 #endif
   std::ofstream output(outputFileName(fileName, p).c_str());
-  std::cout << "OUTPUT IS THE " << outputFileName(fileName, p) << std::endl;
   realtype summ;
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -466,7 +465,7 @@ void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
   fprintf(stderr, "\n\n\noutputting |\\rho| in time\n\n\n");
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   // loop over time steps
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     // loop over first index
@@ -499,7 +498,7 @@ void outputDMCoherences(char * fileName, realtype * dmt, struct PARAMETERS * p) 
   fprintf(stderr, "\n\n\noutputting |\\rho_{ij}| in time\n\n\n");
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   // loop over time steps
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     // loop over first index
@@ -542,7 +541,7 @@ void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
   fprintf(stderr, "\n\n\noutputting Re(\\rho) in time\n\n\n");
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   // loop over time steps
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     // loop over first index
@@ -573,7 +572,7 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
   fprintf(stderr, "\n\n\noutputting Im(\\rho) in time\n\n\n");
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   // loop over time steps
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     // loop over first index
@@ -604,7 +603,7 @@ void outputEnergy(char * fileName, struct PARAMETERS * p) {
   std::cout << "\nMaking " << fileName << "\n";
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   for (int ii = 0; ii < p->NEQ; ii++) {
     output << std::setw(8) << std::scientific << p->energies[ii] << "\n";
   }
@@ -617,7 +616,7 @@ void outputEnergy(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Outputs energy expectation value over time */
-void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p,
+void outputEnergyExpWfn(char * fileName, struct PARAMETERS * p,
     double * wfnt) {
   // allocate array to hold matrix-vector product
   std::vector<double> psiHvec (2*p->NEQ, 0.0);
@@ -633,7 +632,7 @@ void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p,
   double ZERO = 0.0;
   int INC = 1;
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     // update Hamiltonian
@@ -662,7 +661,7 @@ void outputTimes(char * fileName, struct PARAMETERS * p) {
   std::cout << "\nMaking " << fileName << "\n";
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     output << std::setw(8) << std::scientific << p->times[ii] << "\n";
   }
@@ -681,7 +680,7 @@ void outputEnergyExp(char * fileName, realtype * dmt,
   std::cout << "\nMaking " << fileName << "\n";
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   realtype summ ;
 
   // loop over timesteps
@@ -715,7 +714,7 @@ void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAM
   double summ = 0.0;
   double T = p->temperature;
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int kk = 0; kk < p->numOutputSteps; kk++) {
     summ = 0.0;
@@ -737,7 +736,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
   std::cout << "\nMaking " << fileName << "\n";
 #endif
 
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
   std::ofstream average("muFromPopsAvg.out");
 
   double kT = p->temperature/3.185e5;
@@ -777,7 +776,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 
 /* Outputs torsional potential at simulation time points */
 void outputTorsion(struct PARAMETERS * p, char * fileName) {
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     output << std::setw(8) << std::scientific
@@ -1062,7 +1061,7 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   }
 
   // create output file
-  std::ofstream output(fileName);
+  std::ofstream output(outputFileName(fileName, p).c_str());
 
   // handle case with no peaks (flat the whole time)
   if (peaks.size() == 0) {
