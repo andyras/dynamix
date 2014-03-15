@@ -113,7 +113,7 @@ int main (int argc, char * argv[]) {
   int c;
   std::string insDir;
   /* process command line options */
-  while ((c = getopt(argc, argv, "i:")) != -1) {
+  while ((c = getopt(argc, argv, "i:o:")) != -1) {
     switch (c) {
       case 'i':
 	// check that it ends in a slash
@@ -132,6 +132,9 @@ int main (int argc, char * argv[]) {
 	  VNoBridgeInput = insDir + "Vnobridge.in";
 	  VBridgeInput = insDir + "Vbridge.in";
 	}
+	break;
+      case 'o':
+	p.outputDir = optarg;
 	break;
       case '?':
 	if (optopt == 'i') {
