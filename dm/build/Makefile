@@ -77,7 +77,7 @@ build:
 	make
 
 install: $(BIN) | $(BINDIR)
-	cp dynamix ../bin
+	cp dynamix $(BINDIR)
 
 uninstall:
 	rm -rf $(BINDIR)/$(BIN)
