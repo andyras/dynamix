@@ -136,9 +136,24 @@ with cd(workingDir):
         print("ins/c_energies.out missing, substituting default")
         Ec = np.arange(Nc)
     # read in populations over time
-    tkprob = np.loadtxt(tkprobFile)[:,1]
-    tcprob = np.loadtxt(tcprobFile)[:,1]
-
+    try:
+        tkprobFile = 'outs/tkprob.out'
+        tkprob = np.loadtxt(tkprobFile)[:,1]
+    except IOError:
+        try:
+            tkprobFile = 'tkprob.out'
+            tkprob = np.loadtxt(tkprobFile)[:,1]
+        except:
+            print(tkprobFile,"not found.")
+    try:
+        tcprobFile = 'outs/tcprob.out'
+        tcprob = np.loadtxt(tcprobFile)[:,1]
+    except IOError:
+        try:
+            tcprobFile = 'tcprob.out'
+            tcprob = np.loadtxt(tcprobFile)[:,1]
+        except:
+            print(tcprobFile,"not found.")
 
     # account for k energies being at beginning of E array
     Ek = Ek[0:Nk]

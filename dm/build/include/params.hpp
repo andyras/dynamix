@@ -100,6 +100,8 @@ struct PARAMETERS {
   std::vector<realtype> startWfn;
   std::vector<realtype> startDM;
 
+  std::string outputDir;
+
   Spline * torsionV;
 
   double lastTime;			// value of most recently calculated timepoint

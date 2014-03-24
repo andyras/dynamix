@@ -28,6 +28,8 @@ typedef struct {
 
 bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr);
 
+std::string outputFileName(char * fileName, PARAMETERS * p);
+
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
  */

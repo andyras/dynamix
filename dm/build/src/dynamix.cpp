@@ -8,6 +8,8 @@
 #include <numeric>
 #include <complex>
 #include <stdexcept>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <cvode/cvode_diag.h>
@@ -40,6 +42,7 @@
 
 
 int main (int argc, char * argv[]) {
+
 
 
   //// DECLARING VARIABLES
@@ -92,22 +95,76 @@ int main (int argc, char * argv[]) {
   realtype * times = NULL;
   realtype * qd_est = NULL;
   realtype * qd_est_diag = NULL;
-  const char * inputFile = "ins/parameters.in";			// name of input file
+  std::string inputFile = "ins/parameters.in";			// name of input file
+  std::string cEnergiesInput = "ins/c_energies.in";
+  std::string cPopsInput = "ins/c_pops.in";
+  std::string bEnergiesInput = "ins/b_energies.in";
+  std::string VNoBridgeInput = "ins/Vnobridge.in";
+  std::string VBridgeInput = "ins/Vbridge.in";
   std::map<const std::string, bool> outs;	// map of output file names to bool
+
+  // default output directory
+  p.outputDir = "outs/";
 
   double summ = 0;			// sum variable
 
+  // ---- process command line flags ---- //
+  opterr = 0;
+  int c;
+  std::string insDir;
+  /* process command line options */
+  while ((c = getopt(argc, argv, "i:o:")) != -1) {
+    switch (c) {
+      case 'i':
+	// check that it ends in a slash
+	insDir = optarg;
+	if (strcmp(&(insDir.at(insDir.length() - 1)), "/")) {
+	  std::cerr << "ERROR: option -i requires argument ("
+	            << insDir << ") to have a trailing slash (/)." << std::endl;
+	  return 1;
+	}
+	else {
+	  // ---- assign input files ---- //
+	  inputFile = insDir + "parameters.in";
+	  cEnergiesInput = insDir + "c_energies.in";
+	  cPopsInput = insDir + "c_pops.in";
+	  bEnergiesInput = insDir + "b_energies.in";
+	  VNoBridgeInput = insDir + "Vnobridge.in";
+	  VBridgeInput = insDir + "Vbridge.in";
+	}
+	break;
+      case 'o':
+	p.outputDir = optarg;
+	break;
+      case '?':
+	if (optopt == 'i') {
+	  fprintf(stderr, "Option -%c requires a directory argument.\n", optopt);
+	}
+	else if (isprint(optopt)) {
+	  fprintf(stderr, "Unknown option -%c.\n", optopt);
+	}
+	else {
+	  fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+	}
+	return 1;
+      default:
+	continue;
+    }
+  }
 
   //// ASSIGN PARAMETERS FROM INPUT FILE
 
 
-  assignParams(inputFile, &p);
+  // ---- TODO create output directory if it does not exist ---- //
+  flag = mkdir(p.outputDir.c_str(), 0755);
+
+  assignParams(inputFile.c_str(), &p);
 
   // Decide which output files to make
 #ifdef DEBUG
   std::cout << "Assigning outputs as specified in " << inputFile << "\n";
 #endif
-  assignOutputs(inputFile, outs, &p);
+  assignOutputs(inputFile.c_str(), outs, &p);
 
 #ifdef DEBUG
   // print out which outputs will be made
@@ -135,8 +192,8 @@ int main (int argc, char * argv[]) {
   //// READ DATA FROM INPUTS
 
 
-  p.Nc = numberOfValuesInFile("ins/c_energies.in");
-  p.Nb = numberOfValuesInFile("ins/b_energies.in");
+  p.Nc = numberOfValuesInFile(cEnergiesInput.c_str());
+  p.Nb = numberOfValuesInFile(bEnergiesInput.c_str());
   k_pops = new realtype [p.Nk];
   c_pops = new realtype [p.Nc];
   b_pops = new realtype [p.Nb];
@@ -145,19 +202,19 @@ int main (int argc, char * argv[]) {
   c_energies = new realtype [p.Nc];
   b_energies = new realtype [p.Nb];
   l_energies = new realtype [p.Nl];
-  if (numberOfValuesInFile("ins/c_pops.in") != p.Nc) {
+  if (numberOfValuesInFile(cPopsInput.c_str()) != p.Nc) {
     fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.\n");
     return -1;
   }
-  readArrayFromFile(c_energies, "ins/c_energies.in", p.Nc);
+  readArrayFromFile(c_energies, cEnergiesInput.c_str(), p.Nc);
   if (p.bridge_on) {
     if (p.bridge_on && (p.Nb < 1)) {
       std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
       return -1;
     }
     p.Vbridge.resize(p.Nb+1);
-    readArrayFromFile(b_energies, "ins/b_energies.in", p.Nb);
-    readVectorFromFile(p.Vbridge, "ins/Vbridge.in", p.Nb + 1);
+    readArrayFromFile(b_energies, bEnergiesInput.c_str(), p.Nb);
+    readVectorFromFile(p.Vbridge, VBridgeInput.c_str(), p.Nb + 1);
 #ifdef DEBUG
     std::cout << "COUPLINGS:";
     for (int ii = 0; ii < p.Nb+1; ii++) {
@@ -169,7 +226,7 @@ int main (int argc, char * argv[]) {
   else {
     p.Nb = 0;
     p.Vnobridge.resize(1);
-    readVectorFromFile(p.Vnobridge, "ins/Vnobridge.in", 1);
+    readVectorFromFile(p.Vnobridge, VNoBridgeInput.c_str(), 1);
   }
 
 #ifdef DEBUG
@@ -189,7 +246,7 @@ int main (int argc, char * argv[]) {
     // error checking
     if (p.torsionSite > p.Nb) {
       std::cerr << "ERROR: torsion site (" << p.torsionSite
-        << ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
+	<< ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
       exit(-1);
     }
     else if (p.torsionSite < 0) {
@@ -285,7 +342,7 @@ int main (int argc, char * argv[]) {
       initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
     }
     else if (p.qd_pops) {
-      readArrayFromFile(c_pops, "ins/c_pops.in", p.Nc);	// QD populations from file
+      readArrayFromFile(c_pops, cPopsInput.c_str(), p.Nc);	// QD populations from file
       initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
       initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
     }
