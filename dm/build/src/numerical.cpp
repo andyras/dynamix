@@ -18,8 +18,16 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
   realtype * H = &(p->H)[0];
 
   //// first handle torsion
+  double torsionValue = 0.0;
   if (p->torsion) {
-    double torsionValue = p->torsionV->value(t);
+    // regular (sinusoidal) coupling function
+    if (p->torsionSin2) {
+      torsionValue = sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, t);
+      std::cerr << "TORSION VALUE AT TIME " << t << " " << torsionValue << std::endl;
+    }
+    else {
+      torsionValue = p->torsionV->value(t);
+    }
 #ifdef DEBUG_TORSION
     std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
 #endif
@@ -299,6 +307,11 @@ int Normalize_NV(N_Vector nv, realtype total) {
   }
 
   return 0;
+}
+
+/* gives the value of [a + b*sin^2(c*t + d)] at a certain t */
+double sin2(double a, double b, double c, double d, double t) {
+  return a + b*pow(sin(c*t + d),2);
 }
 
 /* compute the six-point derivative of an array.

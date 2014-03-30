@@ -75,13 +75,18 @@ scale_bubr=0
 scale_brqd=0
 scale_buqd=1
 scale_laser=1
-bridge_on=0
+bridge_on=1
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
-torsion=0				# turn torsion-mediated coupling on or off
+torsion=1				# turn torsion-mediated coupling on or off
 torsionFile=ins/torsion.in
 torsionSite=1				# 0 = coupling between bulk and bridge
+torsionSin2=1				# flag to turn on sin^2 torsional coupling
+torsionSin2V0=0.00023			# V(t) = V0 + V1*sin^2(omega*t + phi)
+torsionSin2V1=0.00023
+torsionSin2omega=0.001
+torsionSin2phi=0
 ## END INPUT PARAMETERS ##
 
 # return here so that when this file is sourced by bash the output files are not confusing.
@@ -161,6 +166,7 @@ tkprob.out
 #tkrate.out
 #tlprob.out
 #torsion.out
+torsionSin2.out
 totprob.out
 # PLOT FILES
 #projections.plt

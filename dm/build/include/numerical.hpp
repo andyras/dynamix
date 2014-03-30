@@ -23,7 +23,7 @@ void updateHamiltonian(PARAMETERS * p, realtype t);
  */
 int numberOfValuesInFile(const char * nameOfFile);
 
-/* reads in the values from file; returns an array the length of the number of 
+/* reads in the values from file; returns an array the length of the number of
  * numbers in the file
  */
 void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfValues);
@@ -54,6 +54,8 @@ void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEd
 double parabolicV(double Vee, double E, double bandEdge, double bandTop);
 
 realtype gaussPulse(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, double pumpFreq, double pumpPhase);
+
+double sin2(double a, double b, double c, double d, double t);
 
 /* normalizes an N_Vector so that the populations of all states are
  * normalized to value 'total'

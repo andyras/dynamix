@@ -1,5 +1,6 @@
 #include "libdynamix_input_parser.hpp"
 
+//#define DEBUG
 //#define DEBUG_INPUT_PARSER
 
 
@@ -201,6 +202,11 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "torsion" ) { p->torsion = atoi(param_val.c_str()); }
     else if (input_param == "torsionFile" ) { p->torsionFile = param_val; }
     else if (input_param == "torsionSite" ) { p->torsionSite = atoi(param_val.c_str()); }
+    else if (input_param == "torsionSin2" ) { p->torsionSin2 = atoi(param_val.c_str()); }
+    else if (input_param == "torsionSin2V0" ) { p->torsionSin2V0 = atof(param_val.c_str()); }
+    else if (input_param == "torsionSin2V1" ) { p->torsionSin2V1 = atof(param_val.c_str()); }
+    else if (input_param == "torsionSin2omega" ) { p->torsionSin2omega = atof(param_val.c_str()); }
+    else if (input_param == "torsionSin2phi" ) { p->torsionSin2phi = atof(param_val.c_str()); }
     else {  }
     getline (bash_in,line);
   }
@@ -276,6 +282,11 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "torsion is " << p->torsion << std::endl;
   std::cout << "torsionFile is " << p->torsionFile << std::endl;
   std::cout << "torsionSite is " << p->torsionSite << std::endl;
+  std::cout << "torsionSin2 is " << p->torsionSin2 << std::endl;
+  std::cout << "torsionSin2V0 is " << p->torsionSin2V0 << std::endl;
+  std::cout << "torsionSin2V1 is " << p->torsionSin2V1 << std::endl;
+  std::cout << "torsionSin2omega is " << p->torsionSin2omega << std::endl;
+  std::cout << "torsionSin2phi is " << p->torsionSin2phi << std::endl;
 #endif
 
   // Error checking

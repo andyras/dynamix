@@ -994,6 +994,19 @@ void outputCouplings(struct PARAMETERS * p, char * fileName) {
   return;
 }
 
+/* outputs sin^2 function for torsional coupling */
+void outputTorsionSin2(struct PARAMETERS * p, char * fileName) {
+  std::ofstream o(fileName);
+
+  for (int ii = 0; ii < p->numOutputSteps; ii++) {
+    o << p->times[ii] << " "
+      << sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, p->times[ii])
+      << std::endl;
+  }
+
+  return;
+}
+
 /* Finds peaks in populations, outputs values, times and differences. */
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
     struct PARAMETERS * p) {
@@ -1259,6 +1272,10 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
 
   if (isOutput(outs, "couplings.out")) {
     outputCouplings(p, "couplings.out");
+  }
+
+  if (isOutput(outs, "torsionSin2.out")) {
+    outputTorsionSin2(p, "torsionSin2.out");
   }
 
   return;

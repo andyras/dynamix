@@ -77,6 +77,11 @@ struct PARAMETERS {
   bool torsion = false;
   std::string torsionFile;
   int torsionSite = 0;
+  bool torsionSin2 = false;		// flag to turn on sin^2 torsional coupling
+  double torsionSin2V0 = 0.001;		// V(t) = V0 + V1*sin^2(omega*t + phi)
+  double torsionSin2V1 = 0.001;
+  double torsionSin2omega = 0.001;
+  double torsionSin2phi = 0.0;
 
   int Nk = 1;				// number of each type of state
   int Nc = 0;				// number of each type of state
