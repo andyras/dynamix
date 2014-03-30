@@ -737,7 +737,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 #endif
 
   std::ofstream output(outputFileName(fileName, p).c_str());
-  std::ofstream average("muFromPopsAvg.out");
+  std::ofstream average(outputFileName("muFromPopsAvg.out", p).c_str());
 
   double kT = p->temperature/3.185e5;
   double pop, mu;
@@ -882,7 +882,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
     }
   }
   if (isOutput(outs, "mu.out")) {
-    std::ofstream mu_out("mu.out");
+    std::ofstream mu_out(outputFileName("mu.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
     }
@@ -894,7 +894,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "temp.out")) {
-    std::ofstream temp_out("temp.out");
+    std::ofstream temp_out(outputFileName("temp.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       temp_out << p->times[kk] << " " << temp_t[kk]*AU2K << std::endl;
     }
@@ -906,7 +906,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "ne.out")) {
-    std::ofstream ne_out("ne.out");
+    std::ofstream ne_out(outputFileName("ne.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
     }
@@ -918,7 +918,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "ekin.out")) {
-    std::ofstream ekin_out("ekin.out");
+    std::ofstream ekin_out(outputFileName("ekin.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
     }
@@ -930,7 +930,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "fdd.out")) {
-    std::ofstream fdd_out("fdd.out");
+    std::ofstream fdd_out(outputFileName("fdd.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       fdd_out << p->times[kk];
       for (int ii = 0; ii < p->Nk; ii++) {
@@ -950,7 +950,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
 
 /* Outputs the laser pump intensity over time */
 void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
-  std::ofstream o(fileName);
+  std::ofstream o(outputFileName(fileName, p).c_str());
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     o << p->times[ii] << " "
       << gaussPulse(p->times[ii], p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase)
@@ -963,7 +963,7 @@ void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
 
 /* output couplings as a matrix */
 void outputCouplings(struct PARAMETERS * p, char * fileName) {
-  std::ofstream o(fileName);
+  std::ofstream o(outputFileName(fileName, p).c_str());
   //// This output is the same as the Hamiltonian, but with diagonal elements zero.
 
   // first element of first row will be zero
@@ -996,7 +996,7 @@ void outputCouplings(struct PARAMETERS * p, char * fileName) {
 
 /* outputs sin^2 function for torsional coupling */
 void outputTorsionSin2(struct PARAMETERS * p, char * fileName) {
-  std::ofstream o(fileName);
+  std::ofstream o(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
     o << p->times[ii] << " "
@@ -1102,8 +1102,8 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   return;
 }
 
-void outputDeriv(std::string outFile, int n, realtype * deriv, struct PARAMETERS * p) {
-  std::ofstream o (outFile.c_str());
+void outputDeriv(char * fileName, int n, realtype * deriv, struct PARAMETERS * p) {
+  std::ofstream o(outputFileName(fileName, p).c_str());
   int nt = p->numOutputSteps;
 
   // major index of array is state, so this loop outputs the transpose
