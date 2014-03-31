@@ -23,7 +23,6 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
     // regular (sinusoidal) coupling function
     if (p->torsionSin2) {
       torsionValue = sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, t);
-      std::cerr << "TORSION VALUE AT TIME " << t << " " << torsionValue << std::endl;
     }
     else {
       torsionValue = p->torsionV->value(t);
