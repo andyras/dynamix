@@ -31,7 +31,7 @@ def change_param(paramname, paramvalue, filename):
     with open(filename, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            if line.strip()[0:len(paramname)] == paramname:
+            if (line.strip()[0:len(paramname)] == paramname) and (line.strip()[len(paramname)] == '='):
                 foundParam = True
                 line = re.sub('(?<==)[0-9\.\+\-e]*', paramvalue, line)
             output += line
