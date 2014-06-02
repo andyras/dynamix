@@ -36,16 +36,27 @@ def writeOutput(fileName, outputArray, fmt='%12.10e'):
 
 input = np.loadtxt(args.inputFile)
 
-dt = input[1,0] - input[0,0]
+dt = input[1,0]
+cutoff = 0.02
 
 # compute integral of population
-popInt = np.array(np.trapz(input[:,0], x=input[:,1]))
+popInt = np.trapz(input[:,1], x=input[:,0])
 writeOutput('torsion_popInt.out', popInt)
 
 # compute integral of population after peak
+popMaxInd = np.argmax(input[:,1])
+popMaxInt = np.trapz(input[popMaxInd:,1], x=input[popMaxInd:,0])
+writeOutput('torsion_popMaxInt.out', popMaxInt)
 
 # integral while population is above a cutoff
+aboveInd = input[:,1] > cutoff
+aboveInt = np.trapz(input[aboveInd,1], x=input[aboveInd,0])
+writeOutput('torsion_aboveInt.out', aboveInt)
 
 # time above cutoff
+aboveIntTime = sum(aboveInd)*dt
+writeOutput('torsion_aboveIntTime', aboveIntTime)
 
 # just the peak value
+popMax = np.max(input[:,1])
+writeOutput('torsion_popMax.out', popMax)

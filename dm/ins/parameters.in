@@ -9,12 +9,12 @@ debug=0
 # number of processors to use with OpenMP
 nproc=1
 # method parameters #
-wavefunction=0				# 1 => wavefunction; 0 => density matrix
+wavefunction=1				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
-kinetic=1				# kinetic relaxation model
+kinetic=0				# kinetic relaxation model
 kineticQD=1				# kinetic relaxation model in QD
 dynamicMu=0				# for kinetic model, calculate Fermi level dynamically
 dynamicMuQD=0				# for kinetic model, calculate Fermi level dynamically on QD
@@ -33,7 +33,7 @@ numOutputSteps=200			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=11					# number of k states to have
+Nk=101					# number of k states to have
 Nk_first=1				# first k state initially populated
 Nk_final=1				# final k state initially populated
 bulk_gap=0.01				# bulk band gap (a.u.)
@@ -75,16 +75,16 @@ scale_bubr=0
 scale_brqd=0
 scale_buqd=1
 scale_laser=1
-bridge_on=1
+bridge_on=0
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
 torsion=1				# turn torsion-mediated coupling on or off
 torsionFile=ins/torsion.in
-torsionSite=1				# 0 = coupling between bulk and bridge
+torsionSite=0				# 0 = coupling between bulk and bridge
 torsionSin2=1				# flag to turn on sin^2 torsional coupling
-torsionSin2V0=0.00023			# V(t) = V0 + V1*sin^2(omega*t + phi)
-torsionSin2V1=0.00023
+torsionSin2V0=0.000023			# V(t) = V0 + V1*sin^2(omega*t + phi)
+torsionSin2V1=0.000023
 torsionSin2omega=0.001
 torsionSin2phi=0
 ## END INPUT PARAMETERS ##
