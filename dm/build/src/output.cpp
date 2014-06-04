@@ -1250,8 +1250,17 @@ void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
     struct PARAMETERS * p) {
   // torsion-mediated coupling
-  if ((p->torsion) && (isOutput(outs, "torsion.out"))) {
-    outputTorsion(p, "torsion.out");
+  if (p->torsion) {
+    if (p->torsionSin2) {
+      if (isOutput(outs, "torsionSin2.out")) {
+        outputTorsionSin2(p, "torsionSin2.out");
+      }
+    }
+    else {
+      if (isOutput(outs, "torsion.out")) {
+        outputTorsion(p, "torsion.out");
+      }
+    }
   }
 
   // hamiltonian at time zero
@@ -1272,10 +1281,6 @@ void computeGeneralOutputs(std::map<const std::string, bool> &outs,
 
   if (isOutput(outs, "couplings.out")) {
     outputCouplings(p, "couplings.out");
-  }
-
-  if (isOutput(outs, "torsionSin2.out")) {
-    outputTorsionSin2(p, "torsionSin2.out");
   }
 
   return;
