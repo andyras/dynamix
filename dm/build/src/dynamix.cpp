@@ -97,7 +97,6 @@ int main (int argc, char * argv[]) {
   realtype * qd_est_diag = NULL;
   std::string inputFile = "ins/parameters.in";			// name of input file
   std::string cEnergiesInput = "ins/c_energies.in";
-  std::string cPopsInput = "ins/c_pops.in";
   std::string bEnergiesInput = "ins/b_energies.in";
   std::string VNoBridgeInput = "ins/Vnobridge.in";
   std::string VBridgeInput = "ins/Vbridge.in";
@@ -127,7 +126,6 @@ int main (int argc, char * argv[]) {
 	  // ---- assign input files ---- //
 	  inputFile = insDir + "parameters.in";
 	  cEnergiesInput = insDir + "c_energies.in";
-	  cPopsInput = insDir + "c_pops.in";
 	  bEnergiesInput = insDir + "b_energies.in";
 	  VNoBridgeInput = insDir + "Vnobridge.in";
 	  VBridgeInput = insDir + "Vbridge.in";
@@ -202,10 +200,7 @@ int main (int argc, char * argv[]) {
   c_energies = new realtype [p.Nc];
   b_energies = new realtype [p.Nb];
   l_energies = new realtype [p.Nl];
-  if (numberOfValuesInFile(cPopsInput.c_str()) != p.Nc) {
-    fprintf(stderr, "ERROR [Inputs]: c_pops and c_energies not the same length.\n");
-    return -1;
-  }
+
   readArrayFromFile(c_energies, cEnergiesInput.c_str(), p.Nc);
   if (p.bridge_on) {
     if (p.bridge_on && (p.Nb < 1)) {
@@ -323,105 +318,75 @@ int main (int argc, char * argv[]) {
   // bridge states (empty to start)
   initializeArray(b_pops, p.Nb, 0.0);
 
-  // coefficients in bulk and other states depend on input conditions in bulk
-  if (!p.rta) {
+  // set coefficients in each band of states
+
+  // bulk valence band /////////////////////////////////////////////////////////
+  if (p.VBPopFlag == POP_EMPTY) {
 #ifdef DEBUG
-    std::cout << "\ninitializing k_pops\n";
+    std::cout << "Initializing empty valence band" << std::endl;
 #endif
-    if (p.bulk_constant) {
-      initializeArray(k_pops, p.Nk, 0.0);
-#ifdef DEBUG
-      std::cout << "\ninitializing k_pops with constant probability in range of states\n";
-#endif
-      initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
-      initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
-      initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
-    }
-    else if (p.bulk_Gauss) {
-      buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
-	  p.bulkGaussSigma, p.bulkGaussMu, p.Nk);   // populate k states with FDD
-      initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
-      initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
-    }
-    else if (p.qd_pops) {
-      readArrayFromFile(c_pops, cPopsInput.c_str(), p.Nc);	// QD populations from file
-      initializeArray(l_pops, p.Nl, 0.0);		// populate l states (all 0 to start off)
-      initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
-    }
-    else {
-      initializeArray(k_pops, p.Nk, 0.0);             // populate k states (all zero to start off)
-      initializeArray(l_pops, p.Nl, 1.0);		// populate l states (all populated to start off)
-      initializeArray(c_pops, p.Nc, 0.0);		// QD states empty to start
-    }
-#ifdef DEBUG
-    std::cout << "\nThis is k_pops:\n";
-    for (int ii = 0; ii < p.Nk; ii++) {
-      std::cout << k_pops[ii] << std::endl;
-    }
-    std::cout << "\n";
-#endif
+    initializeArray(l_pops, p.Nl, 0.0);
   }
-  // with RTA, use different set of switches
+  else if (p.VBPopFlag == POP_FULL) {
+#ifdef DEBUG
+    std::cout << "Initializing full valence band" << std::endl;
+#endif
+    initializeArray(l_pops, p.Nl, 1.0);
+  }
   else {
-    // bulk valence band
-    if (p.VBPopFlag == POP_EMPTY) {
-#ifdef DEBUG
-      std::cout << "Initializing empty valence band" << std::endl;
-#endif
-      initializeArray(l_pops, p.Nl, 0.0);
-    }
-    else if (p.VBPopFlag == POP_FULL) {
-#ifdef DEBUG
-      std::cout << "Initializing full valence band" << std::endl;
-#endif
-      initializeArray(l_pops, p.Nl, 1.0);
-    }
-    else {
-      std::cerr << "ERROR: unrecognized VBPopFlag " << p.VBPopFlag << std::endl;
-    }
+    std::cerr << "ERROR: unrecognized VBPopFlag " << p.VBPopFlag << std::endl;
+  }
 
-    // bulk conduction band
-    if (p.CBPopFlag == POP_EMPTY) {
+  // bulk conduction band //////////////////////////////////////////////////////
+  if (p.CBPopFlag == POP_EMPTY) {
 #ifdef DEBUG
-      std::cout << "Initializing empty conduction band" << std::endl;
+    std::cout << "Initializing empty conduction band" << std::endl;
 #endif
-      initializeArray(k_pops, p.Nk, 0.0);
-    }
-    else if (p.CBPopFlag == POP_FULL) {
+    initializeArray(k_pops, p.Nk, 0.0);
+  }
+  else if (p.CBPopFlag == POP_FULL) {
 #ifdef DEBUG
-      std::cout << "Initializing full conduction band" << std::endl;
+    std::cout << "Initializing full conduction band" << std::endl;
 #endif
-      initializeArray(k_pops, p.Nk, 1.0);
-    }
-    else if (p.CBPopFlag == POP_CONSTANT) {
+    initializeArray(k_pops, p.Nk, 1.0);
+  }
+  else if (p.CBPopFlag == POP_CONSTANT) {
 #ifdef DEBUG
-      std::cout << "Initializing constant distribution in conduction band" << std::endl;
+    std::cout << "Initializing constant distribution in conduction band" << std::endl;
 #endif
-      initializeArray(k_pops, p.Nk, 0.0);
+    initializeArray(k_pops, p.Nk, 0.0);
+    if (p.rta) {
       initializeArray(k_pops, p.Nk, 1e-1); // FIXME
-      initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
     }
-    else if (p.CBPopFlag == POP_GAUSSIAN) {
+    initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
+  }
+  else if (p.CBPopFlag == POP_GAUSSIAN) {
 #ifdef DEBUG
-      std::cout << "Initializing Gaussian in conduction band" << std::endl;
+    std::cout << "Initializing Gaussian in conduction band" << std::endl;
 #endif
-      buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
-	  p.bulkGaussSigma, p.bulkGaussMu, p.Nk);
-    }
-    else {
-      std::cerr << "ERROR: unrecognized CBPopFlag " << p.CBPopFlag << std::endl;
-    }
+    buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
+  p.bulkGaussSigma, p.bulkGaussMu, p.Nk);
+  }
+  else {
+    std::cerr << "ERROR: unrecognized CBPopFlag " << p.CBPopFlag << std::endl;
+  }
 
-    //// QD
-    if (p.QDPopFlag == POP_EMPTY) {
-      initializeArray(c_pops, p.Nc, 0.0);
-    }
-    else if (p.QDPopFlag == POP_FULL) {
-      initializeArray(c_pops, p.Nc, 1.0);
-    }
-    else {
-      std::cerr << "ERROR: unrecognized QDPopFlag " << p.QDPopFlag << std::endl;
-    }
+  //// QD //////////////////////////////////////////////////////////////////////
+  if (p.QDPopFlag == POP_EMPTY) {
+    initializeArray(c_pops, p.Nc, 0.0);
+  }
+  else if (p.QDPopFlag == POP_FULL) {
+    initializeArray(c_pops, p.Nc, 1.0);
+  }
+  else if (p.QDPopFlag == POP_CONSTANT) {
+#ifdef DEBUG
+    std::cout << "Initializing constant distribution in conduction band" << std::endl;
+#endif
+    initializeArray(c_pops, p.Nc, 0.0);
+    initializeArray(c_pops+p.Nc_first-1, p.Nc_final-p.Nc_first+1, 1.0);
+  }
+  else {
+    std::cerr << "ERROR: unrecognized QDPopFlag " << p.QDPopFlag << std::endl;
   }
 
   // create empty wavefunction
@@ -522,11 +487,11 @@ int main (int argc, char * argv[]) {
 
   //// ASSIGN COUPLING CONSTANTS
 
-
   V = new realtype * [p.NEQ];
   for (int ii = 0; ii < p.NEQ; ii++) {
     V[ii] = new realtype [p.NEQ];
   }
+  
   buildCoupling(V, &p, outs);
 
   if (isOutput(outs, "log.out")) {

@@ -163,6 +163,8 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "Nk" ) { p->Nk = atoi(param_val.c_str()); }
     else if (input_param == "Nk_first" ) { p->Nk_first = atoi(param_val.c_str()); }
     else if (input_param == "Nk_final" ) { p->Nk_final = atoi(param_val.c_str()); }
+    else if (input_param == "Nc_first" ) { p->Nc_first = atoi(param_val.c_str()); }
+    else if (input_param == "Nc_final" ) { p->Nc_final = atoi(param_val.c_str()); }
     else if (input_param == "valenceBand" ) { p->valenceBand = atof(param_val.c_str()); }
     else if (input_param == "Nl" ) { p->Nl = atoi(param_val.c_str()); }
     else if (input_param == "bulkGaussSigma" ) { p->bulkGaussSigma = atof(param_val.c_str()); }
@@ -186,10 +188,6 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
     else if (input_param == "CBPopFlag" ) { p->CBPopFlag = atoi(param_val.c_str()); }
     else if (input_param == "VBPopFlag" ) { p->VBPopFlag = atoi(param_val.c_str()); }
     else if (input_param == "QDPopFlag" ) { p->QDPopFlag = atoi(param_val.c_str()); }
-    else if (input_param == "bulk_FDD" ) { p->bulk_FDD = atoi(param_val.c_str()); }
-    else if (input_param == "bulk_Gauss" ) { p->bulk_Gauss = atoi(param_val.c_str()); }
-    else if (input_param == "bulk_constant" ) { p->bulk_constant = atoi(param_val.c_str()); }
-    else if (input_param == "qd_pops" ) { p->qd_pops = atoi(param_val.c_str()); }
     else if (input_param == "laser_on" ) { p->laser_on = atoi(param_val.c_str()); }
     else if (input_param == "parabolicCoupling" ) { p->parabolicCoupling = atoi(param_val.c_str()); }
     else if (input_param == "scale_bubr" ) { p->scale_bubr = atoi(param_val.c_str()); }
@@ -241,8 +239,6 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "lBandTop is " << p->lBandTop << std::endl;
   std::cout << "bulk_gap is " << p->bulk_gap << std::endl;
   std::cout << "Nk is " << p->Nk << std::endl;
-  std::cout << "Nk_first is " << p->Nk_first << std::endl;
-  std::cout << "Nk_final is " << p->Nk_final << std::endl;
   std::cout << "valenceBand is " << p->valenceBand << std::endl;
   std::cout << "Nl is " << p->Nl << std::endl;
   std::cout << "bulkGaussSigma is " << p->bulkGaussSigma << std::endl;
@@ -266,10 +262,10 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
   std::cout << "CBPopFlag is " << p->CBPopFlag << std::endl;
   std::cout << "VBPopFlag is " << p->VBPopFlag << std::endl;
   std::cout << "QDPopFlag is " << p->QDPopFlag << std::endl;
-  std::cout << "bulk_FDD is " << p->bulk_FDD << std::endl;
-  std::cout << "bulk_Gauss is " << p->bulk_Gauss << std::endl;
-  std::cout << "bulk_constant is " << p->bulk_constant << std::endl;
-  std::cout << "qd_pops is " << p->qd_pops << std::endl;
+  std::cout << "Nk_first is " << p->Nk_first << std::endl;
+  std::cout << "Nk_final is " << p->Nk_final << std::endl;
+  std::cout << "Nc_first is " << p->Nc_first << std::endl;
+  std::cout << "Nc_final is " << p->Nc_final << std::endl;
   std::cout << "laser_on is " << p->laser_on << std::endl;
   std::cout << "parabolicCoupling is " << p->parabolicCoupling << std::endl;
   std::cout << "scale_bubr is " << p->scale_bubr << std::endl;
@@ -290,14 +286,11 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
 #endif
 
   // Error checking
-  if ((p->bulk_FDD && p->qd_pops) || (p->bulk_constant && p->qd_pops) || (p->bulk_Gauss && p->qd_pops)) {
-    std::cerr << "\nWARNING: population starting both in bulk and QD.\n";
+  if ((p->VBPopFlag + p->CBPopFlag + p->QDPopFlag) > 1) {
+    std::cerr << "\nWARNING: population starting in multiple locations.\n";
   }
-  if (p->Nk_first > p->Nk || p->Nk_first < 1) {
-    fprintf(stderr, "ERROR [Inputs]: Nk_first greater than Nk or less than 1.\n");
-    exit(-1);
-  }
-  if (p->bulk_constant || (p->CBPopFlag == POP_CONSTANT)) {
+
+  if (p->CBPopFlag == POP_CONSTANT) {
     if (p->Nk_final > p->Nk || p->Nk_final < 1) {
       fprintf(stderr, "ERROR [Inputs]: Nk_final greater than Nk or less than 1.\n");
       exit(-1);
@@ -307,18 +300,28 @@ void assignParams(std::string inputFile, struct PARAMETERS * p) {
       exit(-1);
     }
   }
+
+  if (p->QDPopFlag == POP_CONSTANT) {
+    if (p->Nc_final > p->Nc || p->Nc_final < 1) {
+      fprintf(stderr, "ERROR [Inputs]: Nc_final greater than Nc or less than 1.\n");
+      exit(-1);
+    }
+    if (p->Nc_final < p->Nc_first) {
+      fprintf(stderr, "ERROR [Inputs]: Nc_final is less than Nc_first.\n");
+      exit(-1);
+    }
+  }
+
   if (p->Nl < 0) {
     fprintf(stderr, "ERROR [Inputs]: Nl less than 0.\n");
     exit(-1);
   }
-  if ((p->bulk_FDD && p->bulk_constant) || (p->bulk_FDD && p->bulk_Gauss) || (p->bulk_constant && p->bulk_Gauss)) {
-    std::cerr << "\nERROR: two different switches are on for bulk starting conditions.\n";
-    exit(-1);
-  }
+
   if (p->random_seed < -1) {
     std::cerr << "\nERROR: random_phase must be -1 or greater.\n";
     exit(-1);
   }
+
   if ((p->Nk < 2) && (p->rta)) {
     std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
   }

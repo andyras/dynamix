@@ -36,8 +36,6 @@ struct PARAMETERS {
   realtype kBandEdge = 0.0;		// lower edge of bulk conduction band
   realtype kBandTop = 0.01;		// upper edge of bulk conduction band
   realtype lBandTop = -0.01;		// upper edge of bulk valence band
-  int Nk_first = 1;			// first k state initially populated
-  int Nk_final = 1;			// final k state initially populated
   realtype bulk_gap = 0.001;		// bulk band gap
   double valenceBand = 0.01;		// valence band width
   double bulkGaussSigma = 0.001;	// width of initial Gaussian in bulk
@@ -61,10 +59,10 @@ struct PARAMETERS {
   int CBPopFlag = 0;			// flag for starting condition in conduction band
   int VBPopFlag = 0;			// flag for starting condition in valence band
   int QDPopFlag = 0;			// flag for starting condition in QD
-  bool bulk_FDD = false;		// switches for starting conditions
-  bool bulk_Gauss = false;
-  bool bulk_constant = false;
-  bool qd_pops = false;
+  int Nk_first = 1;     // first k state initially populated
+  int Nk_final = 1;     // final k state initially populated
+  int Nc_first = 1;     // first c state initially populated
+  int Nc_final = 1;     // final c state initially populated
   bool laser_on = false;
   bool parabolicCoupling = false;
   bool scale_bubr = false;
