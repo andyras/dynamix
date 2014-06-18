@@ -25,7 +25,7 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
       torsionValue = sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, t);
     }
     else {
-      torsionValue = p->torsionV->value(t);
+      torsionValue = p->torsionV.value(t);
     }
 #ifdef DEBUG_TORSION
     std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;

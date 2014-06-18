@@ -106,7 +106,7 @@ public:
 
   std::string outputDir;
 
-  Spline * torsionV;
+  Spline torsionV;
 
   double lastTime;			// value of most recently calculated timepoint
 

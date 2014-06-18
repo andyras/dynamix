@@ -782,7 +782,7 @@ void outputTorsion(struct PARAMETERS * p, char * fileName) {
     output << std::setw(8) << std::scientific
       << p->times[ii] << " "
       << std::setw(8) << std::scientific
-      << p->torsionV->value(p->times[ii]) << std::endl;
+      << p->torsionV.value(p->times[ii]) << std::endl;
   }
   return;
 }
