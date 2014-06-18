@@ -26,7 +26,7 @@ progressStdout=0			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=20000				# final time reached by solver (a.u.)
+tout=10000				# final time reached by solver (a.u.)
 numsteps=10000				# number of timesteps
 numOutputSteps=200			# number of output timesteps
 # bulk parameters #
@@ -78,7 +78,7 @@ random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
 torsion=1				# turn torsion-mediated coupling on or off
-torsionFile=ins/torsion.in
+torsionFile=ins/torss.in
 torsionSite=0				# 0 = coupling between bulk and bridge
 torsionSin2=0				# flag to turn on sin^2 torsional coupling
 torsionSin2V0=0.000023			# V(t) = V0 + V1*sin^2(omega*t + phi)

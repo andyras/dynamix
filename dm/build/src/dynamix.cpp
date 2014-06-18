@@ -51,61 +51,61 @@ int main (int argc, char * argv[]) {
   // Struct of parameters
   PARAMETERS p;
   // CVode variables
-  void * cvode_mem = NULL;			// pointer to block of CVode memory
-  N_Vector y, yout;			// arrays of populations
+  void * cvode_mem = NULL;                      // pointer to block of CVode memory
+  N_Vector y, yout;                     // arrays of populations
 
   // arrays for energetic parameters
-  realtype ** V = NULL;				// pointer to k-c coupling constants
-  realtype * Vbridge = NULL;			// pointer to array of bridge coupling constants.
+  realtype ** V = NULL;                         // pointer to k-c coupling constants
+  realtype * Vbridge = NULL;                    // pointer to array of bridge coupling constants.
   // first element [0] is Vkb1, last [Nb] is VcbN
-  realtype * Vnobridge = NULL;			// coupling constant when there is no bridge
+  realtype * Vnobridge = NULL;                  // coupling constant when there is no bridge
 
   //// Setting defaults for parameters to be read from input
   //// done setting defaults
 
   int flag;
-  realtype * k_pops = NULL;				// pointers to arrays of populations
+  realtype * k_pops = NULL;                             // pointers to arrays of populations
   realtype * l_pops = NULL;
   realtype * c_pops = NULL;
   realtype * b_pops = NULL;
-  realtype * ydata = NULL;				// pointer to ydata (contains all populations)
-  realtype * wavefunction = NULL;			// (initial) wavefunction
-  realtype * dm = NULL;					// density matrix
-  realtype * dmt = NULL;				// density matrix in time
-  realtype * wfnt = NULL;				// density matrix in time
-  realtype * k_energies = NULL;				// pointers to arrays of energies
+  realtype * ydata = NULL;                              // pointer to ydata (contains all populations)
+  realtype * wavefunction = NULL;                       // (initial) wavefunction
+  realtype * dm = NULL;                                 // density matrix
+  realtype * dmt = NULL;                                // density matrix in time
+  realtype * wfnt = NULL;                               // density matrix in time
+  realtype * k_energies = NULL;                         // pointers to arrays of energies
   realtype * c_energies = NULL;
   realtype * b_energies = NULL;
   realtype * l_energies = NULL;
-  realtype t0 = 0.0;				// initial time
+  realtype t0 = 0.0;                            // initial time
   realtype t = 0;
-  realtype tret = 0;					// time returned by the solver
-  time_t startRun;				// time at start of log
-  time_t endRun;					// time at end of log
-  struct tm * currentTime = NULL;			// time structure for localtime
+  realtype tret = 0;                                    // time returned by the solver
+  time_t startRun;                              // time at start of log
+  time_t endRun;                                        // time at end of log
+  struct tm * currentTime = NULL;                       // time structure for localtime
 #ifdef DEBUG
-  FILE * realImaginary;				// file containing real and imaginary parts of the wavefunction
+  FILE * realImaginary;                         // file containing real and imaginary parts of the wavefunction
 #endif
-  FILE * log;					// log file with run times
-  realtype * tkprob = NULL; 				// total probability in k, l, c, b states at each timestep
+  FILE * log;                                   // log file with run times
+  realtype * tkprob = NULL;                             // total probability in k, l, c, b states at each timestep
   realtype * tlprob = NULL;
   realtype * tcprob = NULL;
   realtype * tbprob = NULL;
-  double ** allprob = NULL;				// populations in all states at all times
+  double ** allprob = NULL;                             // populations in all states at all times
   realtype * times = NULL;
   realtype * qd_est = NULL;
   realtype * qd_est_diag = NULL;
-  std::string inputFile = "ins/parameters.in";			// name of input file
+  std::string inputFile = "ins/parameters.in";                  // name of input file
   std::string cEnergiesInput = "ins/c_energies.in";
   std::string bEnergiesInput = "ins/b_energies.in";
   std::string VNoBridgeInput = "ins/Vnobridge.in";
   std::string VBridgeInput = "ins/Vbridge.in";
-  std::map<const std::string, bool> outs;	// map of output file names to bool
+  std::map<const std::string, bool> outs;       // map of output file names to bool
 
   // default output directory
   p.outputDir = "outs/";
 
-  double summ = 0;			// sum variable
+  double summ = 0;                      // sum variable
 
   // ---- process command line flags ---- //
   opterr = 0;
@@ -115,38 +115,38 @@ int main (int argc, char * argv[]) {
   while ((c = getopt(argc, argv, "i:o:")) != -1) {
     switch (c) {
       case 'i':
-	// check that it ends in a slash
-	insDir = optarg;
-	if (strcmp(&(insDir.at(insDir.length() - 1)), "/")) {
-	  std::cerr << "ERROR: option -i requires argument ("
-	            << insDir << ") to have a trailing slash (/)." << std::endl;
-	  return 1;
-	}
-	else {
-	  // ---- assign input files ---- //
-	  inputFile = insDir + "parameters.in";
-	  cEnergiesInput = insDir + "c_energies.in";
-	  bEnergiesInput = insDir + "b_energies.in";
-	  VNoBridgeInput = insDir + "Vnobridge.in";
-	  VBridgeInput = insDir + "Vbridge.in";
-	}
-	break;
+        // check that it ends in a slash
+        insDir = optarg;
+        if (strcmp(&(insDir.at(insDir.length() - 1)), "/")) {
+          std::cerr << "ERROR: option -i requires argument ("
+                    << insDir << ") to have a trailing slash (/)." << std::endl;
+          return 1;
+        }
+        else {
+          // ---- assign input files ---- //
+          inputFile = insDir + "parameters.in";
+          cEnergiesInput = insDir + "c_energies.in";
+          bEnergiesInput = insDir + "b_energies.in";
+          VNoBridgeInput = insDir + "Vnobridge.in";
+          VBridgeInput = insDir + "Vbridge.in";
+        }
+        break;
       case 'o':
-	p.outputDir = optarg;
-	break;
+        p.outputDir = optarg;
+        break;
       case '?':
-	if (optopt == 'i') {
-	  fprintf(stderr, "Option -%c requires a directory argument.\n", optopt);
-	}
-	else if (isprint(optopt)) {
-	  fprintf(stderr, "Unknown option -%c.\n", optopt);
-	}
-	else {
-	  fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
-	}
-	return 1;
+        if (optopt == 'i') {
+          fprintf(stderr, "Option -%c requires a directory argument.\n", optopt);
+        }
+        else if (isprint(optopt)) {
+          fprintf(stderr, "Unknown option -%c.\n", optopt);
+        }
+        else {
+          fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+        }
+        return 1;
       default:
-	continue;
+        continue;
     }
   }
 
@@ -173,7 +173,7 @@ int main (int argc, char * argv[]) {
 
   // OPEN LOG FILE; PUT IN START TIME //
   if (isOutput(outs, "log.out")) {
-    log = fopen("log.out", "w");			// note that this file is closed at the end of the program
+    log = fopen("log.out", "w");                        // note that this file is closed at the end of the program
   }
   time(&startRun);
   currentTime = localtime(&startRun);
@@ -241,7 +241,7 @@ int main (int argc, char * argv[]) {
     // error checking
     if (p.torsionSite > p.Nb) {
       std::cerr << "ERROR: torsion site (" << p.torsionSite
-	<< ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
+        << ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
       exit(-1);
     }
     else if (p.torsionSite < 0) {
@@ -251,18 +251,19 @@ int main (int argc, char * argv[]) {
 
     if (!p.torsionSin2) {
       if (!fileExists(p.torsionFile)) {
-	std::cerr << "ERROR: torsion file " << p.torsionFile << " does not exist." << std::endl;
+      std::cerr << "ERROR: torsion file " << p.torsionFile << " does not exist." << std::endl;
+      exit(-1);
       }
 
       // create spline
       p.torsionV = Spline(p.torsionFile.c_str());
       if (p.torsionV.getFirstX() != 0.0) {
-	std::cerr << "ERROR: time in " << p.torsionFile << " should start at 0.0." << std::endl;
-	exit(-1);
+        std::cerr << "ERROR: time in " << p.torsionFile << " should start at 0.0." << std::endl;
+        exit(-1);
       }
       if (p.torsionV.getLastX() < p.tout) {
-	std::cerr << "ERROR: time in " << p.torsionFile << " should be >= tout." << std::endl;
-	exit(-1);
+        std::cerr << "ERROR: time in " << p.torsionFile << " should be >= tout." << std::endl;
+        exit(-1);
       }
     }
   }
@@ -272,13 +273,13 @@ int main (int argc, char * argv[]) {
   //omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
 
-  p.NEQ = p.Nk+p.Nc+p.Nb+p.Nl;				// total number of equations set
-  p.NEQ2 = p.NEQ*p.NEQ;				// number of elements in DM
+  p.NEQ = p.Nk+p.Nc+p.Nb+p.Nl;                          // total number of equations set
+  p.NEQ2 = p.NEQ*p.NEQ;                         // number of elements in DM
 #ifdef DEBUG
   std::cout << "\nTotal number of states: " << p.NEQ << std::endl;
   std::cout << p.Nk << " bulk, " << p.Nc << " QD, " << p.Nb << " bridge, " << p.Nl << " bulk VB.\n";
 #endif
-  tkprob = new realtype [p.numOutputSteps+1];	// total population on k, b, c at each timestep
+  tkprob = new realtype [p.numOutputSteps+1];   // total population on k, b, c at each timestep
   tcprob = new realtype [p.numOutputSteps+1];
   tbprob = new realtype [p.numOutputSteps+1];
   tlprob = new realtype [p.numOutputSteps+1];
@@ -293,7 +294,7 @@ int main (int argc, char * argv[]) {
   }
   qd_est = new realtype [p.numOutputSteps+1];
   qd_est_diag = new realtype [p.numOutputSteps+1];
-  p.Ik = 0;					// set index start positions for each type of state
+  p.Ik = 0;                                     // set index start positions for each type of state
   p.Ic = p.Nk;
   p.Ib = p.Ic+p.Nc;
   p.Il = p.Ib+p.Nb;
@@ -496,26 +497,26 @@ int main (int argc, char * argv[]) {
 
   if (isOutput(outs, "log.out")) {
     // make a note in the log about system timescales
-    double tau = 0;		// fundamental system timescale
+    double tau = 0;             // fundamental system timescale
     if (p.Nk == 1) {
       fprintf(log, "\nThe timescale (tau) is undefined (Nk == 1).\n");
     }
     else {
       if (p.bridge_on) {
-	if (p.scale_bubr) {
-	  tau = 1.0/(2*p.Vbridge[0]*M_PI);
-	}
-	else {
-	  tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vbridge[0],2)*M_PI);
-	}
+        if (p.scale_bubr) {
+          tau = 1.0/(2*p.Vbridge[0]*M_PI);
+        }
+        else {
+          tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vbridge[0],2)*M_PI);
+        }
       }
       else {
-	if (p.scale_buqd) {
-	  tau = 1.0/(2*p.Vnobridge[0]*M_PI);
-	}
-	else {
-	  tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vnobridge[0],2)*M_PI);
-	}
+        if (p.scale_buqd) {
+          tau = 1.0/(2*p.Vnobridge[0]*M_PI);
+        }
+        else {
+          tau = ((p.kBandTop - p.kBandEdge)/(p.Nk - 1))/(2*pow(p.Vnobridge[0],2)*M_PI);
+        }
       }
       fprintf(log, "\nThe timescale (tau) is %.9e a.u.\n", tau);
     }
@@ -531,17 +532,17 @@ int main (int argc, char * argv[]) {
       // diagonal part
       dm[p.NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + p.NEQ],2);
       if (p.coherent) {
-	// off-diagonal part
-	for (int jj = 0; jj < ii; jj++) {
-	  // real part of \rho_{ii,jj}
-	  dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
-	  // imaginary part of \rho_{ii,jj}
-	  dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
-	  // real part of \rho_{jj,ii}
-	  dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
-	  // imaginary part of \rho_{jj,ii}
-	  dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
-	}
+        // off-diagonal part
+        for (int jj = 0; jj < ii; jj++) {
+          // real part of \rho_{ii,jj}
+          dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
+          // imaginary part of \rho_{ii,jj}
+          dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
+          // real part of \rho_{jj,ii}
+          dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
+          // imaginary part of \rho_{jj,ii}
+          dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
+        }
       }
     }
 
@@ -554,7 +555,7 @@ int main (int argc, char * argv[]) {
     std::cout << "\nDensity matrix without normalization:\n\n";
     for (int ii = 0; ii < p.NEQ; ii++) {
       for (int jj = 0; jj < p.NEQ; jj++) {
-	fprintf(stdout, "(%+.1e,%+.1e) ", dm[p.NEQ*ii + jj], dm[p.NEQ*ii + jj + p.NEQ2]);
+        fprintf(stdout, "(%+.1e,%+.1e) ", dm[p.NEQ*ii + jj], dm[p.NEQ*ii + jj + p.NEQ2]);
       }
       fprintf(stdout, "\n");
     }
@@ -565,19 +566,19 @@ int main (int argc, char * argv[]) {
     if (!p.rta) {
       summ = 0.0;
       for (int ii = 0; ii < p.NEQ; ii++) {
-	// assume here that diagonal elements are all real
-	summ += dm[p.NEQ*ii + ii];
+        // assume here that diagonal elements are all real
+        summ += dm[p.NEQ*ii + ii];
       }
       if ( summ == 0.0 ) {
-	std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-	return -1;
+        std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+        return -1;
       }
       if (summ != 1.0) {
-	// the variable 'summ' is now a multiplicative normalization factor
-	summ = 1.0/summ;
-	for (int ii = 0; ii < 2*p.NEQ2; ii++) {
-	  dm[ii] *= summ;
-	}
+        // the variable 'summ' is now a multiplicative normalization factor
+        summ = 1.0/summ;
+        for (int ii = 0; ii < 2*p.NEQ2; ii++) {
+          dm[ii] *= summ;
+        }
       }
 #ifdef DEBUG
       std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
@@ -726,18 +727,18 @@ int main (int argc, char * argv[]) {
     }
     else {
       if (p.kinetic) {
-	flag = CVodeInit(cvode_mem, &RHS_DM_RELAX, t0, y);
+        flag = CVodeInit(cvode_mem, &RHS_DM_RELAX, t0, y);
       }
       else if (p.rta) {
-	flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
-	//flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
+        flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
+        //flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
       }
       else if (p.dephasing) {
-	flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
+        flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
       }
       else {
-	//flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
-	flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
+        //flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+        flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
       }
     }
 
@@ -772,23 +773,23 @@ int main (int argc, char * argv[]) {
       std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
 #endif
       if ((ii % (p.numsteps/p.numOutputSteps) == 0) || (ii == p.numsteps)) {
-	// show progress in stdout
-	if (p.progressStdout) {
-	  fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
-	  fflush(stdout);
-	}
-	// show progress in a file
-	if (p.progressFile) {
-	  std::ofstream progressFile("progress.tmp");
-	  progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
-	  progressFile.close();
-	}
-	if (p.wavefunction) {
-	  updateWfn(yout, wfnt, ii*p.numOutputSteps/p.numsteps, &p);
-	}
-	else {
-	  updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
-	}
+        // show progress in stdout
+        if (p.progressStdout) {
+          fprintf(stdout, "\r%-.2lf percent done", ((double)ii/((double)p.numsteps))*100);
+          fflush(stdout);
+        }
+        // show progress in a file
+        if (p.progressFile) {
+          std::ofstream progressFile("progress.tmp");
+          progressFile << ((double)ii/((double)p.numsteps))*100 << " percent done." << std::endl;
+          progressFile.close();
+        }
+        if (p.wavefunction) {
+          updateWfn(yout, wfnt, ii*p.numOutputSteps/p.numsteps, &p);
+        }
+        else {
+          updateDM(yout, dmt, ii*p.numOutputSteps/p.numsteps, &p);
+        }
       }
     }
 
@@ -807,7 +808,7 @@ int main (int argc, char * argv[]) {
       fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
       fprintf(log, "Run ended at %s\n", asctime(currentTime));
       fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
-      fclose(log);					// note that the log file is opened after variable declaration
+      fclose(log);                                      // note that the log file is opened after variable declaration
     }
     if (p.progressStdout) {
       printf("\nRun took %.3g seconds.\n", difftime(endRun, startRun));
