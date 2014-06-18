@@ -55,10 +55,7 @@ int main (int argc, char * argv[]) {
   N_Vector y, yout;                     // arrays of populations
 
   // arrays for energetic parameters
-  realtype ** V = NULL;                         // pointer to k-c coupling constants
-  realtype * Vbridge = NULL;                    // pointer to array of bridge coupling constants.
-  // first element [0] is Vkb1, last [Nb] is VcbN
-  realtype * Vnobridge = NULL;                  // coupling constant when there is no bridge
+  realtype ** V = NULL;                         // pointer to coupling constants
 
   //// Setting defaults for parameters to be read from input
   //// done setting defaults
@@ -87,14 +84,6 @@ int main (int argc, char * argv[]) {
   FILE * realImaginary;                         // file containing real and imaginary parts of the wavefunction
 #endif
   FILE * log;                                   // log file with run times
-  realtype * tkprob = NULL;                             // total probability in k, l, c, b states at each timestep
-  realtype * tlprob = NULL;
-  realtype * tcprob = NULL;
-  realtype * tbprob = NULL;
-  double ** allprob = NULL;                             // populations in all states at all times
-  realtype * times = NULL;
-  realtype * qd_est = NULL;
-  realtype * qd_est_diag = NULL;
   std::string inputFile = "ins/parameters.in";                  // name of input file
   std::string cEnergiesInput = "ins/c_energies.in";
   std::string bEnergiesInput = "ins/b_energies.in";
@@ -271,7 +260,7 @@ int main (int argc, char * argv[]) {
 
 
   // set number of processors for OpenMP
-  //omp_set_num_threads(p.nproc);
+  omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
 
   p.NEQ = p.Nk+p.Nc+p.Nb+p.Nl;                          // total number of equations set
@@ -280,21 +269,11 @@ int main (int argc, char * argv[]) {
   std::cout << "\nTotal number of states: " << p.NEQ << std::endl;
   std::cout << p.Nk << " bulk, " << p.Nc << " QD, " << p.Nb << " bridge, " << p.Nl << " bulk VB.\n";
 #endif
-  tkprob = new realtype [p.numOutputSteps+1];   // total population on k, b, c at each timestep
-  tcprob = new realtype [p.numOutputSteps+1];
-  tbprob = new realtype [p.numOutputSteps+1];
-  tlprob = new realtype [p.numOutputSteps+1];
-  allprob = new double * [p.numOutputSteps+1];
-  for (int ii = 0; ii <= p.numOutputSteps; ii++) {
-    allprob[ii] = new double [p.NEQ];
-  }
   // assign times.
   p.times.resize(p.numOutputSteps+1);
   for (int ii = 0; ii <= p.numOutputSteps; ii++) {
     p.times[ii] = float(ii)/p.numOutputSteps*p.tout;
   }
-  qd_est = new realtype [p.numOutputSteps+1];
-  qd_est_diag = new realtype [p.numOutputSteps+1];
   p.Ik = 0;                                     // set index start positions for each type of state
   p.Ic = p.Nk;
   p.Ib = p.Ic+p.Nc;
@@ -856,24 +835,10 @@ int main (int argc, char * argv[]) {
   fprintf(stdout, "Freeing memory in main.\n");
 #endif
   // delete all these guys
-  delete [] tkprob;
-  delete [] tlprob;
-  delete [] tcprob;
-  delete [] tbprob;
-  for (int ii = 0; ii <= p.numOutputSteps; ii++) {
-    delete [] allprob[ii];
-  }
-  delete [] allprob;
   delete [] k_pops;
   delete [] c_pops;
   delete [] b_pops;
   delete [] l_pops;
-  if (p.bridge_on) {
-    delete [] Vbridge;
-  }
-  else {
-    delete [] Vnobridge;
-  }
   delete [] k_energies;
   delete [] c_energies;
   delete [] b_energies;
@@ -891,9 +856,6 @@ int main (int argc, char * argv[]) {
     delete [] dm;
     delete [] dmt;
   }
-  delete [] times;
-  delete [] qd_est;
-  delete [] qd_est_diag;
 
   std::cout << "whoo" << std::endl;
 
