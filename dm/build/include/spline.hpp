@@ -16,34 +16,6 @@ public:
   // default constructor
   Point() : x(0.0), a(0.0), b(0.0), c(0.0), d(0.0) {}
 
-  // copy-constructor
-  Point(const Point& o) : x(o.x), a(o.a), b(o.b), c(o.c), d(o.d) {}
-
-  // destructor
-  ~Point() {}
-
-  // swap
-  friend void swap(Point& first, Point& second) {
-    using std::swap;
-
-    swap(first.x, second.x);
-    swap(first.a, second.a);
-    swap(first.b, second.b);
-    swap(first.c, second.c);
-    swap(first.d, second.d);
-  }
-
-  // assignment
-  Point& operator=(Point other) {
-    swap(*this, other);
-    return *this;
-  }
-
-  // move constructor
-  Point(Point&& other) : Point() { // initialize via default constructor, C++11 only
-      swap(*this, other);
-  }
-
   // data
   double x, a, b, c, d;
 };
