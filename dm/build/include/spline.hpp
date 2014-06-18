@@ -57,7 +57,7 @@ public:
   Spline(const Spline& o) : s(o.s) {}
 
   // destructor
-  // ~Spline() {}
+  ~Spline() {}
 
   // swap
   friend void swap(Spline& first, Spline& second) {
