@@ -77,10 +77,10 @@ bridge_on=0
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
-torsion=0				# turn torsion-mediated coupling on or off
+torsion=1				# turn torsion-mediated coupling on or off
 torsionFile=ins/tors.in
 torsionSite=0				# 0 = coupling between bulk and bridge
-torsionSin2=1				# flag to turn on sin^2 torsional coupling
+torsionSin2=0				# flag to turn on sin^2 torsional coupling
 torsionSin2V0=0.000023			# V(t) = V0 + V1*sin^2(omega*t + phi)
 torsionSin2V1=0.000023
 torsionSin2omega=0.001

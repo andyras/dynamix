@@ -49,7 +49,9 @@ public:
       swap(*this, other);
   }
 
-  Spline(const char * dataFile);
+  // method to read data from file
+  void readFile(const char * dataFile);
+
   // method to get the value at a certain point
   double value(double x);
   double getFirstX();

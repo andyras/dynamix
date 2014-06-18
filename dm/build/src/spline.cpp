@@ -2,7 +2,7 @@
 
 //#define DEBUG_SPLINE
 
-Spline::Spline(const char * dataFile) {
+void Spline::readFile(const char * dataFile) {
   if (dataFile == NULL) {
     std::cout << "ERROR: specify an input file" << std::endl;
   }

@@ -256,11 +256,12 @@ int main (int argc, char * argv[]) {
       }
 
       // create spline
-      p.torsionV = Spline(p.torsionFile.c_str());
+      p.torsionV.readFile(p.torsionFile.c_str());
       if (p.torsionV.getFirstX() != 0.0) {
         std::cerr << "ERROR: time in " << p.torsionFile << " should start at 0.0." << std::endl;
         exit(-1);
       }
+
       if (p.torsionV.getLastX() < p.tout) {
         std::cerr << "ERROR: time in " << p.torsionFile << " should be >= tout." << std::endl;
         exit(-1);
