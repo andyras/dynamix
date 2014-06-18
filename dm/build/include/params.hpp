@@ -10,7 +10,8 @@
 #include "spline.hpp"
 
 // Struct of parameters
-struct PARAMETERS {
+class PARAMETERS {
+public:
   int nproc = 0;			// number of processors
   bool wavefunction = 1;		// 1 => wavefunction; 0 => density matrix
   bool coherent = 1;			// 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_{ii} only
