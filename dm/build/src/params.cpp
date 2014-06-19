@@ -13,7 +13,7 @@ void Params::buildCoupling () {
   // initialize the coupling array
   V.resize(NEQ);
   for (int ii = 0; ii < V.size(); ii++) {
-    V.at(ii).assign(NEQ, 0.0);
+    V[ii].assign(NEQ, 0.0);
   }
 
 std::cout << "\n\n\nWHOOOOOT\n\n\n";
@@ -38,14 +38,14 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     }
     if (parabolicCoupling) {
       for (int ii = 0; ii < Nk; ii++) {
-        V.at(Ik+ii)[Ib] = parabolicV(Vkb1, energies[Ik+ii], kBandEdge, kBandTop);
-        V.at(Ib)[Ik+ii] = parabolicV(Vkb1, energies[Ik+ii], kBandEdge, kBandTop);
+        V[Ik+ii][Ib] = parabolicV(Vkb1, energies[Ik+ii], kBandEdge, kBandTop);
+        V[Ib][Ik+ii] = parabolicV(Vkb1, energies[Ik+ii], kBandEdge, kBandTop);
       }
     }
     else {
       for (int ii = 0; ii < Nk; ii++) {
-        V.at(Ik+ii)[Ib] = Vkb1;
-        V.at(Ib)[Ik+ii] = Vkb1;
+        V[Ik+ii][Ib] = Vkb1;
+        V[Ib][Ik+ii] = Vkb1;
       }
     }
 
@@ -57,14 +57,14 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
       VbNc = Vbridge[Nb];
     }
     for (int ii = 0; ii < Nc; ii++) {
-      V.at(Ic+ii)[Ib+Nb-1] = VbNc;
-      V.at(Ib+Nb-1)[Ic+ii] = VbNc;
+      V[Ic+ii][Ib+Nb-1] = VbNc;
+      V[Ib+Nb-1][Ic+ii] = VbNc;
     }
 
     // coupling between bridge states
     for (int ii = 0; ii < Nb - 1; ii++) {
-      V.at(Ib+ii)[Ib+ii+1] = Vbridge[ii+1];
-      V.at(Ib+ii+1)[Ib+ii] = Vbridge[ii+1];
+      V[Ib+ii][Ib+ii+1] = Vbridge[ii+1];
+      V[Ib+ii+1][Ib+ii] = Vbridge[ii+1];
     }
   }
   // no bridge
@@ -81,16 +81,16 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     if (parabolicCoupling) {
       for (int ii = 0; ii < Nk; ii++) {
         for (int jj = 0; jj < Nc; jj++) {
-          V.at(Ik+ii)[Ic+jj] = parabolicV(Vkc, energies[Ik+ii], kBandEdge, kBandTop);
-          V.at(Ic+jj)[Ik+ii] = parabolicV(Vkc, energies[Ik+ii], kBandEdge, kBandTop);
+          V[Ik+ii][Ic+jj] = parabolicV(Vkc, energies[Ik+ii], kBandEdge, kBandTop);
+          V[Ic+jj][Ik+ii] = parabolicV(Vkc, energies[Ik+ii], kBandEdge, kBandTop);
         }
       }
     }
     else {
       for (int ii = 0; ii < Nk; ii++) {
         for (int jj = 0; jj < Nc; jj++) {
-          V.at(Ik+ii)[Ic+jj] = Vkc;
-          V.at(Ic+jj)[Ik+ii] = Vkc;
+          V[Ik+ii][Ic+jj] = Vkc;
+          V[Ic+jj][Ik+ii] = Vkc;
         }
       }
     }
@@ -100,7 +100,7 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
   std::cout << "\nCoupling matrix:\n";
   for (int ii = 0; ii < NEQ; ii++) {
     for (int jj = 0; jj < NEQ; jj++)
-      std::cout << std::scientific << V.at(ii)[jj] << " ";
+      std::cout << std::scientific << V[ii][jj] << " ";
     std::cout << std::endl;
   }
 #endif
@@ -136,10 +136,10 @@ void Params::buildHamiltonian() {
 #ifdef DEBUG_BUILDHAMILTONIAN
       fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
       fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", V.at(idx1)[idx2]);
+      fprintf(stderr, "%e\n", V[idx1][idx2]);
 #endif
-      H[idx1*N + idx2] = V.at(idx1)[idx2];
-      H[idx2*N + idx1] = V.at(idx2)[idx1];
+      H[idx1*N + idx2] = V[idx1][idx2];
+      H[idx2*N + idx1] = V[idx2][idx1];
     }
     fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
     // assign bridge-bridge couplings
@@ -152,10 +152,10 @@ void Params::buildHamiltonian() {
 #ifdef DEBUG_BUILDHAMILTONIAN
       fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
       fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", V.at(idx1)[idx2]);
+      fprintf(stderr, "%e\n", V[idx1][idx2]);
 #endif
-      H[idx1*N + idx2] = V.at(idx1)[idx2];
-      H[idx2*N + idx1] = V.at(idx2)[idx1];
+      H[idx1*N + idx2] = V[idx1][idx2];
+      H[idx2*N + idx1] = V[idx2][idx1];
     }
     fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
     // assign bridge-QD coupling
@@ -168,10 +168,10 @@ void Params::buildHamiltonian() {
 #ifdef DEBUG_BUILDHAMILTONIAN
       fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
       fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", V.at(idx1)[idx2]);
+      fprintf(stderr, "%e\n", V[idx1][idx2]);
 #endif
-      H[idx1*N + idx2] = V.at(idx1)[idx2];
-      H[idx2*N + idx1] = V.at(idx2)[idx1];
+      H[idx1*N + idx2] = V[idx1][idx2];
+      H[idx2*N + idx1] = V[idx2][idx1];
     }
     fprintf(stderr, "Done assigning bridge-QD coupling elements in Hamiltonian.\n");
   }
@@ -188,10 +188,10 @@ void Params::buildHamiltonian() {
 #ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
   fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-  fprintf(stderr, "%e\n", V.at(idx1)[idx2]);
+  fprintf(stderr, "%e\n", V[idx1][idx2]);
 #endif
-  H[idx1*N + idx2] = V.at(idx1)[idx2];
-  H[idx2*N + idx1] = V.at(idx2)[idx1];
+  H[idx1*N + idx2] = V[idx1][idx2];
+  H[idx2*N + idx1] = V[idx2][idx1];
       }
     }
   }
