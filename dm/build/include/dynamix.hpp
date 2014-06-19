@@ -34,10 +34,10 @@
 #include "conversions.hpp"
 #include "analytic.hpp"
 
-void buildCoupling (std::vector< std::vector<realtype> > * vArray, struct PARAMETERS * p, std::map<const std::string, bool> &outs);
+void buildCoupling (struct PARAMETERS * p, std::map<const std::string, bool> &outs);
 
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector< std::vector<realtype> > * V, struct PARAMETERS * p);
+void buildHamiltonian(realtype * H, struct PARAMETERS * p);
 
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
 

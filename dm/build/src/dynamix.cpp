@@ -15,7 +15,7 @@
 //#define DEBUG_BUILDHAMILTONIAN
 
 /* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector< std::vector<realtype> > * V, struct PARAMETERS * p) {
+void buildHamiltonian(realtype * H, std::vector<realtype> & energy, struct PARAMETERS * p) {
   // indices
   int idx1, idx2;
   int N = p->NEQ;
@@ -42,10 +42,10 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector<
 #ifdef DEBUG_BUILDHAMILTONIAN
       fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
       fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", V->at(idx1)[idx2]);
+      fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
 #endif
-      H[idx1*N + idx2] = V->at(idx1)[idx2];
-      H[idx2*N + idx1] = V->at(idx2)[idx1];
+      H[idx1*N + idx2] = p->V.at(idx1)[idx2];
+      H[idx2*N + idx1] = p->V.at(idx2)[idx1];
     }
     fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
     // assign bridge-bridge couplings
@@ -58,10 +58,10 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector<
 #ifdef DEBUG_BUILDHAMILTONIAN
       fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
       fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", V->at(idx1)[idx2]);
+      fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
 #endif
-      H[idx1*N + idx2] = V->at(idx1)[idx2];
-      H[idx2*N + idx1] = V->at(idx2)[idx1];
+      H[idx1*N + idx2] = p->V.at(idx1)[idx2];
+      H[idx2*N + idx1] = p->V.at(idx2)[idx1];
     }
     fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
     // assign bridge-QD coupling
@@ -74,10 +74,10 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector<
 #ifdef DEBUG_BUILDHAMILTONIAN
       fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
       fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", V->at(idx1)[idx2]);
+      fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
 #endif
-      H[idx1*N + idx2] = V->at(idx1)[idx2];
-      H[idx2*N + idx1] = V->at(idx2)[idx1];
+      H[idx1*N + idx2] = p->V.at(idx1)[idx2];
+      H[idx2*N + idx1] = p->V.at(idx2)[idx1];
     }
     fprintf(stderr, "Done assigning bridge-QD coupling elements in Hamiltonian.\n");
   }
@@ -94,10 +94,10 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector<
 #ifdef DEBUG_BUILDHAMILTONIAN
   fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
   fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-  fprintf(stderr, "%e\n", V->at(idx1)[idx2]);
+  fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
 #endif
-  H[idx1*N + idx2] = V->at(idx1)[idx2];
-  H[idx2*N + idx1] = V->at(idx2)[idx1];
+  H[idx1*N + idx2] = p->V.at(idx1)[idx2];
+  H[idx2*N + idx1] = p->V.at(idx2)[idx1];
       }
     }
   }
@@ -150,16 +150,16 @@ void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * 
 }
 
 /* assign coupling constants to global array V */
-void buildCoupling (std::vector< std::vector<realtype> > * vArray, struct PARAMETERS * p, std::map<const std::string, bool> &outs) {
+void buildCoupling (struct PARAMETERS * p, std::map<const std::string, bool> &outs) {
 
   double Vkc; // coupling between bulk and QD
   double Vkb1;  // coupling between bulk and first bridge
   double VbNc;  // coupling between last bridge and QD
 
   // initialize the coupling array
-  vArray->resize(p->NEQ);
-  for (int ii = 0; ii < vArray->size(); ii++) {
-    vArray->at(ii).assign(p->NEQ, 0.0);
+  p->V.resize(p->NEQ);
+  for (int ii = 0; ii < p->V.size(); ii++) {
+    p->V.at(ii).assign(p->NEQ, 0.0);
   }
 
 std::cout << "\n\n\nWHOOOOOT\n\n\n";
@@ -184,14 +184,14 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     }
     if (p->parabolicCoupling) {
       for (int ii = 0; ii < p->Nk; ii++) {
-        vArray->at(p->Ik+ii)[p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
-        vArray->at(p->Ib)[p->Ik+ii] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+        p->V.at(p->Ik+ii)[p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+        p->V.at(p->Ib)[p->Ik+ii] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
       }
     }
     else {
       for (int ii = 0; ii < p->Nk; ii++) {
-        vArray->at(p->Ik+ii)[p->Ib] = Vkb1;
-        vArray->at(p->Ib)[p->Ik+ii] = Vkb1;
+        p->V.at(p->Ik+ii)[p->Ib] = Vkb1;
+        p->V.at(p->Ib)[p->Ik+ii] = Vkb1;
       }
     }
 
@@ -203,14 +203,14 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
       VbNc = p->Vbridge[p->Nb];
     }
     for (int ii = 0; ii < p->Nc; ii++) {
-      vArray->at(p->Ic+ii)[p->Ib+p->Nb-1] = VbNc;
-      vArray->at(p->Ib+p->Nb-1)[p->Ic+ii] = VbNc;
+      p->V.at(p->Ic+ii)[p->Ib+p->Nb-1] = VbNc;
+      p->V.at(p->Ib+p->Nb-1)[p->Ic+ii] = VbNc;
     }
 
     // coupling between bridge states
     for (int ii = 0; ii < p->Nb - 1; ii++) {
-      vArray->at(p->Ib+ii)[p->Ib+ii+1] = p->Vbridge[ii+1];
-      vArray->at(p->Ib+ii+1)[p->Ib+ii] = p->Vbridge[ii+1];
+      p->V.at(p->Ib+ii)[p->Ib+ii+1] = p->Vbridge[ii+1];
+      p->V.at(p->Ib+ii+1)[p->Ib+ii] = p->Vbridge[ii+1];
     }
   }
   // no bridge
@@ -227,16 +227,16 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     if (p->parabolicCoupling) {
       for (int ii = 0; ii < p->Nk; ii++) {
   for (int jj = 0; jj < p->Nc; jj++) {
-    vArray->at(p->Ik+ii)[p->Ic+jj] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
-    vArray->at(p->Ic+jj)[p->Ik+ii] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+    p->V.at(p->Ik+ii)[p->Ic+jj] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+    p->V.at(p->Ic+jj)[p->Ik+ii] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
   }
       }
     }
     else {
       for (int ii = 0; ii < p->Nk; ii++) {
   for (int jj = 0; jj < p->Nc; jj++) {
-    vArray->at(p->Ik+ii)[p->Ic+jj] = Vkc;
-    vArray->at(p->Ic+jj)[p->Ik+ii] = Vkc;
+    p->V.at(p->Ik+ii)[p->Ic+jj] = Vkc;
+    p->V.at(p->Ic+jj)[p->Ik+ii] = Vkc;
   }
       }
     }
@@ -246,7 +246,7 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
   std::cout << "\nCoupling matrix:\n";
   for (int ii = 0; ii < p->NEQ; ii++) {
     for (int jj = 0; jj < p->NEQ; jj++)
-      std::cout << std::scientific << vArray->at(ii)[jj] << " ";
+      std::cout << std::scientific << p->V.at(ii)[jj] << " ";
     std::cout << std::endl;
   }
 #endif
@@ -823,9 +823,6 @@ int main (int argc, char * argv[]) {
   void * cvode_mem = NULL;                      // pointer to block of CVode memory
   N_Vector y, yout;                     // arrays of populations
 
-  // arrays for energetic parameters
-  std::vector< std::vector<realtype> > V;
-
   int flag;
   realtype * ydata = NULL;                              // pointer to ydata (contains all populations)
   realtype * dmt = NULL;                                // density matrix in time
@@ -915,23 +912,17 @@ int main (int argc, char * argv[]) {
     fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
   }
 
-
-  //// READ DATA FROM INPUTS
   // TODO replace with initialize function
   initHamiltonian(&p);
   initWavefunction(&p);
 
-  //// PREPROCESS DATA FROM INPUTS
-
-
-  // set number of processors for OpenMP
+  // set number of processors for OpenMP ///////////////////////////////////////
   omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
 
+  // Assign coupling matrix ////////////////////////////////////////////////////
 
-  //// ASSIGN COUPLING CONSTANTS
-
-  buildCoupling(&V, &p, p.outs);
+  buildCoupling(&p, p.outs);
 
   if (isOutput(p.outs, "log.out")) {
     // make a note in the log about system timescales
@@ -971,10 +962,6 @@ int main (int argc, char * argv[]) {
     initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
   }
 
-  //// BUILD HAMILTONIAN
-
-
-  // //TODO TODO
 #ifdef DEBUG
   fprintf(stderr, "Building Hamiltonian.\n");
 #endif
@@ -983,7 +970,7 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < p.NEQ2; ii++) {
     H[ii] = 0.0;
   }
-  buildHamiltonian(H, p.energies, &V, &p);
+  buildHamiltonian(H, p.energies, &p);
   // add Hamiltonian to p
   p.H.resize(p.NEQ2);
   for (int ii = 0; ii < p.NEQ2; ii++) {

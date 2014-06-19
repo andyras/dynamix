@@ -98,6 +98,7 @@ public:
   std::vector<realtype> energies;
   std::vector<realtype> Vbridge;
   std::vector<realtype> Vnobridge;
+  std::vector< std::vector<realtype> > V;
   std::vector<realtype> H;
   std::vector<realtype> H_sp;
   std::vector<int> H_cols;

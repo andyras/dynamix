@@ -3,7 +3,7 @@ do_compile=1
 do_run=1
 do_plot=1
 do_backup=0
-debug=0
+debug=1
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
