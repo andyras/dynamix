@@ -101,6 +101,16 @@ void buildHamiltonian(realtype * H, std::vector<realtype> & energy, std::vector<
       }
     }
   }
+
+#ifdef DEBUG
+  std::cout << "\nTotal number of states: " << p->NEQ << std::endl;
+  std::cout << p->Nk << " bulk, " << p->Nc << " QD, " << p->Nb << " bridge, " << p->Nl << " bulk VB.\n";
+#endif
+  // assign times.
+  p->times.resize(p->numOutputSteps+1);
+  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
+    p->times[ii] = float(ii)/p->numOutputSteps*p->tout;
+  }
 }
 
 /* Updates \rho(t) at each time step. */
@@ -890,9 +900,9 @@ int main (int argc, char * argv[]) {
 #endif
   assignOutputs(p.inputFile.c_str(), p.outs, &p);
 
-  // OPEN LOG FILE; PUT IN START TIME //
+  // print start time to log file //////////////////////////////////////////////
   if (isOutput(p.outs, "log.out")) {
-    log = fopen("log.out", "w");                        // note that this file is closed at the end of the program
+    log = fopen("log.out", "w"); // note that this file is closed at the end of the program
   }
   time(&startRun);
   currentTime = localtime(&startRun);
@@ -900,7 +910,7 @@ int main (int argc, char * argv[]) {
     fprintf(log, "Run started at %s\n", asctime(currentTime));
   }
 
-  if (isOutput(p.outs, "log.out")) {
+  if (isOutput(p.outs, "log.out") && p.laser_on) {
     // make a note about the laser intensity.
     fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
   }
@@ -917,15 +927,6 @@ int main (int argc, char * argv[]) {
   // set number of processors for OpenMP
   omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
-#ifdef DEBUG
-  std::cout << "\nTotal number of states: " << p.NEQ << std::endl;
-  std::cout << p.Nk << " bulk, " << p.Nc << " QD, " << p.Nb << " bridge, " << p.Nl << " bulk VB.\n";
-#endif
-  // assign times.
-  p.times.resize(p.numOutputSteps+1);
-  for (int ii = 0; ii <= p.numOutputSteps; ii++) {
-    p.times[ii] = float(ii)/p.numOutputSteps*p.tout;
-  }
 
 
   //// ASSIGN COUPLING CONSTANTS
