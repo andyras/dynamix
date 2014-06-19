@@ -804,9 +804,6 @@ void initWavefunction(PARAMETERS * p) {
 
 
 int main (int argc, char * argv[]) {
-
-
-
   //// DECLARING VARIABLES
 
 
@@ -833,7 +830,6 @@ int main (int argc, char * argv[]) {
   FILE * realImaginary;                         // file containing real and imaginary parts of the wavefunction
 #endif
   FILE * log;                                   // log file with run times
-  std::map<const std::string, bool> outs;       // map of output file names to bool
 
   double summ = 0;                      // sum variable
 
@@ -892,27 +888,19 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   std::cout << "Assigning outputs as specified in " << p.inputFile << "\n";
 #endif
-  assignOutputs(p.inputFile.c_str(), outs, &p);
-  p.outs = outs;
-
-#ifdef DEBUG
-  // print out which outputs will be made
-  for (std::map<const std::string, bool>::iterator it = outs.begin(); it != outs.end(); it++) {
-    std::cout << "Output file: " << it->first << " will be created.\n";
-  }
-#endif
+  assignOutputs(p.inputFile.c_str(), p.outs, &p);
 
   // OPEN LOG FILE; PUT IN START TIME //
-  if (isOutput(outs, "log.out")) {
+  if (isOutput(p.outs, "log.out")) {
     log = fopen("log.out", "w");                        // note that this file is closed at the end of the program
   }
   time(&startRun);
   currentTime = localtime(&startRun);
-  if (isOutput(outs, "log.out")) {
+  if (isOutput(p.outs, "log.out")) {
     fprintf(log, "Run started at %s\n", asctime(currentTime));
   }
 
-  if (isOutput(outs, "log.out")) {
+  if (isOutput(p.outs, "log.out")) {
     // make a note about the laser intensity.
     fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
   }
@@ -942,9 +930,9 @@ int main (int argc, char * argv[]) {
 
   //// ASSIGN COUPLING CONSTANTS
 
-  buildCoupling(&V, &p, outs);
+  buildCoupling(&V, &p, p.outs);
 
-  if (isOutput(outs, "log.out")) {
+  if (isOutput(p.outs, "log.out")) {
     // make a note in the log about system timescales
     double tau = 0;             // fundamental system timescale
     if (p.Nk == 1) {
@@ -1046,12 +1034,12 @@ int main (int argc, char * argv[]) {
 #endif
 
   // Make plot files
-  makePlots(outs, &p);
+  makePlots(p.outs, &p);
 
   // only do propagation if not just making plots
   if (! p.justPlots) {
     // Make outputs independent of time propagation
-    computeGeneralOutputs(outs, &p);
+    computeGeneralOutputs(p.outs, &p);
 std::cout << "\n\n\nWHOOOOOT\n\n\n";
 
     // create CVode object
@@ -1150,7 +1138,7 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     // finalize log file //
     time(&endRun);
     currentTime = localtime(&endRun);
-    if (isOutput(outs, "log.out")) {
+    if (isOutput(p.outs, "log.out")) {
       fprintf(log, "Final status of 'flag' variable: %d\n\n", flag);
       fprintf(log, "Run ended at %s\n", asctime(currentTime));
       fprintf(log, "Run took %.3g seconds.\n", difftime(endRun, startRun));
@@ -1165,10 +1153,10 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     std::cout << "Computing outputs..." << std::endl;
 #endif
     if (p.wavefunction) {
-      computeWfnOutput(wfnt, outs, &p);
+      computeWfnOutput(wfnt, p.outs, &p);
     }
     else {
-      computeDMOutput(dmt, outs, &p);
+      computeDMOutput(dmt, p.outs, &p);
     }
 #ifdef DEBUG
     std::cout << "done computing outputs" << std::endl;
@@ -1176,7 +1164,7 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
 
     // do analytical propagation
     if (p.analytical && (! p.bridge_on)) {
-      computeAnalyticOutputs(outs, &p);
+      computeAnalyticOutputs(p.outs, &p);
     }
   }
 
