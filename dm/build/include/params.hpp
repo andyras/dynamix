@@ -8,6 +8,8 @@
 
 #include "constants.hpp"
 #include "spline.hpp"
+#include "numerical.hpp"
+#include "output.hpp"
 
 // Struct of parameters
 class PARAMETERS {
@@ -104,7 +106,18 @@ public:
   std::vector<realtype> startWfn;
   std::vector<realtype> startDM;
 
-  std::string outputDir;
+  // map of output file names to bool
+  std::map<const std::string, bool> outs;
+
+  // output directory
+  std::string outputDir = "outs/";
+
+  // input file names
+  std::string inputFile = "ins/parameters.in";
+  std::string cEnergiesInput = "ins/c_energies.in";
+  std::string bEnergiesInput = "ins/b_energies.in";
+  std::string VNoBridgeInput = "ins/Vnobridge.in";
+  std::string VBridgeInput = "ins/Vbridge.in";
 
   Spline torsionV;
 
@@ -113,11 +126,5 @@ public:
   double lastMu;                        // value of Fermi level at last time point
   double lastMuQD;                      // value of Fermi level in QD at last time point
 };
-
-int bandStartIdx(int bandFlag, PARAMETERS * p);
-
-int bandEndIdx(int bandFlag, PARAMETERS * p);
-
-int bandNumStates(int bandFlag, PARAMETERS * p);
 
 #endif

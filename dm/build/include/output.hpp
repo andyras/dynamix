@@ -13,6 +13,7 @@
 #include "conversions.hpp"
 #include "numerical.hpp"
 #include "fftmanip.hpp"
+#include "dynamix.hpp"
 #include "params.hpp"
 #include "rhs.hpp"
 

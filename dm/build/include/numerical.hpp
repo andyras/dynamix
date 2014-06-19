@@ -16,8 +16,6 @@
 #include "params.hpp"
 #include "constants.hpp"
 
-void updateHamiltonian(PARAMETERS * p, realtype t);
-
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.
  */
@@ -35,8 +33,6 @@ void initializeArray(realtype * array, int n, realtype initializeValue);
 
 /* builds energies for a quasicontinuum (evenly spaced) */
 void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, realtype BandTop);
-
-void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, PARAMETERS * p);
 
 /* populates a set of states according to a Fermi-Dirac distribution.
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
@@ -91,16 +87,6 @@ int findFirstArrayMaximumIndex(realtype * inputArray, int num);
 
 /* returns index of first maximum in an array. */
 int findArrayMaximumIndex(realtype * inputArray, int num);
-
-void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
-    std::map<const std::string, bool> &outs);
-
-/* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** V, struct PARAMETERS * p);
-
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
-
-void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p);
 
 /* returns sign of number (+1/-1/0) */
 template <typename T> int sgn(T val) {

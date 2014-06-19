@@ -1,44 +1,811 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cstdlib>
-#include <vector>
-#include <cmath>
-#include <time.h>
-#include <numeric>
-#include <complex>
-#include <stdexcept>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <cvode/cvode.h>
-#include <cvode/cvode_dense.h>
-#include <cvode/cvode_diag.h>
-#include <nvector/nvector_serial.h>
-#include <mkl.h>
-#include <map>
-#include <fftw3.h>
-#include <omp.h>
-
-#include "libdynamix_input_parser.hpp"
-#include "libdynamix_outputs.hpp"
-#include "output.hpp"
-#include "numerical.hpp"
-#include "params.hpp"
-#include "userdata.hpp"
-#include "rhs.hpp"
-#include "plots.hpp"
-#include "constants.hpp"
-#include "conversions.hpp"
-#include "analytic.hpp"
+#include "dynamix.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-// #define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
 
 // DEBUGf: debug inner CVode loop
 // #define DEBUGf
+
+//#define DEBUG_BUILDCOUPLING
+//#define DEBUG_UPDATEDM
+#define DEBUG_UPDATEWFN
+//#define DEBUG_BUILDHAMILTONIAN
+
+/* builds a Hamiltonian from site energies and couplings. */
+void buildHamiltonian(realtype * H, std::vector<realtype> & energy, realtype ** V, struct PARAMETERS * p) {
+  // indices
+  int idx1, idx2;
+  int N = p->NEQ;
+
+#ifdef DEBUG_BUILDHAMILTONIAN
+  fprintf(stderr, "Assigning diagonal elements of Hamiltonian.\n");
+#endif
+  for (int ii = 0; ii < N; ii++) {
+    // diagonal
+    H[ii*N + ii] = energy[ii];
+#ifdef DEBUG_BUILDHAMILTONIAN
+    std::cout << "diagonal element " << ii << " of H is " << energy[ii] << "\n";
+#endif
+  }
+
+  if (p->bridge_on) {
+    // assign bulk-bridge coupling
+#ifdef DEBUG_BUILDHAMILTONIAN
+    fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
+#endif
+    idx2 = p->Ib;
+    for (int ii = 0; ii < p->Nk; ii++) {
+      idx1 = p->Ik + ii;
+#ifdef DEBUG_BUILDHAMILTONIAN
+      fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+      fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+      fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+      H[idx1*N + idx2] = V[idx1][idx2];
+      H[idx2*N + idx1] = V[idx2][idx1];
+    }
+    fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
+    // assign bridge-bridge couplings
+#ifdef DEBUG_BUILDHAMILTONIAN
+    fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
+#endif
+    for (int ii = 0; ii < (p->Nb-1); ii++) {
+      idx1 = p->Ib + ii;
+      idx2 = p->Ib+ ii + 1;
+#ifdef DEBUG_BUILDHAMILTONIAN
+      fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+      fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+      fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+      H[idx1*N + idx2] = V[idx1][idx2];
+      H[idx2*N + idx1] = V[idx2][idx1];
+    }
+    fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
+    // assign bridge-QD coupling
+#ifdef DEBUG_BUILDHAMILTONIAN
+    fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
+#endif
+    idx2 = p->Ib + p->Nb - 1;
+    for (int ii = 0; ii < p->Nc; ii++) {
+      idx1 = p->Ic + ii;
+#ifdef DEBUG_BUILDHAMILTONIAN
+      fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+      fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+      fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+      H[idx1*N + idx2] = V[idx1][idx2];
+      H[idx2*N + idx1] = V[idx2][idx1];
+    }
+    fprintf(stderr, "Done assigning bridge-QD coupling elements in Hamiltonian.\n");
+  }
+  // no bridge
+  else {
+    // assign bulk-QD coupling
+#ifdef DEBUG_BUILDHAMILTONIAN
+    fprintf(stderr, "Assigning bulk-QD coupling elements in Hamiltonian.\n");
+#endif
+    for (int ii = 0; ii < p->Nk; ii++) {
+      idx1 = p->Ik + ii;
+      for (int jj = 0; jj < p->Nc; jj++) {
+  idx2 = p->Ic + jj;
+#ifdef DEBUG_BUILDHAMILTONIAN
+  fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
+  fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
+  fprintf(stderr, "%e\n", V[idx1][idx2]);
+#endif
+  H[idx1*N + idx2] = V[idx1][idx2];
+  H[idx2*N + idx1] = V[idx2][idx1];
+      }
+    }
+  }
+}
+
+/* Updates \rho(t) at each time step. */
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) {
+#ifdef DEBUG_UPDATEDM
+  std::cout << "Updating DM at step " << timeStep << "...";
+#endif
+  int N = 2*p->NEQ2;
+  memcpy(&dmt[N*timeStep], N_VGetArrayPointer(dm), N*sizeof(realtype));
+  /*
+     realtype * nv = N_VGetArrayPointer(dm);
+     nv_tp = &dmt[N*timeStep];
+     for (int ii = 0; ii < N; ii++) {
+     nv_tp[ii] = nv[ii];
+     }
+     */
+#ifdef DEBUG_UPDATEDM
+  std::cout << "done.\n";
+#endif
+
+  return;
+}
+
+/* Updates \psi(t) at each time step. */
+void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p) {
+#ifdef DEBUG_UPDATEWFN
+  std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
+  std::cout << "Wavefunction is " << std::endl;
+  N_VPrint_Serial(wfn);
+#endif
+  int N = 2*p->NEQ;
+  memcpy(&wfnt[N*timeStep], N_VGetArrayPointer(wfn), N*sizeof(realtype));
+  /*
+     for (int ii = 0; ii < N; ii++) {
+     wfnt[N*timeStep + ii] = NV_Ith_S(wfnt, ii);
+     }
+     */
+#ifdef DEBUG_UPDATEWFN
+  std::cout << "done updating wavefunction." << std::endl;
+#endif
+  return;
+}
+
+/* assign coupling constants to global array V */
+void buildCoupling (realtype ** vArray, struct PARAMETERS * p,
+    std::map<const std::string, bool> &outs) {
+
+  double Vkc; // coupling between bulk and QD
+  double Vkb1;  // coupling between bulk and first bridge
+  double VbNc;  // coupling between last bridge and QD
+
+  // initialize the coupling array
+  for (int ii = 0; ii < p->NEQ; ii++) {
+    for (int jj = 0; jj < p->NEQ; jj++) {
+      vArray[ii][jj] = 0.0;
+    }
+  }
+
+#ifdef DEBUG_BUILDCOUPLING
+  if (p->bridge_on) {
+    for (int ii = 0; ii < p->Nb + 1; ii++) {
+      std::cout << "p->Vbridge[" << ii << "] is ";
+      std::cout << p->Vbridge[ii] << "\n";
+    }
+  }
+#endif
+
+  // bridge
+  if (p->bridge_on) {
+    // coupling between k and b1
+    if ((p->scale_bubr) && (p->Nk > 1)) {
+      Vkb1 = sqrt(p->Vbridge[0]*(p->kBandTop-p->kBandEdge)/(p->Nk-1));
+    }
+    else {
+      Vkb1 = p->Vbridge[0];
+    }
+    if (p->parabolicCoupling) {
+      for (int ii = 0; ii < p->Nk; ii++) {
+  vArray[p->Ik+ii][p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+  vArray[p->Ib][p->Ik+ii] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+      }
+    }
+    else {
+      for (int ii = 0; ii < p->Nk; ii++) {
+  vArray[p->Ik+ii][p->Ib] = Vkb1;
+  vArray[p->Ib][p->Ik+ii] = Vkb1;
+      }
+    }
+
+    // coupling between bN and c
+    if ((p->scale_brqd) && (p->Nc > 1)) {
+      VbNc = p->Vbridge[p->Nb]/sqrt(p->Nc-1);
+    }
+    else {
+      VbNc = p->Vbridge[p->Nb];
+    }
+    for (int ii = 0; ii < p->Nc; ii++) {
+      vArray[p->Ic+ii][p->Ib+p->Nb-1] = VbNc;
+      vArray[p->Ib+p->Nb-1][p->Ic+ii] = VbNc;
+    }
+
+    // coupling between bridge states
+    for (int ii = 0; ii < p->Nb - 1; ii++) {
+      vArray[p->Ib+ii][p->Ib+ii+1] = p->Vbridge[ii+1];
+      vArray[p->Ib+ii+1][p->Ib+ii] = p->Vbridge[ii+1];
+    }
+  }
+  // no bridge
+  else {
+    // scaling
+    if ((p->scale_buqd) && (p->Nk > 1)) {
+      Vkc = sqrt(p->Vnobridge[0]*(p->kBandTop-p->kBandEdge)/(p->Nk-1));
+    }
+    else {
+      Vkc = p->Vnobridge[0];
+    }
+
+    // parabolic coupling of bulk band to QD
+    if (p->parabolicCoupling) {
+      for (int ii = 0; ii < p->Nk; ii++) {
+  for (int jj = 0; jj < p->Nc; jj++) {
+    vArray[p->Ik+ii][p->Ic+jj] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+    vArray[p->Ic+jj][p->Ik+ii] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
+  }
+      }
+    }
+    else {
+      for (int ii = 0; ii < p->Nk; ii++) {
+  for (int jj = 0; jj < p->Nc; jj++) {
+    vArray[p->Ik+ii][p->Ic+jj] = Vkc;
+    vArray[p->Ic+jj][p->Ik+ii] = Vkc;
+  }
+      }
+    }
+  }
+
+#ifdef DEBUG
+  std::cout << "\nCoupling matrix:\n";
+  for (int ii = 0; ii < p->NEQ; ii++) {
+    for (int jj = 0; jj < p->NEQ; jj++)
+      std::cout << std::scientific << vArray[ii][jj] << " ";
+    std::cout << std::endl;
+  }
+#endif
+}
+
+/* Get band index based on flag */
+int bandStartIdx(int bandFlag, PARAMETERS * p) {
+  if (bandFlag == CONDUCTION) {
+    return p->Ik;
+  }
+  else if (bandFlag == VALENCE) {
+    return p->Il;
+  }
+  else if (bandFlag == BRIDGE) {
+    return p->Ib;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    return p->Ic;
+  }
+  else {
+    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    return 0;
+  }
+}
+
+/* Get band index based on flag */
+int bandEndIdx(int bandFlag, PARAMETERS * p) {
+  if (bandFlag == CONDUCTION) {
+    return p->Ik + p->Nk;
+  }
+  else if (bandFlag == VALENCE) {
+    return p->Il + p->Nl;
+  }
+  else if (bandFlag == BRIDGE) {
+    return p->Ib + p->Nb;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    return p->Ic + p->Nc;
+  }
+  else {
+    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    return 0;
+  }
+}
+
+/* get number of states in band */
+int bandNumStates(int bandFlag, PARAMETERS * p) {
+  if (bandFlag == CONDUCTION) {
+    return p->Nk;
+  }
+  else if (bandFlag == VALENCE) {
+    return p->Nl;
+  }
+  else if (bandFlag == BRIDGE) {
+    return p->Nb;
+  }
+  else if (bandFlag == QD_CONDUCTION) {
+    return p->Nc;
+  }
+  else {
+    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    return 0;
+  }
+}
+
+void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, PARAMETERS * p) {
+  int s;  // sign +/-
+  double m; // mass of electron/hole
+
+  // determine conduction vs. valence band, electron/hole masses
+  if (flag == CONDUCTION) {
+    s = 1;
+    m = p->me;
+  }
+  else if (flag == VALENCE) {
+    s = -1;
+    m = p->mh;
+  }
+
+  // assign energies
+  for (int ii = 0; ii < n; ii++) {
+    energies[ii] = bandEdge + s*ii*ii/(2*m*pow(p->X2,2));
+  }
+
+  return;
+}
+
+/* Updates the Hamiltonian with the time-dependent torsional coupling
+ * and laser field.
+ */
+void updateHamiltonian(PARAMETERS * p, realtype t) {
+  // TODO unpack NEQ from p
+
+  // get pointer to H
+  realtype * H = &(p->H)[0];
+
+  //// first handle torsion
+  double torsionValue = 0.0;
+  if (p->torsion) {
+    // regular (sinusoidal) coupling function
+    if (p->torsionSin2) {
+      torsionValue = sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, t);
+    }
+    else {
+      torsionValue = p->torsionV.value(t);
+    }
+#ifdef DEBUG_TORSION
+    std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
+#endif
+
+    // bridge is off, coupling is between k and c states
+    if (!(p->bridge_on)) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between k and c states" << std::endl;
+#endif
+      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+  for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
+    H[ii*p->NEQ + jj] = torsionValue;
+    H[jj*p->NEQ + ii] = torsionValue;
+  }
+      }
+    }
+    // torsion is at first bridge coupling
+    else if (p->torsionSite == 0) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between k states and bridge" << std::endl;
+#endif
+      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+  H[ii*p->NEQ + p->Ib] = torsionValue;
+  H[p->Ib*p->NEQ + ii] = torsionValue;
+      }
+    }
+    // torsion is at last bridge coupling
+    else if (p->torsionSite == p->Nb) {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between bridge and c states" << std::endl;
+#endif
+      for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
+  H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
+  H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+      }
+    }
+    // torsion is between bridge sites
+    else {
+#ifdef DEBUG_RHS
+      std::cout << "torsion between bridge sites " << p->torsionSite - 1
+  << " and " << p->torsionSite << "." << std::endl;
+#endif
+      H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
+      H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
+    }
+  }
+
+  //// now handle pump pulse
+  double laserCoupling = 0.0;
+  if (p->laser_on) {
+    laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase);
+#ifdef DEBUG_RHS
+    std::cout << "Value of laser coupling between valence and conduction bands is " << laserCoupling << std::endl;
+#endif
+    // coupling is between valence and conduction bands
+    for (int ii = p->Il; ii < (p->Il + p->Nl); ii++) {
+      for (int jj = p->Ik; jj < (p->Ik + p->Nk); jj++) {
+  H[(ii)*p->NEQ + jj] = laserCoupling;
+  H[(jj)*p->NEQ + ii] = laserCoupling;
+      }
+    }
+  }
+
+  // make sparse version of Hamiltonian
+  int job [6] = {0, 0, 0, 2, p->NEQ2, 1};
+  int info = 0;
+
+  mkl_ddnscsr(&job[0], &(p->NEQ), &(p->NEQ), &(p->H)[0], &(p->NEQ), &(p->H_sp)[0],
+      &(p->H_cols)[0], &(p->H_rowind)[0], &info);
+
+  return;
+}
+
+#include "params.hpp"
+
+void initialize(PARAMETERS * p) {
+  // This function performs error checking on various parameters
+
+  // check torsion parameters, set up torsion spline
+  if (p->torsion) {
+#ifdef DEBUG
+    std::cout << "Torsion is on." << std::endl;
+#endif
+
+    // error checking
+    if (p->torsionSite > p->Nb) {
+      std::cerr << "ERROR: torsion site (" << p->torsionSite
+        << ") is larger than number of bridge sites (" << p->Nb << ")." << std::endl;
+      exit(-1);
+    }
+    else if (p->torsionSite < 0) {
+      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
+      exit(-1);
+    }
+
+    if (!p->torsionSin2) {
+      if (!fileExists(p->torsionFile)) {
+      std::cerr << "ERROR: torsion file " << p->torsionFile << " does not exist." << std::endl;
+      exit(-1);
+      }
+
+      // create spline
+      p->torsionV.readFile(p->torsionFile.c_str());
+      if (p->torsionV.getFirstX() != 0.0) {
+        std::cerr << "ERROR: time in " << p->torsionFile << " should start at 0.0." << std::endl;
+        exit(-1);
+      }
+
+      if (p->torsionV.getLastX() < p->tout) {
+        std::cerr << "ERROR: time in " << p->torsionFile << " should be >= tout." << std::endl;
+        exit(-1);
+      }
+    }
+  }
+}
+
+// This function builds up the Hamiltonian, as well as the constituent site
+// energy array and coupling array.
+void initHamiltonian(PARAMETERS * p) {
+  // first read in energies and couplings from files
+  p->Nc = numberOfValuesInFile(p->cEnergiesInput.c_str());
+  p->Nb = numberOfValuesInFile(p->bEnergiesInput.c_str());
+
+  std::vector<realtype> k_energies (p->Nk);
+  std::vector<realtype> c_energies (p->Nc);
+  std::vector<realtype> b_energies (p->Nb);
+  std::vector<realtype> l_energies (p->Nl);
+
+  // c energies are defined in file
+  readVectorFromFile(c_energies, p->cEnergiesInput.c_str(), p->Nc);
+
+  // bridge-dependent parameters
+  if (p->bridge_on) {
+    if (p->Nb < 1) {
+      std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
+      _exit(-1);
+    }
+
+    readVectorFromFile(b_energies, p->bEnergiesInput.c_str(), p->Nb);
+
+    p->Vbridge.resize(p->Nb+1);
+    readVectorFromFile(p->Vbridge, p->VBridgeInput.c_str(), p->Nb + 1);
+
+#ifdef DEBUG
+    std::cout << "COUPLINGS:";
+    for (int ii = 0; ii < p->Nb+1; ii++) {
+      std::cout << " " << p->Vbridge[ii];
+    }
+    std::cout << std::endl;
+#endif
+  }
+  else { // no bridge
+    p->Nb = 0;
+    p->Vnobridge.resize(1);
+    readVectorFromFile(p->Vnobridge, p->VNoBridgeInput.c_str(), 1);
+  }
+
+#ifdef DEBUG
+  std::cout << "\nDone reading things from inputs.\n";
+#endif
+
+  // assign bulk conduction and valence band energies
+  // for RTA, bulk and valence bands have parabolic energies
+  if (p->rta) {
+    buildParabolicBand(&k_energies[0], p->Nk, p->kBandEdge, CONDUCTION, p);
+    buildParabolicBand(&l_energies[0], p->Nl, p->lBandTop, VALENCE, p);
+  }
+  else {
+    buildContinuum(&k_energies[0], p->Nk, p->kBandEdge, p->kBandTop);
+    buildContinuum(&l_energies[0], p->Nl, p->kBandEdge - p->valenceBand - p->bulk_gap, p->kBandEdge - p->bulk_gap);
+  }
+  // calculate band width
+  p->kBandWidth = k_energies[p->Nk - 1] - k_energies[0];
+
+  // set total number of equations
+  p->NEQ = p->Nk+p->Nc+p->Nb+p->Nl;                          // total number of equations set
+  p->NEQ2 = p->NEQ*p->NEQ;                         // number of elements in DM
+
+  // set index start positions for each type of state
+  p->Ik = 0;
+  p->Ic = p->Nk;
+  p->Ib = p->Ic+p->Nc;
+  p->Il = p->Ib+p->Nb;
+
+
+  //// ASSEMBLE ARRAY OF ENERGIES
+
+
+  p->energies.resize(p->NEQ);
+  for (int ii = 0; ii < p->Nk; ii++) {
+    p->energies[p->Ik + ii] = k_energies[ii];
+  }
+  for (int ii = 0; ii < p->Nc; ii++) {
+    p->energies[p->Ic + ii] = c_energies[ii];
+  }
+  for (int ii = 0; ii < p->Nb; ii++) {
+    p->energies[p->Ib + ii] = b_energies[ii];
+  }
+  for (int ii = 0; ii < p->Nl; ii++) {
+    p->energies[p->Il + ii] = l_energies[ii];
+  }
+
+#ifdef DEBUG
+  for (int ii = 0; ii < p->NEQ; ii++) {
+    std::cout << "energies[" << ii << "] is " << p->energies[ii] << "\n";
+  }
+#endif
+}
+
+// This function builds up the initial wavefunction coefficients based on inputs
+void initWavefunction(PARAMETERS * p) {
+  std::vector<realtype> k_coeffs (p->Nk, 0.0);
+  std::vector<realtype> c_coeffs (p->Nc, 0.0);
+  std::vector<realtype> b_coeffs (p->Nb, 0.0);
+  std::vector<realtype> l_coeffs (p->Nl, 0.0);
+
+  double summ;
+
+
+  //// BUILD INITIAL WAVEFUNCTION
+
+  // set coefficients in each band of states
+
+  // bulk valence band /////////////////////////////////////////////////////////
+  if (p->VBPopFlag == POP_EMPTY) {
+#ifdef DEBUG
+    std::cout << "Initializing empty valence band" << std::endl;
+#endif
+    l_coeffs.assign(l_coeffs.size(), 0.0);
+  }
+  else if (p->VBPopFlag == POP_FULL) {
+#ifdef DEBUG
+    std::cout << "Initializing full valence band" << std::endl;
+#endif
+    l_coeffs.assign(l_coeffs.size(), 1.0);
+  }
+  else {
+    std::cerr << "ERROR: unrecognized VBPopFlag " << p->VBPopFlag << std::endl;
+  }
+
+  // bulk conduction band //////////////////////////////////////////////////////
+  if (p->CBPopFlag == POP_EMPTY) {
+#ifdef DEBUG
+    std::cout << "Initializing empty conduction band" << std::endl;
+#endif
+    k_coeffs.assign(k_coeffs.size(), 0.0);
+  }
+  else if (p->CBPopFlag == POP_FULL) {
+#ifdef DEBUG
+    std::cout << "Initializing full conduction band" << std::endl;
+#endif
+    k_coeffs.assign(k_coeffs.size(), 1.0);
+  }
+  else if (p->CBPopFlag == POP_CONSTANT) {
+#ifdef DEBUG
+    std::cout << "Initializing constant distribution in conduction band" << std::endl;
+#endif
+    k_coeffs.assign(k_coeffs.size(), 0.0);
+    if (p->rta) {
+      k_coeffs.assign(k_coeffs.size(), 1e-1); // FIXME
+    }
+    initializeArray(&(k_coeffs[p->Nk_first-1]), p->Nk_final - p->Nk_first + 1, 1.0);
+  }
+  else if (p->CBPopFlag == POP_GAUSSIAN) {
+#ifdef DEBUG
+    std::cout << "Initializing Gaussian in conduction band" << std::endl;
+#endif
+    buildKPopsGaussian(&(k_coeffs[0]), &(p->energies[p->Ik]), p->kBandEdge, p->bulkGaussSigma, p->bulkGaussMu, p->Nk);
+  }
+  else {
+    std::cerr << "ERROR: unrecognized CBPopFlag " << p->CBPopFlag << std::endl;
+  }
+
+  //// QD //////////////////////////////////////////////////////////////////////
+  if (p->QDPopFlag == POP_EMPTY) {
+    c_coeffs.assign(c_coeffs.size(), 0.0);
+  }
+  else if (p->QDPopFlag == POP_FULL) {
+    c_coeffs.assign(c_coeffs.size(), 1.0);
+  }
+  else if (p->QDPopFlag == POP_CONSTANT) {
+#ifdef DEBUG
+    std::cout << "Initializing constant distribution in QD band" << std::endl;
+#endif
+    c_coeffs.assign(c_coeffs.size(), 0.0);
+    initializeArray(&(c_coeffs[p->Nc_first-1]), p->Nc_final - p->Nc_first + 1, 1.0);
+  }
+  else {
+    std::cerr << "ERROR: unrecognized QDPopFlag " << p->QDPopFlag << std::endl;
+  }
+
+  // create empty wavefunction
+  p->startWfn.resize(2*p->NEQ, 0.0);
+
+  // assign real parts of wavefunction coefficients (imaginary are zero)
+  for (int ii = 0; ii < p->Nk; ii++) {
+    p->startWfn[p->Ik + ii] = k_coeffs[ii];
+  }
+  for (int ii = 0; ii < p->Nc; ii++) {
+    p->startWfn[p->Ic + ii] = c_coeffs[ii];
+  }
+  for (int ii = 0; ii < p->Nb; ii++) {
+    p->startWfn[p->Ib + ii] = b_coeffs[ii];
+  }
+  for (int ii = 0; ii < p->Nl; ii++) {
+    p->startWfn[p->Il + ii] = l_coeffs[ii];
+  }
+
+  if (isOutput(p->outs, "psi_start.out")) {
+    outputWavefunction(&(p->startWfn[0]), p->NEQ);
+  }
+
+  // Give all coefficients a random phase
+  if (p->random_phase) {
+    float phi;
+    // set the seed
+    if (p->random_seed == -1) { srand(time(NULL)); }
+    else { srand(p->random_seed); }
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      phi = 2*3.1415926535*(float)rand()/(float)RAND_MAX;
+      p->startWfn[ii] = p->startWfn[ii]*cos(phi);
+      p->startWfn[ii + p->NEQ] = p->startWfn[ii + p->NEQ]*sin(phi);
+    }
+  }
+
+#ifdef DEBUG
+  // print out details of wavefunction coefficients
+  std::cout << std::endl;
+  for (int ii = 0; ii < p->Nk; ii++) {
+    std::cout << "starting wavefunction: Re[k(" << ii << ")] = " << p->startWfn[p->Ik + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nc; ii++) {
+    std::cout << "starting wavefunction: Re[c(" << ii << ")] = " << p->startWfn[p->Ic + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nb; ii++) {
+    std::cout << "starting wavefunction: Re[b(" << ii << ")] = " << p->startWfn[p->Ib + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nl; ii++) {
+    std::cout << "starting wavefunction: Re[l(" << ii << ")] = " << p->startWfn[p->Il + ii] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nk; ii++) {
+    std::cout << "starting wavefunction: Im[k(" << ii << ")] = " << p->startWfn[p->Ik + ii + p->NEQ] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nc; ii++) {
+    std::cout << "starting wavefunction: Im[c(" << ii << ")] = " << p->startWfn[p->Ic + ii + p->NEQ] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nb; ii++) {
+    std::cout << "starting wavefunction: Im[b(" << ii << ")] = " << p->startWfn[p->Ib + ii + p->NEQ] << std::endl;
+  }
+  for (int ii = 0; ii < p->Nl; ii++) {
+    std::cout << "starting wavefunction: Im[l(" << ii << ")] = " << p->startWfn[p->Il + ii + p->NEQ] << std::endl;
+  }
+  std::cout << std::endl;
+  summ = 0;
+  for (int ii = 0; ii < 2*p->NEQ; ii++) {
+    summ += pow(p->startWfn[ii],2);
+  }
+  std::cout << "\nTotal population is " << summ << "\n\n";
+#endif
+
+  //// CREATE DENSITY MATRIX
+
+  if (! p->wavefunction) {
+#pragma omp parallel for
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      // diagonal part
+      p->startDM[p->NEQ*ii + ii] = pow(p->startWfn[ii],2) + pow(p->startWfn[ii + p->NEQ],2);
+      if (p->coherent) {
+        // off-diagonal part
+        for (int jj = 0; jj < ii; jj++) {
+          // real part of \rho_{ii,jj}
+          p->startDM[p->NEQ*ii + jj] = p->startWfn[ii]*p->startWfn[jj] + p->startWfn[ii+p->NEQ]*p->startWfn[jj+p->NEQ];
+          // imaginary part of \rho_{ii,jj}
+          p->startDM[p->NEQ*ii + jj + p->NEQ2] = p->startWfn[ii]*p->startWfn[jj+p->NEQ] - p->startWfn[jj]*p->startWfn[ii+p->NEQ];
+          // real part of \rho_{jj,ii}
+          p->startDM[p->NEQ*jj + ii] = p->startDM[p->NEQ*ii + jj];
+          // imaginary part of \rho_{jj,ii}
+          p->startDM[p->NEQ*jj + ii + p->NEQ2] = -1*p->startDM[p->NEQ*ii + jj + p->NEQ*p->NEQ];
+        }
+      }
+    }
+
+#ifdef DEBUG2
+    // print out density matrix
+    std::cout << "\nDensity matrix without normalization:\n\n";
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      for (int jj = 0; jj < p->NEQ; jj++) {
+        fprintf(stdout, "(%+.1e,%+.1e) ", p->startDM[p->NEQ*ii + jj], p->startDM[p->NEQ*ii + jj + p->NEQ2]);
+      }
+      fprintf(stdout, "\n");
+    }
+#endif
+
+    // Normalize the DM so that populations add up to 1.
+    // No normalization if RTA is on.
+    if (!p->rta) {
+      summ = 0.0;
+      for (int ii = 0; ii < p->NEQ; ii++) {
+        // assume here that diagonal elements are all real
+        summ += p->startDM[p->NEQ*ii + ii];
+      }
+      if ( summ == 0.0 ) {
+        std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+        _exit(-1);
+      }
+      if (summ != 1.0) {
+        // the variable 'summ' is now a multiplicative normalization factor
+        summ = 1.0/summ;
+        for (int ii = 0; ii < 2*p->NEQ2; ii++) {
+          p->startDM[ii] *= summ;
+        }
+      }
+#ifdef DEBUG
+      std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+#endif
+    }
+
+    // Error checking for total population; recount population first
+    summ = 0.0;
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      summ += p->startDM[p->NEQ*ii + ii];
+    }
+    if ( fabs(summ-1.0) > 1e-12  && (!p->rta)) {
+      std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
+    }
+#ifdef DEBUG
+    std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
+#endif
+  }
+  // wavefunction
+  else {
+    // normalize
+    summ = 0.0;
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      summ += pow(p->startWfn[ii],2) + pow(p->startWfn[ii+p->NEQ],2);
+    }
+#ifdef DEBUG
+    std::cout << "Before normalization, the total population is " << summ << std::endl;
+#endif
+    summ = 1.0/sqrt(summ);
+    for (int ii = 0; ii < 2*p->NEQ; ii++) {
+      p->startWfn[ii] *= summ;
+    }
+
+    // check total population
+    summ = 0.0;
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      summ += pow(p->startWfn[ii],2) + pow(p->startWfn[ii+p->NEQ],2);
+    }
+#ifdef DEBUG
+    std::cout << "After normalization, the total population is " << summ << std::endl;
+#endif
+    if (fabs(summ - 1.0) > 1e-12) {
+      std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
+    }
+  }
+}
+
 
 
 int main (int argc, char * argv[]) {
@@ -57,19 +824,14 @@ int main (int argc, char * argv[]) {
   // arrays for energetic parameters
   realtype ** V = NULL;                         // pointer to coupling constants
 
-  //// Setting defaults for parameters to be read from input
-  //// done setting defaults
-
   int flag;
   realtype * k_pops = NULL;                             // pointers to arrays of populations
   realtype * l_pops = NULL;
   realtype * c_pops = NULL;
   realtype * b_pops = NULL;
   realtype * ydata = NULL;                              // pointer to ydata (contains all populations)
-  realtype * wavefunction = NULL;                       // (initial) wavefunction
-  realtype * dm = NULL;                                 // density matrix
   realtype * dmt = NULL;                                // density matrix in time
-  realtype * wfnt = NULL;                               // density matrix in time
+  realtype * wfnt = NULL;                               // wave function in time
   realtype * k_energies = NULL;                         // pointers to arrays of energies
   realtype * c_energies = NULL;
   realtype * b_energies = NULL;
@@ -84,15 +846,7 @@ int main (int argc, char * argv[]) {
   FILE * realImaginary;                         // file containing real and imaginary parts of the wavefunction
 #endif
   FILE * log;                                   // log file with run times
-  std::string inputFile = "ins/parameters.in";                  // name of input file
-  std::string cEnergiesInput = "ins/c_energies.in";
-  std::string bEnergiesInput = "ins/b_energies.in";
-  std::string VNoBridgeInput = "ins/Vnobridge.in";
-  std::string VBridgeInput = "ins/Vbridge.in";
   std::map<const std::string, bool> outs;       // map of output file names to bool
-
-  // default output directory
-  p.outputDir = "outs/";
 
   double summ = 0;                      // sum variable
 
@@ -113,11 +867,11 @@ int main (int argc, char * argv[]) {
         }
         else {
           // ---- assign input files ---- //
-          inputFile = insDir + "parameters.in";
-          cEnergiesInput = insDir + "c_energies.in";
-          bEnergiesInput = insDir + "b_energies.in";
-          VNoBridgeInput = insDir + "Vnobridge.in";
-          VBridgeInput = insDir + "Vbridge.in";
+          p.inputFile = insDir + "parameters.in";
+          p.cEnergiesInput = insDir + "c_energies.in";
+          p.bEnergiesInput = insDir + "b_energies.in";
+          p.VNoBridgeInput = insDir + "Vnobridge.in";
+          p.VBridgeInput = insDir + "Vbridge.in";
         }
         break;
       case 'o':
@@ -145,13 +899,14 @@ int main (int argc, char * argv[]) {
   // ---- TODO create output directory if it does not exist ---- //
   flag = mkdir(p.outputDir.c_str(), 0755);
 
-  assignParams(inputFile.c_str(), &p);
+  assignParams(p.inputFile.c_str(), &p);
 
   // Decide which output files to make
 #ifdef DEBUG
-  std::cout << "Assigning outputs as specified in " << inputFile << "\n";
+  std::cout << "Assigning outputs as specified in " << p.inputFile << "\n";
 #endif
-  assignOutputs(inputFile.c_str(), outs, &p);
+  assignOutputs(p.inputFile.c_str(), outs, &p);
+  p.outs = outs;
 
 #ifdef DEBUG
   // print out which outputs will be made
@@ -177,94 +932,16 @@ int main (int argc, char * argv[]) {
 
 
   //// READ DATA FROM INPUTS
-
-
-  p.Nc = numberOfValuesInFile(cEnergiesInput.c_str());
-  p.Nb = numberOfValuesInFile(bEnergiesInput.c_str());
-  k_pops = new realtype [p.Nk];
-  c_pops = new realtype [p.Nc];
-  b_pops = new realtype [p.Nb];
-  l_pops = new realtype [p.Nl];
-  k_energies = new realtype [p.Nk];
-  c_energies = new realtype [p.Nc];
-  b_energies = new realtype [p.Nb];
-  l_energies = new realtype [p.Nl];
-
-  readArrayFromFile(c_energies, cEnergiesInput.c_str(), p.Nc);
-  if (p.bridge_on) {
-    if (p.bridge_on && (p.Nb < 1)) {
-      std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
-      return -1;
-    }
-    p.Vbridge.resize(p.Nb+1);
-    readArrayFromFile(b_energies, bEnergiesInput.c_str(), p.Nb);
-    readVectorFromFile(p.Vbridge, VBridgeInput.c_str(), p.Nb + 1);
-#ifdef DEBUG
-    std::cout << "COUPLINGS:";
-    for (int ii = 0; ii < p.Nb+1; ii++) {
-      std::cout << " " << p.Vbridge[ii];
-    }
-    std::cout << std::endl;
-#endif
-  }
-  else {
-    p.Nb = 0;
-    p.Vnobridge.resize(1);
-    readVectorFromFile(p.Vnobridge, VNoBridgeInput.c_str(), 1);
-  }
-
-#ifdef DEBUG
-  std::cout << "\nDone reading things from inputs.\n";
-#endif
-
+  // TODO replace with initialize function
+  initHamiltonian(&p);
+  initWavefunction(&p);
 
   //// PREPROCESS DATA FROM INPUTS
-
-
-  // check torsion parameters, set up torsion spline
-  if (p.torsion) {
-#ifdef DEBUG
-    std::cout << "Torsion is on." << std::endl;
-#endif
-
-    // error checking
-    if (p.torsionSite > p.Nb) {
-      std::cerr << "ERROR: torsion site (" << p.torsionSite
-        << ") is larger than number of bridge sites (" << p.Nb << ")." << std::endl;
-      exit(-1);
-    }
-    else if (p.torsionSite < 0) {
-      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
-      exit(-1);
-    }
-
-    if (!p.torsionSin2) {
-      if (!fileExists(p.torsionFile)) {
-      std::cerr << "ERROR: torsion file " << p.torsionFile << " does not exist." << std::endl;
-      exit(-1);
-      }
-
-      // create spline
-      p.torsionV.readFile(p.torsionFile.c_str());
-      if (p.torsionV.getFirstX() != 0.0) {
-        std::cerr << "ERROR: time in " << p.torsionFile << " should start at 0.0." << std::endl;
-        exit(-1);
-      }
-
-      if (p.torsionV.getLastX() < p.tout) {
-        std::cerr << "ERROR: time in " << p.torsionFile << " should be >= tout." << std::endl;
-        exit(-1);
-      }
-    }
-  }
 
 
   // set number of processors for OpenMP
   omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
-
-  p.NEQ = p.Nk+p.Nc+p.Nb+p.Nl;                          // total number of equations set
-  p.NEQ2 = p.NEQ*p.NEQ;                         // number of elements in DM
 #ifdef DEBUG
   std::cout << "\nTotal number of states: " << p.NEQ << std::endl;
   std::cout << p.Nk << " bulk, " << p.Nc << " QD, " << p.Nb << " bridge, " << p.Nl << " bulk VB.\n";
@@ -274,196 +951,6 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii <= p.numOutputSteps; ii++) {
     p.times[ii] = float(ii)/p.numOutputSteps*p.tout;
   }
-  p.Ik = 0;                                     // set index start positions for each type of state
-  p.Ic = p.Nk;
-  p.Ib = p.Ic+p.Nc;
-  p.Il = p.Ib+p.Nb;
-
-  // assign bulk conduction and valence band energies
-  // for RTA, bulk and valence bands have parabolic energies
-  if (p.rta) {
-    buildParabolicBand(k_energies, p.Nk, p.kBandEdge, CONDUCTION, &p);
-    buildParabolicBand(l_energies, p.Nl, p.lBandTop, VALENCE, &p);
-  }
-  else {
-    buildContinuum(k_energies, p.Nk, p.kBandEdge, p.kBandTop);
-    buildContinuum(l_energies, p.Nl, p.kBandEdge - p.valenceBand - p.bulk_gap, p.kBandEdge - p.bulk_gap);
-  }
-  // calculate band width
-  p.kBandWidth = k_energies[p.Nk - 1] - k_energies[0];
-
-
-  //// BUILD INITIAL WAVEFUNCTION
-
-
-  // bridge states (empty to start)
-  initializeArray(b_pops, p.Nb, 0.0);
-
-  // set coefficients in each band of states
-
-  // bulk valence band /////////////////////////////////////////////////////////
-  if (p.VBPopFlag == POP_EMPTY) {
-#ifdef DEBUG
-    std::cout << "Initializing empty valence band" << std::endl;
-#endif
-    initializeArray(l_pops, p.Nl, 0.0);
-  }
-  else if (p.VBPopFlag == POP_FULL) {
-#ifdef DEBUG
-    std::cout << "Initializing full valence band" << std::endl;
-#endif
-    initializeArray(l_pops, p.Nl, 1.0);
-  }
-  else {
-    std::cerr << "ERROR: unrecognized VBPopFlag " << p.VBPopFlag << std::endl;
-  }
-
-  // bulk conduction band //////////////////////////////////////////////////////
-  if (p.CBPopFlag == POP_EMPTY) {
-#ifdef DEBUG
-    std::cout << "Initializing empty conduction band" << std::endl;
-#endif
-    initializeArray(k_pops, p.Nk, 0.0);
-  }
-  else if (p.CBPopFlag == POP_FULL) {
-#ifdef DEBUG
-    std::cout << "Initializing full conduction band" << std::endl;
-#endif
-    initializeArray(k_pops, p.Nk, 1.0);
-  }
-  else if (p.CBPopFlag == POP_CONSTANT) {
-#ifdef DEBUG
-    std::cout << "Initializing constant distribution in conduction band" << std::endl;
-#endif
-    initializeArray(k_pops, p.Nk, 0.0);
-    if (p.rta) {
-      initializeArray(k_pops, p.Nk, 1e-1); // FIXME
-    }
-    initializeArray(k_pops+p.Nk_first-1, p.Nk_final-p.Nk_first+1, 1.0);
-  }
-  else if (p.CBPopFlag == POP_GAUSSIAN) {
-#ifdef DEBUG
-    std::cout << "Initializing Gaussian in conduction band" << std::endl;
-#endif
-    buildKPopsGaussian(k_pops, k_energies, p.kBandEdge,
-  p.bulkGaussSigma, p.bulkGaussMu, p.Nk);
-  }
-  else {
-    std::cerr << "ERROR: unrecognized CBPopFlag " << p.CBPopFlag << std::endl;
-  }
-
-  //// QD //////////////////////////////////////////////////////////////////////
-  if (p.QDPopFlag == POP_EMPTY) {
-    initializeArray(c_pops, p.Nc, 0.0);
-  }
-  else if (p.QDPopFlag == POP_FULL) {
-    initializeArray(c_pops, p.Nc, 1.0);
-  }
-  else if (p.QDPopFlag == POP_CONSTANT) {
-#ifdef DEBUG
-    std::cout << "Initializing constant distribution in conduction band" << std::endl;
-#endif
-    initializeArray(c_pops, p.Nc, 0.0);
-    initializeArray(c_pops+p.Nc_first-1, p.Nc_final-p.Nc_first+1, 1.0);
-  }
-  else {
-    std::cerr << "ERROR: unrecognized QDPopFlag " << p.QDPopFlag << std::endl;
-  }
-
-  // create empty wavefunction
-  wavefunction = new realtype [2*p.NEQ];
-  initializeArray(wavefunction, 2*p.NEQ, 0.0);
-
-  // assign real parts of wavefunction coefficients (imaginary are zero)
-  for (int ii = 0; ii < p.Nk; ii++) {
-    wavefunction[p.Ik + ii] = k_pops[ii];
-  }
-  for (int ii = 0; ii < p.Nc; ii++) {
-    wavefunction[p.Ic + ii] = c_pops[ii];
-  }
-  for (int ii = 0; ii < p.Nb; ii++) {
-    wavefunction[p.Ib + ii] = b_pops[ii];
-  }
-  for (int ii = 0; ii < p.Nl; ii++) {
-    wavefunction[p.Il + ii] = l_pops[ii];
-  }
-
-  if (isOutput(outs, "psi_start.out")) {
-    outputWavefunction(wavefunction, p.NEQ);
-  }
-
-  // Give all coefficients a random phase
-  if (p.random_phase) {
-    float phi;
-    // set the seed
-    if (p.random_seed == -1) { srand(time(NULL)); }
-    else { srand(p.random_seed); }
-    for (int ii = 0; ii < p.NEQ; ii++) {
-      phi = 2*3.1415926535*(float)rand()/(float)RAND_MAX;
-      wavefunction[ii] = wavefunction[ii]*cos(phi);
-      wavefunction[ii + p.NEQ] = wavefunction[ii + p.NEQ]*sin(phi);
-    }
-  }
-
-#ifdef DEBUG
-  // print out details of wavefunction coefficients
-  std::cout << std::endl;
-  for (int ii = 0; ii < p.Nk; ii++) {
-    std::cout << "starting wavefunction: Re[k(" << ii << ")] = " << wavefunction[p.Ik + ii] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nc; ii++) {
-    std::cout << "starting wavefunction: Re[c(" << ii << ")] = " << wavefunction[p.Ic + ii] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nb; ii++) {
-    std::cout << "starting wavefunction: Re[b(" << ii << ")] = " << wavefunction[p.Ib + ii] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nl; ii++) {
-    std::cout << "starting wavefunction: Re[l(" << ii << ")] = " << wavefunction[p.Il + ii] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nk; ii++) {
-    std::cout << "starting wavefunction: Im[k(" << ii << ")] = " << wavefunction[p.Ik + ii + p.NEQ] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nc; ii++) {
-    std::cout << "starting wavefunction: Im[c(" << ii << ")] = " << wavefunction[p.Ic + ii + p.NEQ] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nb; ii++) {
-    std::cout << "starting wavefunction: Im[b(" << ii << ")] = " << wavefunction[p.Ib + ii + p.NEQ] << std::endl;
-  }
-  for (int ii = 0; ii < p.Nl; ii++) {
-    std::cout << "starting wavefunction: Im[l(" << ii << ")] = " << wavefunction[p.Il + ii + p.NEQ] << std::endl;
-  }
-  std::cout << std::endl;
-  summ = 0;
-  for (int ii = 0; ii < 2*p.NEQ; ii++) {
-    summ += pow(wavefunction[ii],2);
-  }
-  std::cout << "\nTotal population is " << summ << "\n\n";
-#endif
-
-
-  //// ASSEMBLE ARRAY OF ENERGIES
-
-
-  // TODO TODO
-  p.energies.resize(p.NEQ);
-  for (int ii = 0; ii < p.Nk; ii++) {
-    p.energies[p.Ik + ii] = k_energies[ii];
-  }
-  for (int ii = 0; ii < p.Nc; ii++) {
-    p.energies[p.Ic + ii] = c_energies[ii];
-  }
-  for (int ii = 0; ii < p.Nb; ii++) {
-    p.energies[p.Ib + ii] = b_energies[ii];
-  }
-  for (int ii = 0; ii < p.Nl; ii++) {
-    p.energies[p.Il + ii] = l_energies[ii];
-  }
-
-#ifdef DEBUG
-  for (int ii = 0; ii < p.NEQ; ii++) {
-    std::cout << "p.energies[" << ii << "] is " << p.energies[ii] << "\n";
-  }
-#endif
 
 
   //// ASSIGN COUPLING CONSTANTS
@@ -472,7 +959,7 @@ int main (int argc, char * argv[]) {
   for (int ii = 0; ii < p.NEQ; ii++) {
     V[ii] = new realtype [p.NEQ];
   }
-  
+
   buildCoupling(V, &p, outs);
 
   if (isOutput(outs, "log.out")) {
@@ -502,121 +989,16 @@ int main (int argc, char * argv[]) {
     }
   }
 
-  //// CREATE DENSITY MATRIX
-  if (! p.wavefunction) {
-    // Create the initial density matrix
-    dm = new realtype [2*p.NEQ2];
-    initializeArray(dm, 2*p.NEQ2, 0.0);
-#pragma omp parallel for
-    for (int ii = 0; ii < p.NEQ; ii++) {
-      // diagonal part
-      dm[p.NEQ*ii + ii] = pow(wavefunction[ii],2) + pow(wavefunction[ii + p.NEQ],2);
-      if (p.coherent) {
-        // off-diagonal part
-        for (int jj = 0; jj < ii; jj++) {
-          // real part of \rho_{ii,jj}
-          dm[p.NEQ*ii + jj] = wavefunction[ii]*wavefunction[jj] + wavefunction[ii+p.NEQ]*wavefunction[jj+p.NEQ];
-          // imaginary part of \rho_{ii,jj}
-          dm[p.NEQ*ii + jj + p.NEQ2] = wavefunction[ii]*wavefunction[jj+p.NEQ] - wavefunction[jj]*wavefunction[ii+p.NEQ];
-          // real part of \rho_{jj,ii}
-          dm[p.NEQ*jj + ii] = dm[p.NEQ*ii + jj];
-          // imaginary part of \rho_{jj,ii}
-          dm[p.NEQ*jj + ii + p.NEQ2] = -1*dm[p.NEQ*ii + jj + p.NEQ*p.NEQ];
-        }
-      }
-    }
-
-    // Create the array to store the density matrix in time
-    dmt = new realtype [2*p.NEQ2*(p.numOutputSteps+1)];
-    initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
-
-#ifdef DEBUG2
-    // print out density matrix
-    std::cout << "\nDensity matrix without normalization:\n\n";
-    for (int ii = 0; ii < p.NEQ; ii++) {
-      for (int jj = 0; jj < p.NEQ; jj++) {
-        fprintf(stdout, "(%+.1e,%+.1e) ", dm[p.NEQ*ii + jj], dm[p.NEQ*ii + jj + p.NEQ2]);
-      }
-      fprintf(stdout, "\n");
-    }
-#endif
-
-    // Normalize the DM so that populations add up to 1.
-    // No normalization if RTA is on.
-    if (!p.rta) {
-      summ = 0.0;
-      for (int ii = 0; ii < p.NEQ; ii++) {
-        // assume here that diagonal elements are all real
-        summ += dm[p.NEQ*ii + ii];
-      }
-      if ( summ == 0.0 ) {
-        std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-        return -1;
-      }
-      if (summ != 1.0) {
-        // the variable 'summ' is now a multiplicative normalization factor
-        summ = 1.0/summ;
-        for (int ii = 0; ii < 2*p.NEQ2; ii++) {
-          dm[ii] *= summ;
-        }
-      }
-#ifdef DEBUG
-      std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
-#endif
-    }
-
-    // Error checking for total population; recount population first
-    summ = 0.0;
-    for (int ii = 0; ii < p.NEQ; ii++) {
-      summ += dm[p.NEQ*ii + ii];
-    }
-    if ( fabs(summ-1.0) > 1e-12  && (!p.rta)) {
-      std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
-    }
-#ifdef DEBUG
-    std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
-#endif
-    // Add initial DM to parameters.
-    p.startDM.resize(2*p.NEQ2);
-    memcpy(&(p.startDM[0]), &(dm[0]), 2*p.NEQ2*sizeof(double));
-  }
-  // wavefunction
-  else {
-
+  if (p.wavefunction) {
     // Create the array to store the wavefunction in time
     wfnt = new realtype [2*p.NEQ*(p.numOutputSteps+1)];
     initializeArray(wfnt, 2*p.NEQ*(p.numOutputSteps+1), 0.0);
-
-    // normalize
-    summ = 0.0;
-    for (int ii = 0; ii < p.NEQ; ii++) {
-      summ += pow(wavefunction[ii],2) + pow(wavefunction[ii+p.NEQ],2);
-    }
-#ifdef DEBUG
-    std::cout << "Before normalization, the total population is " << summ << std::endl;
-#endif
-    summ = 1.0/sqrt(summ);
-    for (int ii = 0; ii < 2*p.NEQ; ii++) {
-      wavefunction[ii] *= summ;
-    }
-
-    // check total population
-    summ = 0.0;
-    for (int ii = 0; ii < p.NEQ; ii++) {
-      summ += pow(wavefunction[ii],2) + pow(wavefunction[ii+p.NEQ],2);
-    }
-#ifdef DEBUG
-    std::cout << "After normalization, the total population is " << summ << std::endl;
-#endif
-    if (fabs(summ - 1.0) > 1e-12) {
-      std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
-    }
-
-    // Add initial wavefunction to parameters.
-    p.startWfn.resize(2*p.NEQ);
-    memcpy(&(p.startWfn[0]), &(wavefunction[0]), 2*p.NEQ*sizeof(double));
   }
-
+  else {
+    // Create the array to store the density matrix in time
+    dmt = new realtype [2*p.NEQ2*(p.numOutputSteps+1)];
+    initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
+  }
 
   //// BUILD HAMILTONIAN
 
@@ -661,11 +1043,12 @@ int main (int argc, char * argv[]) {
 #endif
   // Creates N_Vector y with initial populations which will be used by CVode//
   if (p.wavefunction) {
-    y = N_VMake_Serial(2*p.NEQ, wavefunction);
+    y = N_VMake_Serial(2*p.NEQ, &(p.startWfn[0]));
   }
   else {
-    y = N_VMake_Serial(2*p.NEQ2, dm);
+    y = N_VMake_Serial(2*p.NEQ2, &(p.startDM[0]));
   }
+
   // put in t = 0 information
   if (! p.wavefunction) {
     updateDM(y, dmt, 0, &p);
@@ -687,6 +1070,7 @@ int main (int argc, char * argv[]) {
   if (! p.justPlots) {
     // Make outputs independent of time propagation
     computeGeneralOutputs(outs, &p);
+std::cout << "\n\n\nWHOOOOOT\n\n\n";
 
     // create CVode object
     // this is a stiff problem, I guess?
@@ -843,7 +1227,6 @@ int main (int argc, char * argv[]) {
   delete [] c_energies;
   delete [] b_energies;
   delete [] l_energies;
-  delete [] wavefunction;
   delete [] H;
   for (int ii = 0; ii < p.NEQ; ii++) {
     delete [] V[ii];
@@ -853,7 +1236,6 @@ int main (int argc, char * argv[]) {
     delete [] wfnt;
   }
   else {
-    delete [] dm;
     delete [] dmt;
   }
 
