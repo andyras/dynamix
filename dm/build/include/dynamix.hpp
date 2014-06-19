@@ -34,8 +34,6 @@
 #include "conversions.hpp"
 #include "analytic.hpp"
 
-void buildCoupling (struct PARAMETERS * p, std::map<const std::string, bool> &outs);
-
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
 
 void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p);

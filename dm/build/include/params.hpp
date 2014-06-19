@@ -9,7 +9,6 @@
 #include "constants.hpp"
 #include "spline.hpp"
 #include "numerical.hpp"
-#include "output.hpp"
 
 // Struct of parameters
 class PARAMETERS {
@@ -129,6 +128,8 @@ public:
 
   // methods ///////////////////////////////////////////////////////////////////
   void buildHamiltonian();
+
+  void buildCoupling ();
 };
 
 #endif

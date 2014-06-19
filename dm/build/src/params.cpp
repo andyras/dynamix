@@ -1,6 +1,110 @@
 #include <params.hpp>
 
+#define DEBUG_BUILDCOUPLING
 //#define DEBUG_BUILDHAMILTONIAN
+
+/* assign coupling constants to global array V */
+void PARAMETERS::buildCoupling () {
+
+  double Vkc; // coupling between bulk and QD
+  double Vkb1;  // coupling between bulk and first bridge
+  double VbNc;  // coupling between last bridge and QD
+
+  // initialize the coupling array
+  V.resize(NEQ);
+  for (int ii = 0; ii < V.size(); ii++) {
+    V.at(ii).assign(NEQ, 0.0);
+  }
+
+std::cout << "\n\n\nWHOOOOOT\n\n\n";
+
+#ifdef DEBUG_BUILDCOUPLING
+  if (bridge_on) {
+    for (int ii = 0; ii < Nb + 1; ii++) {
+      std::cout << "Vbridge[" << ii << "] is ";
+      std::cout << Vbridge[ii] << "\n";
+    }
+  }
+#endif
+
+  // bridge
+  if (bridge_on) {
+    // coupling between k and b1
+    if ((scale_bubr) && (Nk > 1)) {
+      Vkb1 = sqrt(Vbridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+    }
+    else {
+      Vkb1 = Vbridge[0];
+    }
+    if (parabolicCoupling) {
+      for (int ii = 0; ii < Nk; ii++) {
+        V.at(Ik+ii)[Ib] = parabolicV(Vkb1, energies[Ik+ii], kBandEdge, kBandTop);
+        V.at(Ib)[Ik+ii] = parabolicV(Vkb1, energies[Ik+ii], kBandEdge, kBandTop);
+      }
+    }
+    else {
+      for (int ii = 0; ii < Nk; ii++) {
+        V.at(Ik+ii)[Ib] = Vkb1;
+        V.at(Ib)[Ik+ii] = Vkb1;
+      }
+    }
+
+    // coupling between bN and c
+    if ((scale_brqd) && (Nc > 1)) {
+      VbNc = Vbridge[Nb]/sqrt(Nc-1);
+    }
+    else {
+      VbNc = Vbridge[Nb];
+    }
+    for (int ii = 0; ii < Nc; ii++) {
+      V.at(Ic+ii)[Ib+Nb-1] = VbNc;
+      V.at(Ib+Nb-1)[Ic+ii] = VbNc;
+    }
+
+    // coupling between bridge states
+    for (int ii = 0; ii < Nb - 1; ii++) {
+      V.at(Ib+ii)[Ib+ii+1] = Vbridge[ii+1];
+      V.at(Ib+ii+1)[Ib+ii] = Vbridge[ii+1];
+    }
+  }
+  // no bridge
+  else {
+    // scaling
+    if ((scale_buqd) && (Nk > 1)) {
+      Vkc = sqrt(Vnobridge[0]*(kBandTop-kBandEdge)/(Nk-1));
+    }
+    else {
+      Vkc = Vnobridge[0];
+    }
+
+    // parabolic coupling of bulk band to QD
+    if (parabolicCoupling) {
+      for (int ii = 0; ii < Nk; ii++) {
+        for (int jj = 0; jj < Nc; jj++) {
+          V.at(Ik+ii)[Ic+jj] = parabolicV(Vkc, energies[Ik+ii], kBandEdge, kBandTop);
+          V.at(Ic+jj)[Ik+ii] = parabolicV(Vkc, energies[Ik+ii], kBandEdge, kBandTop);
+        }
+      }
+    }
+    else {
+      for (int ii = 0; ii < Nk; ii++) {
+        for (int jj = 0; jj < Nc; jj++) {
+          V.at(Ik+ii)[Ic+jj] = Vkc;
+          V.at(Ic+jj)[Ik+ii] = Vkc;
+        }
+      }
+    }
+  }
+
+#ifdef DEBUG
+  std::cout << "\nCoupling matrix:\n";
+  for (int ii = 0; ii < NEQ; ii++) {
+    for (int jj = 0; jj < NEQ; jj++)
+      std::cout << std::scientific << V.at(ii)[jj] << " ";
+    std::cout << std::endl;
+  }
+#endif
+}
 
 /* builds a Hamiltonian from site energies and couplings. */
 void PARAMETERS::buildHamiltonian() {

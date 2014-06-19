@@ -12,6 +12,7 @@
 
 #include "params.hpp"
 #include "numerical.hpp"
+#include "dynamix.hpp"
 #include "omp.h"
 
 int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);

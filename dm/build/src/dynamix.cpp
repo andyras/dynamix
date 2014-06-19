@@ -9,7 +9,6 @@
 // DEBUGf: debug inner CVode loop
 // #define DEBUGf
 
-#define DEBUG_BUILDCOUPLING
 #define DEBUG_UPDATEDM
 #define DEBUG_UPDATEWFN
 
@@ -47,109 +46,6 @@ void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * 
   std::cout << "done updating wavefunction." << std::endl;
 #endif
   return;
-}
-
-/* assign coupling constants to global array V */
-void buildCoupling (struct PARAMETERS * p, std::map<const std::string, bool> &outs) {
-
-  double Vkc; // coupling between bulk and QD
-  double Vkb1;  // coupling between bulk and first bridge
-  double VbNc;  // coupling between last bridge and QD
-
-  // initialize the coupling array
-  p->V.resize(p->NEQ);
-  for (int ii = 0; ii < p->V.size(); ii++) {
-    p->V.at(ii).assign(p->NEQ, 0.0);
-  }
-
-std::cout << "\n\n\nWHOOOOOT\n\n\n";
-
-#ifdef DEBUG_BUILDCOUPLING
-  if (p->bridge_on) {
-    for (int ii = 0; ii < p->Nb + 1; ii++) {
-      std::cout << "p->Vbridge[" << ii << "] is ";
-      std::cout << p->Vbridge[ii] << "\n";
-    }
-  }
-#endif
-
-  // bridge
-  if (p->bridge_on) {
-    // coupling between k and b1
-    if ((p->scale_bubr) && (p->Nk > 1)) {
-      Vkb1 = sqrt(p->Vbridge[0]*(p->kBandTop-p->kBandEdge)/(p->Nk-1));
-    }
-    else {
-      Vkb1 = p->Vbridge[0];
-    }
-    if (p->parabolicCoupling) {
-      for (int ii = 0; ii < p->Nk; ii++) {
-        p->V.at(p->Ik+ii)[p->Ib] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
-        p->V.at(p->Ib)[p->Ik+ii] = parabolicV(Vkb1, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
-      }
-    }
-    else {
-      for (int ii = 0; ii < p->Nk; ii++) {
-        p->V.at(p->Ik+ii)[p->Ib] = Vkb1;
-        p->V.at(p->Ib)[p->Ik+ii] = Vkb1;
-      }
-    }
-
-    // coupling between bN and c
-    if ((p->scale_brqd) && (p->Nc > 1)) {
-      VbNc = p->Vbridge[p->Nb]/sqrt(p->Nc-1);
-    }
-    else {
-      VbNc = p->Vbridge[p->Nb];
-    }
-    for (int ii = 0; ii < p->Nc; ii++) {
-      p->V.at(p->Ic+ii)[p->Ib+p->Nb-1] = VbNc;
-      p->V.at(p->Ib+p->Nb-1)[p->Ic+ii] = VbNc;
-    }
-
-    // coupling between bridge states
-    for (int ii = 0; ii < p->Nb - 1; ii++) {
-      p->V.at(p->Ib+ii)[p->Ib+ii+1] = p->Vbridge[ii+1];
-      p->V.at(p->Ib+ii+1)[p->Ib+ii] = p->Vbridge[ii+1];
-    }
-  }
-  // no bridge
-  else {
-    // scaling
-    if ((p->scale_buqd) && (p->Nk > 1)) {
-      Vkc = sqrt(p->Vnobridge[0]*(p->kBandTop-p->kBandEdge)/(p->Nk-1));
-    }
-    else {
-      Vkc = p->Vnobridge[0];
-    }
-
-    // parabolic coupling of bulk band to QD
-    if (p->parabolicCoupling) {
-      for (int ii = 0; ii < p->Nk; ii++) {
-  for (int jj = 0; jj < p->Nc; jj++) {
-    p->V.at(p->Ik+ii)[p->Ic+jj] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
-    p->V.at(p->Ic+jj)[p->Ik+ii] = parabolicV(Vkc, p->energies[p->Ik+ii], p->kBandEdge, p->kBandTop);
-  }
-      }
-    }
-    else {
-      for (int ii = 0; ii < p->Nk; ii++) {
-  for (int jj = 0; jj < p->Nc; jj++) {
-    p->V.at(p->Ik+ii)[p->Ic+jj] = Vkc;
-    p->V.at(p->Ic+jj)[p->Ik+ii] = Vkc;
-  }
-      }
-    }
-  }
-
-#ifdef DEBUG
-  std::cout << "\nCoupling matrix:\n";
-  for (int ii = 0; ii < p->NEQ; ii++) {
-    for (int jj = 0; jj < p->NEQ; jj++)
-      std::cout << std::scientific << p->V.at(ii)[jj] << " ";
-    std::cout << std::endl;
-  }
-#endif
 }
 
 /* Get band index based on flag */
@@ -820,7 +716,7 @@ int main (int argc, char * argv[]) {
 
   // Assign coupling matrix ////////////////////////////////////////////////////
 
-  buildCoupling(&p, p.outs);
+  p.buildCoupling();
 
   if (isOutput(p.outs, "log.out")) {
     // make a note in the log about system timescales
