@@ -9,20 +9,20 @@
 #include "output.hpp"
 #include "params.hpp"
 
-void makePlots(std::map<const std::string, bool> &outs, struct Params * p);
+void makePlots(Params * p);
 
-void plotPopulations(char * fileName, struct Params * p);
+void plotPopulations(char * fileName, Params * p);
 
-void plotKProbs(char * fileName, struct Params * p);
+void plotKProbs(char * fileName, Params * p);
 
-void plotCProbs(struct Params * p);
+void plotCProbs(Params * p);
 
-void plotMuFromPops(char * fileName, struct Params * p);
+void plotMuFromPops(char * fileName, Params * p);
 
-void plotDMt_z(char * fileName, struct Params * p);
+void plotDMt_z(char * fileName, Params * p);
 
-void plotKProbsMovie(char * fileName, struct Params * p);
+void plotKProbsMovie(char * fileName, Params * p);
 
-void plotCProbsMovie(char * fileName, struct Params * p);
+void plotCProbsMovie(char * fileName, Params * p);
 
 #endif

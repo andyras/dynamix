@@ -3,8 +3,7 @@
 //#define DEBUG_ANALYTIC
 
 /* Compute analytic dynamics */
-void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
-    struct Params * p) {
+void computeAnalyticOutputs(Params * p) {
 
   // energy spacing in bulk
   std::complex <double> dE ((p->kBandTop-p->kBandEdge)/(p->Nk-1), 0);
@@ -94,7 +93,7 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
       }
     }
   }
-  
+
   // calculate populations on electron-accepting side over time
   std::vector<double> Prt (Nc*p->numOutputSteps, 0.0);
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -103,7 +102,7 @@ void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
     }
   }
 
-  if (isOutput(outs, "analytic_tcprob.out")) {
+  if (isOutput(p->outs, "analytic_tcprob.out")) {
     std::ofstream output("analytic_tcprob.out");
     for (int ii = 0; ii <= p->numOutputSteps; ii++) {
       output << p->times[ii];

@@ -184,7 +184,7 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
  * the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
 void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct Params * p) {
+    Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
@@ -208,7 +208,7 @@ void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
 
 /* Output the integrated population on a set of states. */
 void outputIntegralDM(char * fileName, const int start, const int end,
-    const realtype * dmt, struct Params * p) {
+    const realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -252,7 +252,7 @@ void outputIntegralDM(char * fileName, const int start, const int end,
 
 /* Output the integrated population on a set of states. */
 void outputIntegratedDM(char * fileName, const int start, const int end,
-    const realtype * dmt, struct Params * p) {
+    const realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -293,7 +293,7 @@ void outputIntegratedDM(char * fileName, const int start, const int end,
 
 /* Output the integrated population on a set of states. */
 void outputIntegratedWfn(char * fileName, const int start, const int end,
-    const realtype * wfnt, struct Params * p) {
+    const realtype * wfnt, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -333,7 +333,7 @@ void outputIntegratedWfn(char * fileName, const int start, const int end,
 
 /* Output the integrated population on a set of states. */
 void outputIntegralWfn(char * fileName, const int start, const int end,
-    const realtype * wfnt, struct Params * p) {
+    const realtype * wfnt, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -378,7 +378,7 @@ void outputIntegralWfn(char * fileName, const int start, const int end,
  * the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
-    struct Params * p) {
+    Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
@@ -402,7 +402,7 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
 
 /* Output the total population in a set of states over time */
 void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct Params * p) {
+    Params * p) {
 #ifdef DEBUG_OUTPUTTXPROB
   std::cout << "Making file " << fileName << "..." << std::endl;
   std::cout << "start index is " << start << std::endl;
@@ -434,7 +434,7 @@ void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
  * takes the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
-    struct Params * p) {
+    Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
@@ -460,7 +460,7 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
 }
 
 /* Outputs the norm of each component of the density matrix */
-void outputDMZ(char * fileName, realtype * dmt, struct Params * p) {
+void outputDMZ(char * fileName, realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting |\\rho| in time\n\n\n");
 #endif
@@ -493,7 +493,7 @@ void outputDMZ(char * fileName, realtype * dmt, struct Params * p) {
 }
 
 /* Outputs the norm of each component of the density matrix */
-void outputDMCoherences(char * fileName, realtype * dmt, struct Params * p) {
+void outputDMCoherences(char * fileName, realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting |\\rho_{ij}| in time\n\n\n");
 #endif
@@ -536,7 +536,7 @@ void outputDMCoherences(char * fileName, realtype * dmt, struct Params * p) {
 }
 
 /* Outputs the real part of each component of the density matrix */
-void outputDMRe(char * fileName, realtype * dmt, struct Params * p) {
+void outputDMRe(char * fileName, realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting Re(\\rho) in time\n\n\n");
 #endif
@@ -567,7 +567,7 @@ void outputDMRe(char * fileName, realtype * dmt, struct Params * p) {
 }
 
 /* Outputs the imaginary part of each component of the density matrix */
-void outputDMIm(char * fileName, realtype * dmt, struct Params * p) {
+void outputDMIm(char * fileName, realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting Im(\\rho) in time\n\n\n");
 #endif
@@ -598,7 +598,7 @@ void outputDMIm(char * fileName, realtype * dmt, struct Params * p) {
 }
 
 /* Outputs energies of all states */
-void outputEnergy(char * fileName, struct Params * p) {
+void outputEnergy(char * fileName, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -616,7 +616,7 @@ void outputEnergy(char * fileName, struct Params * p) {
 }
 
 /* Outputs energy expectation value over time */
-void outputEnergyExpWfn(char * fileName, struct Params * p,
+void outputEnergyExpWfn(char * fileName, Params * p,
     double * wfnt) {
   // allocate array to hold matrix-vector product
   std::vector<double> psiHvec (2*p->NEQ, 0.0);
@@ -656,7 +656,7 @@ void outputEnergyExpWfn(char * fileName, struct Params * p,
 }
 
 /* Outputs all the time steps */
-void outputTimes(char * fileName, struct Params * p) {
+void outputTimes(char * fileName, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -675,7 +675,7 @@ void outputTimes(char * fileName, struct Params * p) {
 
 /* Outputs expectation value of energy at all times */
 void outputEnergyExp(char * fileName, realtype * dmt,
-    struct Params * p) {
+    Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -706,7 +706,7 @@ void outputEnergyExp(char * fileName, realtype * dmt,
 }
 
 /* Output Fermi level calculated from total band populations */
-void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct Params * p) {
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, Params * p) {
   int start = bandStartIdx(bandFlag, p);
   int end = bandEndIdx(bandFlag, p);
   int N = p->NEQ;
@@ -731,7 +731,7 @@ void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct Param
 }
 
 /* Outputs Fermi level as calculated from populations */
-void outputMuFromPops(char * fileName, realtype * dmt, struct Params * p) {
+void outputMuFromPops(char * fileName, realtype * dmt, Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -775,7 +775,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct Params * p) {
 }
 
 /* Outputs torsional potential at simulation time points */
-void outputTorsion(struct Params * p, char * fileName) {
+void outputTorsion(Params * p, char * fileName) {
   std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -789,7 +789,7 @@ void outputTorsion(struct Params * p, char * fileName) {
 
 /* Outputs quantities from RTA */
 void outputRTA(std::map<const std::string, bool> &outs,
-    realtype * dmt, struct Params * p) {
+    realtype * dmt, Params * p) {
 
   double ne = 0.0;
   double ekin = 0.0;
@@ -949,7 +949,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
 }
 
 /* Outputs the laser pump intensity over time */
-void outputPumpIntensity(struct Params * p, char * fileName) {
+void outputPumpIntensity(Params * p, char * fileName) {
   std::ofstream o(outputFileName(fileName, p).c_str());
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     o << p->times[ii] << " "
@@ -962,7 +962,7 @@ void outputPumpIntensity(struct Params * p, char * fileName) {
 }
 
 /* output couplings as a matrix */
-void outputCouplings(struct Params * p, char * fileName) {
+void outputCouplings(Params * p, char * fileName) {
   std::ofstream o(outputFileName(fileName, p).c_str());
   //// This output is the same as the Hamiltonian, but with diagonal elements zero.
 
@@ -995,7 +995,7 @@ void outputCouplings(struct Params * p, char * fileName) {
 }
 
 /* outputs sin^2 function for torsional coupling */
-void outputTorsionSin2(struct Params * p, char * fileName) {
+void outputTorsionSin2(Params * p, char * fileName) {
   std::ofstream o(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
@@ -1009,7 +1009,7 @@ void outputTorsionSin2(struct Params * p, char * fileName) {
 
 /* Finds peaks in populations, outputs values, times and differences. */
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct Params * p) {
+    Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Making file " << fileName << "..." << std::endl;
   std::cout << "start index is " << start << std::endl;
@@ -1102,7 +1102,7 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   return;
 }
 
-void outputDeriv(char * fileName, int n, realtype * deriv, struct Params * p) {
+void outputDeriv(char * fileName, int n, realtype * deriv, Params * p) {
   std::ofstream o(outputFileName(fileName, p).c_str());
   int nt = p->numOutputSteps;
 
@@ -1120,7 +1120,7 @@ void outputDeriv(char * fileName, int n, realtype * deriv, struct Params * p) {
 
 /* yt can be either wavefunction or DM over time */
 void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
-    struct Params * p){
+    Params * p){
   // unpack values from p
   int N = p->NEQ;
   int nt = p->numOutputSteps;
@@ -1242,45 +1242,44 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
 }
 
 void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
-    struct Params * p){
+    Params * p){
   return;
 }
 
 /* Computes outputs independent of DM or wavefunction propagation*/
-void computeGeneralOutputs(std::map<const std::string, bool> &outs,
-    struct Params * p) {
+void computeGeneralOutputs(Params * p) {
 std::cout << "\n\nWHOO from computing outputs\n\n";
   // torsion-mediated coupling
   if (p->torsion) {
     if (p->torsionSin2) {
-      if (isOutput(outs, "torsionSin2.out")) {
+      if (isOutput(p->outs, "torsionSin2.out")) {
         outputTorsionSin2(p, "torsionSin2.out");
       }
     }
     else {
-      if (isOutput(outs, "torsion.out")) {
+      if (isOutput(p->outs, "torsion.out")) {
         outputTorsion(p, "torsion.out");
       }
     }
   }
 
   // hamiltonian at time zero
-  if (isOutput(outs, "ham.out")) {
+  if (isOutput(p->outs, "ham.out")) {
     // &(p->H)[0] is address of first element of array in vector
     outputSquareMatrix(&(p->H)[0], p->NEQ, "ham.out");
   }
 
   // pump intensity
-  if (isOutput(outs, "pump_intensity.out")) {
+  if (isOutput(p->outs, "pump_intensity.out")) {
     outputPumpIntensity(p, "pump_intensity.out");
   }
 
   // energies of all states
-  if (isOutput(outs, "energies.out")) {
+  if (isOutput(p->outs, "energies.out")) {
     outputEnergy("energies.out", p);
   }
 
-  if (isOutput(outs, "couplings.out")) {
+  if (isOutput(p->outs, "couplings.out")) {
     outputCouplings(p, "couplings.out");
   }
 
@@ -1288,230 +1287,228 @@ std::cout << "\n\nWHOO from computing outputs\n\n";
 }
 
 /* Computes outputs from \psi(t) */
-void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
-    struct Params * p) {
+void computeWfnOutput(realtype * wfnt, Params * p) {
   // total population on all sites
-  if (isOutput(outs, "totprob.out")) {
+  if (isOutput(p->outs, "totprob.out")) {
     outputtXprobWfn("totprob.out", 0, p->NEQ, wfnt, p);
   }
 
   // total population on bulk conduction band
-  if (isOutput(outs, "tkprob.out")) {
+  if (isOutput(p->outs, "tkprob.out")) {
     outputtXprobWfn("tkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
 
   // total population on QD
-  if (isOutput(outs, "tcprob.out")) {
+  if (isOutput(p->outs, "tcprob.out")) {
     outputtXprobWfn("tcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
 
   // total population on bridge
-  if (isOutput(outs, "tbprob.out")) {
+  if (isOutput(p->outs, "tbprob.out")) {
     outputtXprobWfn("tbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
 
   // total population on bulk valence band
-  if (isOutput(outs, "tlprob.out")) {
+  if (isOutput(p->outs, "tlprob.out")) {
     outputtXprobWfn("tlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // populations in all states
-  if (isOutput(outs, "allprobs.out")) {
+  if (isOutput(p->outs, "allprobs.out")) {
     outputXProbsWfn("allprobs.out", 0, p->NEQ, wfnt, p);
   }
 
   // populations in bulk CB
-  if (isOutput(outs, "kprobs.out")) {
+  if (isOutput(p->outs, "kprobs.out")) {
     outputXProbsWfn("kprobs.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
 
   // populations in QD
-  if (isOutput(outs, "cprobs.out")) {
+  if (isOutput(p->outs, "cprobs.out")) {
     outputXProbsWfn("cprobs.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
 
   // populations in bridge states
-  if (isOutput(outs, "bprobs.out")) {
+  if (isOutput(p->outs, "bprobs.out")) {
     outputXProbsWfn("bprobs.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
 
   // populations in bulk VB
-  if (isOutput(outs, "lprobs.out")) {
+  if (isOutput(p->outs, "lprobs.out")) {
     outputXProbsWfn("lprobs.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // integrated population on QD
-  if (isOutput(outs, "cumItkprob.out")) {
+  if (isOutput(p->outs, "cumItkprob.out")) {
     outputIntegralWfn("cumItkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
-  if (isOutput(outs, "cumItcprob.out")) {
+  if (isOutput(p->outs, "cumItcprob.out")) {
     outputIntegralWfn("cumItcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
-  if (isOutput(outs, "cumItbprob.out")) {
+  if (isOutput(p->outs, "cumItbprob.out")) {
     outputIntegralWfn("cumItbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
-  if (isOutput(outs, "cumItlprob.out")) {
+  if (isOutput(p->outs, "cumItlprob.out")) {
     outputIntegralWfn("cumItlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // integrated population on QD over all time
-  if (isOutput(outs, "Itkprob.out")) {
+  if (isOutput(p->outs, "Itkprob.out")) {
     outputIntegratedWfn("Itkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
-  if (isOutput(outs, "Itcprob.out")) {
+  if (isOutput(p->outs, "Itcprob.out")) {
     outputIntegratedWfn("Itcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
-  if (isOutput(outs, "Itbprob.out")) {
+  if (isOutput(p->outs, "Itbprob.out")) {
     outputIntegratedWfn("Itbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
-  if (isOutput(outs, "Itlprob.out")) {
+  if (isOutput(p->outs, "Itlprob.out")) {
     outputIntegratedWfn("Itlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // energy expectation value
-  if (isOutput(outs, "energyexp.out")) {
+  if (isOutput(p->outs, "energyexp.out")) {
     outputEnergyExpWfn("energyexp.out", p, wfnt);
   }
 
   // peaks in populations
-  if (isOutput(outs, "peaksTkprob.out")) {
+  if (isOutput(p->outs, "peaksTkprob.out")) {
     findPeaksWfn("peaksTkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
-  if (isOutput(outs, "peaksTcprob.out")) {
+  if (isOutput(p->outs, "peaksTcprob.out")) {
     findPeaksWfn("peaksTcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
-  if (isOutput(outs, "peaksTbprob.out")) {
+  if (isOutput(p->outs, "peaksTbprob.out")) {
     findPeaksWfn("peaksTbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
-  if (isOutput(outs, "peaksTlprob.out")) {
+  if (isOutput(p->outs, "peaksTlprob.out")) {
     findPeaksWfn("peaksTlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // derivatives of populations
-  outputDerivsWfn(outs, wfnt, p);
+  outputDerivsWfn(p->outs, wfnt, p);
 
   return;
 }
 
 /* Computes outputs from \rho(t) */
-void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
-    struct Params * p) {
+void computeDMOutput(realtype * dmt, Params * p) {
 
   // total population
-  if (isOutput(outs, "totprob.out")) {
+  if (isOutput(p->outs, "totprob.out")) {
     outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
   }
 
   // populations in k states
-  if (isOutput(outs, "kprobs.out")) {
+  if (isOutput(p->outs, "kprobs.out")) {
     outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
-  if (isOutput(outs, "tkprob.out")) {
+  if (isOutput(p->outs, "tkprob.out")) {
     outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
 
   // populations in c states
-  if (isOutput(outs, "cprobs.out")) {
+  if (isOutput(p->outs, "cprobs.out")) {
     outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
-  if (isOutput(outs, "tcprob.out")) {
+  if (isOutput(p->outs, "tcprob.out")) {
     outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
 
   // populations in b states
-  if (isOutput(outs, "bprobs.out")) {
+  if (isOutput(p->outs, "bprobs.out")) {
     outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
-  if (isOutput(outs, "tbprob.out")) {
+  if (isOutput(p->outs, "tbprob.out")) {
     outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
 
   // populations in l states
-  if (isOutput(outs, "lprobs.out")) {
+  if (isOutput(p->outs, "lprobs.out")) {
     outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
   }
-  if (isOutput(outs, "tlprob.out")) {
+  if (isOutput(p->outs, "tlprob.out")) {
     outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // integrated populations
-  if (isOutput(outs, "cumItkprob.out")) {
+  if (isOutput(p->outs, "cumItkprob.out")) {
     outputIntegralDM("cumItkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
-  if (isOutput(outs, "cumItcprob.out")) {
+  if (isOutput(p->outs, "cumItcprob.out")) {
     outputIntegralDM("cumItcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
-  if (isOutput(outs, "cumItbprob.out")) {
+  if (isOutput(p->outs, "cumItbprob.out")) {
     outputIntegralDM("cumItbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
-  if (isOutput(outs, "cumItlprob.out")) {
+  if (isOutput(p->outs, "cumItlprob.out")) {
     outputIntegralDM("cumItlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // integrated populations over all time
-  if (isOutput(outs, "Itkprob.out")) {
+  if (isOutput(p->outs, "Itkprob.out")) {
     outputIntegratedDM("Itkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
-  if (isOutput(outs, "Itcprob.out")) {
+  if (isOutput(p->outs, "Itcprob.out")) {
     outputIntegratedDM("Itcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
-  if (isOutput(outs, "Itbprob.out")) {
+  if (isOutput(p->outs, "Itbprob.out")) {
     outputIntegratedDM("Itbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
-  if (isOutput(outs, "Itlprob.out")) {
+  if (isOutput(p->outs, "Itlprob.out")) {
     outputIntegratedDM("Itlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // norm of DM elements
-  if (isOutput(outs, "dmt_z.out")) {
+  if (isOutput(p->outs, "dmt_z.out")) {
     outputDMZ("dmt_z.out", dmt, p);
   }
 
   // norm of DM elements
-  if (isOutput(outs, "dmt_re.out")) {
+  if (isOutput(p->outs, "dmt_re.out")) {
     outputDMRe("dmt_re.out", dmt, p);
   }
 
   // norm of DM elements
-  if (isOutput(outs, "dmt_im.out")) {
+  if (isOutput(p->outs, "dmt_im.out")) {
     outputDMIm("dmt_im.out", dmt, p);
   }
 
   // coherences (magnitude)
-  if (isOutput(outs, "dmCoherences.out")) {
+  if (isOutput(p->outs, "dmCoherences.out")) {
     outputDMCoherences("dmCoherences.out", dmt, p);
   }
 
   // all time steps
-  if (isOutput(outs, "times.out")) {
+  if (isOutput(p->outs, "times.out")) {
     outputTimes("times.out", p);
   }
 
   // expectation value of energy
-  if (isOutput(outs, "energyexp.out")) {
+  if (isOutput(p->outs, "energyexp.out")) {
     outputEnergyExp("energyexp.out", dmt, p);
   }
 
   // Fermi level as calculated from populations
-  if (isOutput(outs, "muFromPops.out")) {
+  if (isOutput(p->outs, "muFromPops.out")) {
     outputMuFromPops("muFromPops.out", dmt, p);
   }
 
   // Fermi level in bulk as calculated from populations
-  if (isOutput(outs, "dynamicMuBulk.out")) {
+  if (isOutput(p->outs, "dynamicMuBulk.out")) {
     outputDynamicMu("dynamicMuBulk.out", dmt, CONDUCTION, p);
   }
 
   // Fermi level in bulk as calculated from populations
-  if (isOutput(outs, "dynamicMuQD.out")) {
+  if (isOutput(p->outs, "dynamicMuQD.out")) {
     outputDynamicMu("dynamicMuQD.out", dmt, QD_CONDUCTION, p);
   }
 
   // derivatives of populations
-  outputDerivsDM(outs, dmt, p);
+  outputDerivsDM(p->outs, dmt, p);
 
   // RTA outputs are tied together
-  outputRTA(outs, dmt, p);
+  outputRTA(p->outs, dmt, p);
 
   return;
 }

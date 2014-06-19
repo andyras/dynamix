@@ -40,7 +40,7 @@ double FDDSum(double mu, double T, int bandFlag, Params * p);
 
 void FDD(double mu, double T, double * fdd, double * E, int N, double P);
 
-void FDD_RTA(struct Params * p, realtype * y, std::vector<double> & fdd, int flag);
+void FDD_RTA(Params * p, realtype * y, std::vector<double> & fdd, int flag);
 
 double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X);
 

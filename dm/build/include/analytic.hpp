@@ -7,7 +7,6 @@
 #include "output.hpp"
 #include "params.hpp"
 
-void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
-    struct Params * p);
+void computeAnalyticOutputs(Params * p);
 
 #endif

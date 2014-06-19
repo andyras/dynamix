@@ -13,7 +13,7 @@
 #define DEBUG_UPDATEWFN
 
 /* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct Params * p) {
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, Params * p) {
 #ifdef DEBUG_UPDATEDM
   std::cout << "Updating DM at step " << timeStep << "...";
 #endif
@@ -34,7 +34,7 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct Params * p) {
 }
 
 /* Updates \psi(t) at each time step. */
-void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct Params * p) {
+void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, Params * p) {
 #ifdef DEBUG_UPDATEWFN
   std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
   std::cout << "Wavefunction is " << std::endl;
@@ -760,15 +760,6 @@ int main (int argc, char * argv[]) {
   fprintf(stderr, "Building Hamiltonian.\n");
 #endif
   p.buildHamiltonian();
-  // create sparse version of H
-  p.H_sp.resize(p.NEQ2);
-  p.H_cols.resize(p.NEQ2);
-  p.H_rowind.resize(p.NEQ2 + 1);
-  int job [6] = {0, 0, 0, 2, p.NEQ2, 1};
-  int info = 0;
-
-  mkl_ddnscsr(&job[0], &(p.NEQ), &(p.NEQ), &(p.H)[0], &(p.NEQ), &(p.H_sp)[0],
-      &(p.H_cols)[0], &(p.H_rowind)[0], &info);
 
 
   //// SET UP CVODE VARIABLES
@@ -806,12 +797,12 @@ int main (int argc, char * argv[]) {
 #endif
 
   // Make plot files
-  makePlots(p.outs, &p);
+  makePlots(&p);
 
   // only do propagation if not just making plots
   if (! p.justPlots) {
     // Make outputs independent of time propagation
-    computeGeneralOutputs(p.outs, &p);
+    computeGeneralOutputs(&p);
 std::cout << "\n\n\nWHOOOOOT\n\n\n";
 
     // create CVode object
@@ -903,10 +894,6 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     fclose(realImaginary);
 #endif
 
-
-    //// MAKE FINAL OUTPUTS
-
-
     // finalize log file //
     time(&endRun);
     currentTime = localtime(&endRun);
@@ -925,10 +912,10 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
     std::cout << "Computing outputs..." << std::endl;
 #endif
     if (p.wavefunction) {
-      computeWfnOutput(wfnt, p.outs, &p);
+      computeWfnOutput(wfnt, &p);
     }
     else {
-      computeDMOutput(dmt, p.outs, &p);
+      computeDMOutput(dmt, &p);
     }
 #ifdef DEBUG
     std::cout << "done computing outputs" << std::endl;
@@ -936,7 +923,7 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
 
     // do analytical propagation
     if (p.analytical && (! p.bridge_on)) {
-      computeAnalyticOutputs(p.outs, &p);
+      computeAnalyticOutputs(&p);
     }
   }
 

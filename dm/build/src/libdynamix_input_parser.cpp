@@ -5,7 +5,7 @@
 
 
 void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outs,
-    struct Params * p) {
+    Params * p) {
   std::string line;
   std::ifstream input;
 
@@ -95,7 +95,7 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
 }
 
 /* assigns params to the Params struct from the input file */
-void assignParams(std::string inputFile, struct Params * p) {
+void assignParams(std::string inputFile, Params * p) {
   std::string line;
   std::string input_param;
   std::string param_val;

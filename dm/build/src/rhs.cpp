@@ -762,7 +762,7 @@ void FDD(double mu, double T, double * fdd, double * E, int N, double P) {
 
 
 /* gives the equilibrated FDD for the system */
-void FDD_RTA(struct Params * p, realtype * y, double * fdd, int flag) {
+void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
 #ifdef DEBUG_RTA
   //// "fine structure constant" -- conversion from index to wave vector
   std::cout << "p->X2   " << p->X2 << std::endl;

@@ -64,77 +64,74 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
 void outputIntegratedDM(const std::string fileName, const int start, const int end,
-    const realtype * dmt, struct Params * p);
+    const realtype * dmt, Params * p);
 
 void outputIntegratedWfn(const std::string fileName, const int start, const int end,
-    const realtype * wfnt, struct Params * p);
+    const realtype * wfnt, Params * p);
 
 void outputIntegralDM(const std::string fileName, const int start, const int end,
-    const realtype * dmt, struct Params * p);
+    const realtype * dmt, Params * p);
 
 void outputIntegralWfn(const std::string fileName, const int start, const int end,
-    const realtype * wfnt, struct Params * p);
+    const realtype * wfnt, Params * p);
 
 void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct Params * p);
+    Params * p);
 
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
-    struct Params * p);
+    Params * p);
 
 void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct Params * p);
+    Params * p);
 
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
-    struct Params * p);
+    Params * p);
 
-void outputDMZ(realtype * dmt, struct Params * p);
+void outputDMZ(realtype * dmt, Params * p);
 
-void outputDMCoherences(realtype * dmt, struct Params * p);
+void outputDMCoherences(realtype * dmt, Params * p);
 
-void outputDMIm(char * fileName, realtype * dmt, struct Params * p);
+void outputDMIm(char * fileName, realtype * dmt, Params * p);
 
-void outputDMRe(char * fileName, realtype * dmt, struct Params * p);
+void outputDMRe(char * fileName, realtype * dmt, Params * p);
 
-void outputEnergy(char * fileName, struct Params * p);
+void outputEnergy(char * fileName, Params * p);
 
-void outputEnergyExpWfn(const char * fileName, struct Params * p);
+void outputEnergyExpWfn(const char * fileName, Params * p);
 
-void outputTimes(char * fileName, struct Params * p);
+void outputTimes(char * fileName, Params * p);
 
 void outputEnergyExp(char * fileName, realtype * dmt,
-    struct Params * p);
+    Params * p);
 
-void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct Params * p);
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, Params * p);
 
 void outputMuFromPops(char * fileName, realtype * dmt,
-    struct Params * p);
+    Params * p);
 
-void outputTorsion(struct Params * p, char * fileName);
+void outputTorsion(Params * p, char * fileName);
 
 void outputRTA(std::map<const std::string, bool> &outs,
-    realtype * dmt, struct Params * p);
+    realtype * dmt, Params * p);
 
-void outputCouplings(struct Params * p, char * fileName);
+void outputCouplings(Params * p, char * fileName);
 
-void outputTorsionSin2(struct Params * p, char * fileName);
+void outputTorsionSin2(Params * p, char * fileName);
 
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct Params * p);
+    Params * p);
 
-void outputDeriv(char * fileName, int n, realtype * deriv, struct Params * p);
+void outputDeriv(char * fileName, int n, realtype * deriv, Params * p);
 
 void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
-    struct Params * p);
+    Params * p);
 
 void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
-    struct Params * p);
+    Params * p);
 
-void computeGeneralOutputs(std::map<const std::string, bool> &outs,
-    struct Params * p);
+void computeGeneralOutputs(Params * p);
 
-void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
-    struct Params * p);
+void computeWfnOutput(realtype * wfnt, Params * p);
 
-void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
-    struct Params * p);
+void computeDMOutput(realtype * dmt, Params * p);
 #endif

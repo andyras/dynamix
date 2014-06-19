@@ -4,14 +4,14 @@
 
 using namespace std;
 
-void makePlots(map<const string, bool> &outs, struct Params * p) {
+void makePlots(Params * p) {
   // populations in subsystems
-  if (isOutput(outs, "populations.plt")) {
+  if (isOutput(p->outs, "populations.plt")) {
     plotPopulations("populations.plt", p);
   }
 
   // probabilities in k states
-  if (isOutput(outs, "kprobs.plt") && (p->Nk > 1)) {
+  if (isOutput(p->outs, "kprobs.plt") && (p->Nk > 1)) {
     plotKProbs("kprobs.plt", p);
   }
   else {
@@ -21,7 +21,7 @@ void makePlots(map<const string, bool> &outs, struct Params * p) {
   }
 
   // probabilities in c states
-  if (isOutput(outs, "cprobs.plt") && (p->Nc > 1)) {
+  if (isOutput(p->outs, "cprobs.plt") && (p->Nc > 1)) {
     plotCProbs(p);
   }
   else {
@@ -31,20 +31,20 @@ void makePlots(map<const string, bool> &outs, struct Params * p) {
   }
 
   // calculated Fermi level
-  if (isOutput(outs, "muFromPops.plt") && (p->Nk > 1)) {
-    if (!isOutput(outs, "muFromPops.out")) {
+  if (isOutput(p->outs, "muFromPops.plt") && (p->Nk > 1)) {
+    if (!isOutput(p->outs, "muFromPops.out")) {
       std::cout << "WARNING: making muFromPops.plt although muFromPops.out does not exist." << std::endl;
     }
     plotMuFromPops("muFromPops.plt", p);
   }
 
   // density matrix in time
-  if (isOutput(outs, "dmt_z.plt")) {
+  if (isOutput(p->outs, "dmt_z.plt")) {
     plotDMt_z("dmt_z.plt", p);
   }
 
   // populations in k states as a movie
-  if (isOutput(outs, "kprobs_movie.plt") && (p->Nk > 1)) {
+  if (isOutput(p->outs, "kprobs_movie.plt") && (p->Nk > 1)) {
     plotKProbsMovie("kprobs_movie.plt", p);
   }
   else {
@@ -54,7 +54,7 @@ void makePlots(map<const string, bool> &outs, struct Params * p) {
   }
 
   // populations in c states as a movie
-  if (isOutput(outs, "cprobs_movie.plt") && (p->Nc > 1)) {
+  if (isOutput(p->outs, "cprobs_movie.plt") && (p->Nc > 1)) {
     plotCProbsMovie("cprobs_movie.plt", p);
   }
   else {
@@ -68,7 +68,7 @@ void makePlots(map<const string, bool> &outs, struct Params * p) {
 
 /* Plots the populations in different subsystems over time,
  * separately and on the same plot. */
-void plotPopulations(char * fileName, struct Params * p) {
+void plotPopulations(char * fileName, Params * p) {
   ofstream o(fileName);
 
   o << "#!/usr/bin/env gnuplot" << endl;
@@ -153,7 +153,7 @@ void plotPopulations(char * fileName, struct Params * p) {
   return;
 }
 
-void plotKProbs(char * fileName, struct Params * p) {
+void plotKProbs(char * fileName, Params * p) {
 #ifdef DEBUG_PLOT
   cout << "\nMaking kprobs.plt" << endl;
 #endif
@@ -205,7 +205,7 @@ void plotKProbs(char * fileName, struct Params * p) {
 }
 
 /* Makes a gnuplot file to plot the QD populations over time */
-void plotCProbs(struct Params * p) {
+void plotCProbs(Params * p) {
 #ifdef DEBUG_PLOT
   cout << "\nMaking cprobs.plt" << endl;
 #endif
@@ -254,7 +254,7 @@ void plotCProbs(struct Params * p) {
   return;
 }
 
-void plotMuFromPops(char * fileName, struct Params * p) {
+void plotMuFromPops(char * fileName, Params * p) {
 #ifdef DEBUG_PLOT
   cout << "\nMaking muFromPops.plt" << endl;
 #endif
@@ -306,7 +306,7 @@ void plotMuFromPops(char * fileName, struct Params * p) {
 }
 
 /* Plots the density matrix in time as a series of .png files */
-void plotDMt_z(char * fileName, struct Params * p) {
+void plotDMt_z(char * fileName, Params * p) {
   ofstream o(fileName);
 
   o << "#!/usr/bin/env gnuplot" << endl;
@@ -358,7 +358,7 @@ void plotDMt_z(char * fileName, struct Params * p) {
 }
 
 /* Plots the populations in the bulk states over time as a movie */
-void plotKProbsMovie(char * fileName, struct Params * p) {
+void plotKProbsMovie(char * fileName, Params * p) {
   ofstream o(fileName);
 
   o << "#!/bin/bash" << endl;
@@ -444,7 +444,7 @@ void plotKProbsMovie(char * fileName, struct Params * p) {
 }
 
 /* Plots the populations in the QD states over time as a movie */
-void plotCProbsMovie(char * fileName, struct Params * p) {
+void plotCProbsMovie(char * fileName, Params * p) {
   ofstream o(fileName);
 
   int Ic = p->Ic;
