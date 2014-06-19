@@ -205,4 +205,14 @@ void Params::buildHamiltonian() {
   for (int ii = 0; ii <= numOutputSteps; ii++) {
     times[ii] = float(ii)/numOutputSteps*tout;
   }
+
+  // create sparse version of H
+  H_sp.resize(NEQ2);
+  H_cols.resize(NEQ2);
+  H_rowind.resize(NEQ2 + 1);
+  int job [6] = {0, 0, 0, 2, NEQ2, 1};
+  int info = 0;
+
+  mkl_ddnscsr(&job[0], &(NEQ), &(NEQ), &(H)[0], &(NEQ), &(H_sp)[0],
+      &(H_cols)[0], &(H_rowind)[0], &info);
 }

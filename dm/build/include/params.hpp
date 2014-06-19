@@ -5,6 +5,7 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+#include <mkl.h>
 
 #include "constants.hpp"
 #include "spline.hpp"
