@@ -4,7 +4,7 @@
 //#define DEBUG_BUILDHAMILTONIAN
 
 /* assign coupling constants to global array V */
-void PARAMETERS::buildCoupling () {
+void Params::buildCoupling () {
 
   double Vkc; // coupling between bulk and QD
   double Vkb1;  // coupling between bulk and first bridge
@@ -107,7 +107,7 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
 }
 
 /* builds a Hamiltonian from site energies and couplings. */
-void PARAMETERS::buildHamiltonian() {
+void Params::buildHamiltonian() {
   // indices
   int idx1, idx2;
   int N = NEQ;

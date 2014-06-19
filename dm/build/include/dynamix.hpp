@@ -34,24 +34,24 @@
 #include "conversions.hpp"
 #include "analytic.hpp"
 
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct Params * p);
 
-void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p);
+void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct Params * p);
 
-int bandStartIdx(int bandFlag, PARAMETERS * p);
+int bandStartIdx(int bandFlag, Params * p);
 
-int bandEndIdx(int bandFlag, PARAMETERS * p);
+int bandEndIdx(int bandFlag, Params * p);
 
-int bandNumStates(int bandFlag, PARAMETERS * p);
+int bandNumStates(int bandFlag, Params * p);
 
-void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, PARAMETERS * p);
+void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, Params * p);
 
-void updateHamiltonian(PARAMETERS * p, realtype t);
+void updateHamiltonian(Params * p, realtype t);
 
-void initialize(PARAMETERS * p);
+void initialize(Params * p);
 
-void initHamiltonian(PARAMETERS * p);
+void initHamiltonian(Params * p);
 
-void initWavefunction(PARAMETERS * p);
+void initWavefunction(Params * p);
 
 #endif

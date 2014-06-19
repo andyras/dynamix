@@ -4,7 +4,7 @@
 
 /* Compute analytic dynamics */
 void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 
   // energy spacing in bulk
   std::complex <double> dE ((p->kBandTop-p->kBandEdge)/(p->Nk-1), 0);

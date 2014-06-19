@@ -10,8 +10,7 @@
 #include "spline.hpp"
 #include "numerical.hpp"
 
-// Struct of parameters
-class PARAMETERS {
+class Params {
 public:
   int nproc = 0;                        // number of processors
   bool wavefunction = 1;                // 1 => wavefunction; 0 => density matrix

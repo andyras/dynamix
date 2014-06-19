@@ -8,6 +8,6 @@
 #include "params.hpp"
 
 void computeAnalyticOutputs(std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 #endif

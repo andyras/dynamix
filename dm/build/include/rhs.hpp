@@ -19,9 +19,9 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
 
-void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p);
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p);
 
-void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p);
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, Params * p);
 
 int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data);
 
@@ -31,16 +31,16 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
 
-double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p);
+double findDynamicMu(double pop, double T, int bandFlag, Params * p);
 
 double FDDBinarySearch(double lower, double upper, double T, double n,
-    int bandFlag, PARAMETERS * p);
+    int bandFlag, Params * p);
 
-double FDDSum(double mu, double T, int bandFlag, PARAMETERS * p);
+double FDDSum(double mu, double T, int bandFlag, Params * p);
 
 void FDD(double mu, double T, double * fdd, double * E, int N, double P);
 
-void FDD_RTA(struct PARAMETERS * p, realtype * y, std::vector<double> & fdd, int flag);
+void FDD_RTA(struct Params * p, realtype * y, std::vector<double> & fdd, int flag);
 
 double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X);
 

@@ -13,7 +13,7 @@
 #define DEBUG_UPDATEWFN
 
 /* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) {
+void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct Params * p) {
 #ifdef DEBUG_UPDATEDM
   std::cout << "Updating DM at step " << timeStep << "...";
 #endif
@@ -34,7 +34,7 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) 
 }
 
 /* Updates \psi(t) at each time step. */
-void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p) {
+void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct Params * p) {
 #ifdef DEBUG_UPDATEWFN
   std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
   std::cout << "Wavefunction is " << std::endl;
@@ -49,7 +49,7 @@ void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * 
 }
 
 /* Get band index based on flag */
-int bandStartIdx(int bandFlag, PARAMETERS * p) {
+int bandStartIdx(int bandFlag, Params * p) {
   if (bandFlag == CONDUCTION) {
     return p->Ik;
   }
@@ -69,7 +69,7 @@ int bandStartIdx(int bandFlag, PARAMETERS * p) {
 }
 
 /* Get band index based on flag */
-int bandEndIdx(int bandFlag, PARAMETERS * p) {
+int bandEndIdx(int bandFlag, Params * p) {
   if (bandFlag == CONDUCTION) {
     return p->Ik + p->Nk;
   }
@@ -89,7 +89,7 @@ int bandEndIdx(int bandFlag, PARAMETERS * p) {
 }
 
 /* get number of states in band */
-int bandNumStates(int bandFlag, PARAMETERS * p) {
+int bandNumStates(int bandFlag, Params * p) {
   if (bandFlag == CONDUCTION) {
     return p->Nk;
   }
@@ -108,7 +108,7 @@ int bandNumStates(int bandFlag, PARAMETERS * p) {
   }
 }
 
-void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, PARAMETERS * p) {
+void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, Params * p) {
   int s;  // sign +/-
   double m; // mass of electron/hole
 
@@ -133,7 +133,7 @@ void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, P
 /* Updates the Hamiltonian with the time-dependent torsional coupling
  * and laser field.
  */
-void updateHamiltonian(PARAMETERS * p, realtype t) {
+void updateHamiltonian(Params * p, realtype t) {
   // TODO unpack NEQ from p
 
   // get pointer to H
@@ -224,7 +224,7 @@ void updateHamiltonian(PARAMETERS * p, realtype t) {
 
 #include "params.hpp"
 
-void initialize(PARAMETERS * p) {
+void initialize(Params * p) {
   // This function performs error checking on various parameters
 
   // check torsion parameters, set up torsion spline
@@ -267,7 +267,7 @@ void initialize(PARAMETERS * p) {
 
 // This function builds up the Hamiltonian, as well as the constituent site
 // energy array and coupling array.
-void initHamiltonian(PARAMETERS * p) {
+void initHamiltonian(Params * p) {
   // first read in energies and couplings from files
   p->Nc = numberOfValuesInFile(p->cEnergiesInput.c_str());
   p->Nb = numberOfValuesInFile(p->bEnergiesInput.c_str());
@@ -359,7 +359,7 @@ void initHamiltonian(PARAMETERS * p) {
 }
 
 // This function builds up the initial wavefunction coefficients based on inputs
-void initWavefunction(PARAMETERS * p) {
+void initWavefunction(Params * p) {
   std::vector<realtype> k_coeffs (p->Nk, 0.0);
   std::vector<realtype> c_coeffs (p->Nc, 0.0);
   std::vector<realtype> b_coeffs (p->Nb, 0.0);
@@ -612,7 +612,7 @@ int main (int argc, char * argv[]) {
 
 
   // Struct of parameters
-  PARAMETERS p;
+  Params p;
   // CVode variables
   void * cvode_mem = NULL;                      // pointer to block of CVode memory
   N_Vector y, yout;                     // arrays of populations

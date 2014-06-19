@@ -29,7 +29,7 @@ typedef struct {
 
 bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr);
 
-std::string outputFileName(char * fileName, PARAMETERS * p);
+std::string outputFileName(char * fileName, Params * p);
 
 /* prints out array of fftw_complex values.  The 'x' array is
  * the x-axis variable: time, energy, &c.
@@ -64,77 +64,77 @@ void outputSquareMatrix(realtype * M, int N, char * fileName);
 void output2DSquareMatrix(realtype ** M, int N, char * fileName);
 
 void outputIntegratedDM(const std::string fileName, const int start, const int end,
-    const realtype * dmt, struct PARAMETERS * p);
+    const realtype * dmt, struct Params * p);
 
 void outputIntegratedWfn(const std::string fileName, const int start, const int end,
-    const realtype * wfnt, struct PARAMETERS * p);
+    const realtype * wfnt, struct Params * p);
 
 void outputIntegralDM(const std::string fileName, const int start, const int end,
-    const realtype * dmt, struct PARAMETERS * p);
+    const realtype * dmt, struct Params * p);
 
 void outputIntegralWfn(const std::string fileName, const int start, const int end,
-    const realtype * wfnt, struct PARAMETERS * p);
+    const realtype * wfnt, struct Params * p);
 
 void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
-void outputDMZ(realtype * dmt, struct PARAMETERS * p);
+void outputDMZ(realtype * dmt, struct Params * p);
 
-void outputDMCoherences(realtype * dmt, struct PARAMETERS * p);
+void outputDMCoherences(realtype * dmt, struct Params * p);
 
-void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p);
+void outputDMIm(char * fileName, realtype * dmt, struct Params * p);
 
-void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p);
+void outputDMRe(char * fileName, realtype * dmt, struct Params * p);
 
-void outputEnergy(char * fileName, struct PARAMETERS * p);
+void outputEnergy(char * fileName, struct Params * p);
 
-void outputEnergyExpWfn(const char * fileName, struct PARAMETERS * p);
+void outputEnergyExpWfn(const char * fileName, struct Params * p);
 
-void outputTimes(char * fileName, struct PARAMETERS * p);
+void outputTimes(char * fileName, struct Params * p);
 
 void outputEnergyExp(char * fileName, realtype * dmt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
-void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAMETERS * p);
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct Params * p);
 
 void outputMuFromPops(char * fileName, realtype * dmt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
-void outputTorsion(struct PARAMETERS * p, char * fileName);
+void outputTorsion(struct Params * p, char * fileName);
 
 void outputRTA(std::map<const std::string, bool> &outs,
-    realtype * dmt, struct PARAMETERS * p);
+    realtype * dmt, struct Params * p);
 
-void outputCouplings(struct PARAMETERS * p, char * fileName);
+void outputCouplings(struct Params * p, char * fileName);
 
-void outputTorsionSin2(struct PARAMETERS * p, char * fileName);
+void outputTorsionSin2(struct Params * p, char * fileName);
 
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
-void outputDeriv(char * fileName, int n, realtype * deriv, struct PARAMETERS * p);
+void outputDeriv(char * fileName, int n, realtype * deriv, struct Params * p);
 
 void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * wfnt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p);
+    struct Params * p);
 
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p);
+    struct Params * p);
 #endif

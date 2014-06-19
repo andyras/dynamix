@@ -16,7 +16,7 @@ bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr)
 }
 
 /* returns output file name as char * */
-std::string outputFileName(char * fileName, PARAMETERS * p) {
+std::string outputFileName(char * fileName, Params * p) {
   // start with output directory name
   std::string fullFileName (p->outputDir);
   // add trailing slash if it is not there
@@ -184,7 +184,7 @@ void output2DSquareMatrix(realtype ** M, int N, char * fileName) {
  * the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
 void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
@@ -208,7 +208,7 @@ void outputXProbsWfn(char * fileName, int start, int end, realtype * wfnt,
 
 /* Output the integrated population on a set of states. */
 void outputIntegralDM(char * fileName, const int start, const int end,
-    const realtype * dmt, struct PARAMETERS * p) {
+    const realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -252,7 +252,7 @@ void outputIntegralDM(char * fileName, const int start, const int end,
 
 /* Output the integrated population on a set of states. */
 void outputIntegratedDM(char * fileName, const int start, const int end,
-    const realtype * dmt, struct PARAMETERS * p) {
+    const realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -293,7 +293,7 @@ void outputIntegratedDM(char * fileName, const int start, const int end,
 
 /* Output the integrated population on a set of states. */
 void outputIntegratedWfn(char * fileName, const int start, const int end,
-    const realtype * wfnt, struct PARAMETERS * p) {
+    const realtype * wfnt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -333,7 +333,7 @@ void outputIntegratedWfn(char * fileName, const int start, const int end,
 
 /* Output the integrated population on a set of states. */
 void outputIntegralWfn(char * fileName, const int start, const int end,
-    const realtype * wfnt, struct PARAMETERS * p) {
+    const realtype * wfnt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << std::endl;
 #endif
@@ -378,7 +378,7 @@ void outputIntegralWfn(char * fileName, const int start, const int end,
  * the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
 void outputXProbs(char * fileName, int start, int end, realtype * dmt,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
@@ -402,7 +402,7 @@ void outputXProbs(char * fileName, int start, int end, realtype * dmt,
 
 /* Output the total population in a set of states over time */
 void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 #ifdef DEBUG_OUTPUTTXPROB
   std::cout << "Making file " << fileName << "..." << std::endl;
   std::cout << "start index is " << start << std::endl;
@@ -434,7 +434,7 @@ void outputtXprobWfn(char * fileName, int start, int end, realtype * wfnt,
  * takes the indices 'start' and 'end', e.g. Ik and Ik+Nk
  */
 void outputtXprob(char * fileName, int start, int end, realtype * dmt,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Creating file " << fileName << ".\n";
 #endif
@@ -460,7 +460,7 @@ void outputtXprob(char * fileName, int start, int end, realtype * dmt,
 }
 
 /* Outputs the norm of each component of the density matrix */
-void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+void outputDMZ(char * fileName, realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting |\\rho| in time\n\n\n");
 #endif
@@ -493,7 +493,7 @@ void outputDMZ(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 }
 
 /* Outputs the norm of each component of the density matrix */
-void outputDMCoherences(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+void outputDMCoherences(char * fileName, realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting |\\rho_{ij}| in time\n\n\n");
 #endif
@@ -536,7 +536,7 @@ void outputDMCoherences(char * fileName, realtype * dmt, struct PARAMETERS * p) 
 }
 
 /* Outputs the real part of each component of the density matrix */
-void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+void outputDMRe(char * fileName, realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting Re(\\rho) in time\n\n\n");
 #endif
@@ -567,7 +567,7 @@ void outputDMRe(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 }
 
 /* Outputs the imaginary part of each component of the density matrix */
-void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+void outputDMIm(char * fileName, realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   fprintf(stderr, "\n\n\noutputting Im(\\rho) in time\n\n\n");
 #endif
@@ -598,7 +598,7 @@ void outputDMIm(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 }
 
 /* Outputs energies of all states */
-void outputEnergy(char * fileName, struct PARAMETERS * p) {
+void outputEnergy(char * fileName, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -616,7 +616,7 @@ void outputEnergy(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Outputs energy expectation value over time */
-void outputEnergyExpWfn(char * fileName, struct PARAMETERS * p,
+void outputEnergyExpWfn(char * fileName, struct Params * p,
     double * wfnt) {
   // allocate array to hold matrix-vector product
   std::vector<double> psiHvec (2*p->NEQ, 0.0);
@@ -656,7 +656,7 @@ void outputEnergyExpWfn(char * fileName, struct PARAMETERS * p,
 }
 
 /* Outputs all the time steps */
-void outputTimes(char * fileName, struct PARAMETERS * p) {
+void outputTimes(char * fileName, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -675,7 +675,7 @@ void outputTimes(char * fileName, struct PARAMETERS * p) {
 
 /* Outputs expectation value of energy at all times */
 void outputEnergyExp(char * fileName, realtype * dmt,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -706,7 +706,7 @@ void outputEnergyExp(char * fileName, realtype * dmt,
 }
 
 /* Output Fermi level calculated from total band populations */
-void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAMETERS * p) {
+void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct Params * p) {
   int start = bandStartIdx(bandFlag, p);
   int end = bandEndIdx(bandFlag, p);
   int N = p->NEQ;
@@ -731,7 +731,7 @@ void outputDynamicMu(char * fileName, realtype * dmt, int bandFlag, struct PARAM
 }
 
 /* Outputs Fermi level as calculated from populations */
-void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
+void outputMuFromPops(char * fileName, realtype * dmt, struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "\nMaking " << fileName << "\n";
 #endif
@@ -775,7 +775,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, struct PARAMETERS * p) {
 }
 
 /* Outputs torsional potential at simulation time points */
-void outputTorsion(struct PARAMETERS * p, char * fileName) {
+void outputTorsion(struct Params * p, char * fileName) {
   std::ofstream output(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
@@ -789,7 +789,7 @@ void outputTorsion(struct PARAMETERS * p, char * fileName) {
 
 /* Outputs quantities from RTA */
 void outputRTA(std::map<const std::string, bool> &outs,
-    realtype * dmt, struct PARAMETERS * p) {
+    realtype * dmt, struct Params * p) {
 
   double ne = 0.0;
   double ekin = 0.0;
@@ -949,7 +949,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
 }
 
 /* Outputs the laser pump intensity over time */
-void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
+void outputPumpIntensity(struct Params * p, char * fileName) {
   std::ofstream o(outputFileName(fileName, p).c_str());
   for (int ii = 0; ii <= p->numOutputSteps; ii++) {
     o << p->times[ii] << " "
@@ -962,7 +962,7 @@ void outputPumpIntensity(struct PARAMETERS * p, char * fileName) {
 }
 
 /* output couplings as a matrix */
-void outputCouplings(struct PARAMETERS * p, char * fileName) {
+void outputCouplings(struct Params * p, char * fileName) {
   std::ofstream o(outputFileName(fileName, p).c_str());
   //// This output is the same as the Hamiltonian, but with diagonal elements zero.
 
@@ -995,7 +995,7 @@ void outputCouplings(struct PARAMETERS * p, char * fileName) {
 }
 
 /* outputs sin^2 function for torsional coupling */
-void outputTorsionSin2(struct PARAMETERS * p, char * fileName) {
+void outputTorsionSin2(struct Params * p, char * fileName) {
   std::ofstream o(outputFileName(fileName, p).c_str());
 
   for (int ii = 0; ii < p->numOutputSteps; ii++) {
@@ -1009,7 +1009,7 @@ void outputTorsionSin2(struct PARAMETERS * p, char * fileName) {
 
 /* Finds peaks in populations, outputs values, times and differences. */
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 #ifdef DEBUG_OUTPUT
   std::cout << "Making file " << fileName << "..." << std::endl;
   std::cout << "start index is " << start << std::endl;
@@ -1102,7 +1102,7 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   return;
 }
 
-void outputDeriv(char * fileName, int n, realtype * deriv, struct PARAMETERS * p) {
+void outputDeriv(char * fileName, int n, realtype * deriv, struct Params * p) {
   std::ofstream o(outputFileName(fileName, p).c_str());
   int nt = p->numOutputSteps;
 
@@ -1120,7 +1120,7 @@ void outputDeriv(char * fileName, int n, realtype * deriv, struct PARAMETERS * p
 
 /* yt can be either wavefunction or DM over time */
 void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
-    struct PARAMETERS * p){
+    struct Params * p){
   // unpack values from p
   int N = p->NEQ;
   int nt = p->numOutputSteps;
@@ -1242,13 +1242,13 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
 }
 
 void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
-    struct PARAMETERS * p){
+    struct Params * p){
   return;
 }
 
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 std::cout << "\n\nWHOO from computing outputs\n\n";
   // torsion-mediated coupling
   if (p->torsion) {
@@ -1289,7 +1289,7 @@ std::cout << "\n\nWHOO from computing outputs\n\n";
 
 /* Computes outputs from \psi(t) */
 void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p) {
+    struct Params * p) {
   // total population on all sites
   if (isOutput(outs, "totprob.out")) {
     outputtXprobWfn("totprob.out", 0, p->NEQ, wfnt, p);
@@ -1395,7 +1395,7 @@ void computeWfnOutput(realtype * wfnt, std::map<const std::string, bool> &outs,
 
 /* Computes outputs from \rho(t) */
 void computeDMOutput(realtype * dmt, std::map<const std::string, bool> &outs,
-    struct PARAMETERS * p) {
+    struct Params * p) {
 
   // total population
   if (isOutput(outs, "totprob.out")) {

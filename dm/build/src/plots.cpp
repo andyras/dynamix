@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
+void makePlots(map<const string, bool> &outs, struct Params * p) {
   // populations in subsystems
   if (isOutput(outs, "populations.plt")) {
     plotPopulations("populations.plt", p);
@@ -68,7 +68,7 @@ void makePlots(map<const string, bool> &outs, struct PARAMETERS * p) {
 
 /* Plots the populations in different subsystems over time,
  * separately and on the same plot. */
-void plotPopulations(char * fileName, struct PARAMETERS * p) {
+void plotPopulations(char * fileName, struct Params * p) {
   ofstream o(fileName);
 
   o << "#!/usr/bin/env gnuplot" << endl;
@@ -153,7 +153,7 @@ void plotPopulations(char * fileName, struct PARAMETERS * p) {
   return;
 }
 
-void plotKProbs(char * fileName, struct PARAMETERS * p) {
+void plotKProbs(char * fileName, struct Params * p) {
 #ifdef DEBUG_PLOT
   cout << "\nMaking kprobs.plt" << endl;
 #endif
@@ -205,7 +205,7 @@ void plotKProbs(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Makes a gnuplot file to plot the QD populations over time */
-void plotCProbs(struct PARAMETERS * p) {
+void plotCProbs(struct Params * p) {
 #ifdef DEBUG_PLOT
   cout << "\nMaking cprobs.plt" << endl;
 #endif
@@ -254,7 +254,7 @@ void plotCProbs(struct PARAMETERS * p) {
   return;
 }
 
-void plotMuFromPops(char * fileName, struct PARAMETERS * p) {
+void plotMuFromPops(char * fileName, struct Params * p) {
 #ifdef DEBUG_PLOT
   cout << "\nMaking muFromPops.plt" << endl;
 #endif
@@ -306,7 +306,7 @@ void plotMuFromPops(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Plots the density matrix in time as a series of .png files */
-void plotDMt_z(char * fileName, struct PARAMETERS * p) {
+void plotDMt_z(char * fileName, struct Params * p) {
   ofstream o(fileName);
 
   o << "#!/usr/bin/env gnuplot" << endl;
@@ -358,7 +358,7 @@ void plotDMt_z(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Plots the populations in the bulk states over time as a movie */
-void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
+void plotKProbsMovie(char * fileName, struct Params * p) {
   ofstream o(fileName);
 
   o << "#!/bin/bash" << endl;
@@ -444,7 +444,7 @@ void plotKProbsMovie(char * fileName, struct PARAMETERS * p) {
 }
 
 /* Plots the populations in the QD states over time as a movie */
-void plotCProbsMovie(char * fileName, struct PARAMETERS * p) {
+void plotCProbsMovie(char * fileName, struct Params * p) {
   ofstream o(fileName);
 
   int Ic = p->Ic;

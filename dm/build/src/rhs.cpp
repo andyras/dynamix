@@ -16,8 +16,8 @@
 /* Right-hand-side equation for wavefunction */
 int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
@@ -59,8 +59,8 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // more compact notation for N_Vectors
   realtype * yp = N_VGetArrayPointer(y);
@@ -109,7 +109,7 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
 }
 
 /* apply the kinetic relaxation model to one band of the system */
-void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
+void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
   double pop = 0.0;
   int start = bandStartIdx(bandFlag, p);
   int end = bandEndIdx(bandFlag, p);
@@ -189,7 +189,7 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p
   return;
 }
 
-void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
+void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
   return;
 }
 
@@ -197,8 +197,8 @@ void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, PARAMETERS * p) {
 int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
@@ -300,8 +300,8 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
 int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
@@ -448,8 +448,8 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #endif
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
@@ -531,8 +531,8 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #endif
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   double * H = &(p->H)[0];
@@ -627,7 +627,7 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 }
 
 /* find Fermi level based on sum of population in band */
-double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
+double findDynamicMu(double pop, double T, int bandFlag, Params * p) {
   double summ, lower, upper;
 
   // starting point
@@ -690,7 +690,7 @@ double findDynamicMu(double pop, double T, int bandFlag, PARAMETERS * p) {
  * sum of populations in a band add up to a certain value.
  */
 double FDDBinarySearch(double lower, double upper, double T, double n,
-    int bandFlag, PARAMETERS * p) {
+    int bandFlag, Params * p) {
   double mid, summ;
 
   if (fabs(upper - lower) < 1e-10) {
@@ -725,7 +725,7 @@ double FDDBinarySearch(double lower, double upper, double T, double n,
 
 /* Add up the populations in a band with a Fermi-Dirac distribution of population
  */
-double FDDSum(double mu, double T, int bandFlag, PARAMETERS * p) {
+double FDDSum(double mu, double T, int bandFlag, Params * p) {
   double summ = 0.0;
   int start = bandStartIdx(bandFlag, p);
   int end = bandEndIdx(bandFlag, p);
@@ -762,7 +762,7 @@ void FDD(double mu, double T, double * fdd, double * E, int N, double P) {
 
 
 /* gives the equilibrated FDD for the system */
-void FDD_RTA(struct PARAMETERS * p, realtype * y, double * fdd, int flag) {
+void FDD_RTA(struct Params * p, realtype * y, double * fdd, int flag) {
 #ifdef DEBUG_RTA
   //// "fine structure constant" -- conversion from index to wave vector
   std::cout << "p->X2   " << p->X2 << std::endl;
@@ -978,8 +978,8 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #endif
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   //std::vector<realtype> H = p->H; // copying vector is OK performance-wise
@@ -1093,8 +1093,8 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
 #endif
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   //std::vector<realtype> H = p->H; // copying vector is OK performance-wise
@@ -1234,8 +1234,8 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
 
   // data is a pointer to the params struct
-  PARAMETERS * p;
-  p = (PARAMETERS *) data;
+  Params * p;
+  p = (Params *) data;
 
   // extract parameters from p
   std::vector<realtype> H = p->H; // copying vector is OK performance-wise
