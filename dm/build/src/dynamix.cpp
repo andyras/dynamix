@@ -825,17 +825,9 @@ int main (int argc, char * argv[]) {
   realtype ** V = NULL;                         // pointer to coupling constants
 
   int flag;
-  realtype * k_pops = NULL;                             // pointers to arrays of populations
-  realtype * l_pops = NULL;
-  realtype * c_pops = NULL;
-  realtype * b_pops = NULL;
   realtype * ydata = NULL;                              // pointer to ydata (contains all populations)
   realtype * dmt = NULL;                                // density matrix in time
   realtype * wfnt = NULL;                               // wave function in time
-  realtype * k_energies = NULL;                         // pointers to arrays of energies
-  realtype * c_energies = NULL;
-  realtype * b_energies = NULL;
-  realtype * l_energies = NULL;
   realtype t0 = 0.0;                            // initial time
   realtype t = 0;
   realtype tret = 0;                                    // time returned by the solver
@@ -1219,14 +1211,6 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
   fprintf(stdout, "Freeing memory in main.\n");
 #endif
   // delete all these guys
-  delete [] k_pops;
-  delete [] c_pops;
-  delete [] b_pops;
-  delete [] l_pops;
-  delete [] k_energies;
-  delete [] c_energies;
-  delete [] b_energies;
-  delete [] l_energies;
   delete [] H;
   for (int ii = 0; ii < p.NEQ; ii++) {
     delete [] V[ii];
