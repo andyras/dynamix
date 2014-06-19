@@ -36,9 +36,6 @@
 
 void buildCoupling (struct PARAMETERS * p, std::map<const std::string, bool> &outs);
 
-/* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, struct PARAMETERS * p);
-
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p);
 
 void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, struct PARAMETERS * p);

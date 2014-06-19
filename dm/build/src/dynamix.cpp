@@ -12,106 +12,6 @@
 #define DEBUG_BUILDCOUPLING
 #define DEBUG_UPDATEDM
 #define DEBUG_UPDATEWFN
-//#define DEBUG_BUILDHAMILTONIAN
-
-/* builds a Hamiltonian from site energies and couplings. */
-void buildHamiltonian(realtype * H, std::vector<realtype> & energy, struct PARAMETERS * p) {
-  // indices
-  int idx1, idx2;
-  int N = p->NEQ;
-
-#ifdef DEBUG_BUILDHAMILTONIAN
-  fprintf(stderr, "Assigning diagonal elements of Hamiltonian.\n");
-#endif
-  for (int ii = 0; ii < N; ii++) {
-    // diagonal
-    H[ii*N + ii] = energy[ii];
-#ifdef DEBUG_BUILDHAMILTONIAN
-    std::cout << "diagonal element " << ii << " of H is " << energy[ii] << "\n";
-#endif
-  }
-
-  if (p->bridge_on) {
-    // assign bulk-bridge coupling
-#ifdef DEBUG_BUILDHAMILTONIAN
-    fprintf(stderr, "Assigning bulk-bridge coupling elements in Hamiltonian.\n");
-#endif
-    idx2 = p->Ib;
-    for (int ii = 0; ii < p->Nk; ii++) {
-      idx1 = p->Ik + ii;
-#ifdef DEBUG_BUILDHAMILTONIAN
-      fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
-      fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
-#endif
-      H[idx1*N + idx2] = p->V.at(idx1)[idx2];
-      H[idx2*N + idx1] = p->V.at(idx2)[idx1];
-    }
-    fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
-    // assign bridge-bridge couplings
-#ifdef DEBUG_BUILDHAMILTONIAN
-    fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
-#endif
-    for (int ii = 0; ii < (p->Nb-1); ii++) {
-      idx1 = p->Ib + ii;
-      idx2 = p->Ib+ ii + 1;
-#ifdef DEBUG_BUILDHAMILTONIAN
-      fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
-      fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
-#endif
-      H[idx1*N + idx2] = p->V.at(idx1)[idx2];
-      H[idx2*N + idx1] = p->V.at(idx2)[idx1];
-    }
-    fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
-    // assign bridge-QD coupling
-#ifdef DEBUG_BUILDHAMILTONIAN
-    fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
-#endif
-    idx2 = p->Ib + p->Nb - 1;
-    for (int ii = 0; ii < p->Nc; ii++) {
-      idx1 = p->Ic + ii;
-#ifdef DEBUG_BUILDHAMILTONIAN
-      fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
-      fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-      fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
-#endif
-      H[idx1*N + idx2] = p->V.at(idx1)[idx2];
-      H[idx2*N + idx1] = p->V.at(idx2)[idx1];
-    }
-    fprintf(stderr, "Done assigning bridge-QD coupling elements in Hamiltonian.\n");
-  }
-  // no bridge
-  else {
-    // assign bulk-QD coupling
-#ifdef DEBUG_BUILDHAMILTONIAN
-    fprintf(stderr, "Assigning bulk-QD coupling elements in Hamiltonian.\n");
-#endif
-    for (int ii = 0; ii < p->Nk; ii++) {
-      idx1 = p->Ik + ii;
-      for (int jj = 0; jj < p->Nc; jj++) {
-  idx2 = p->Ic + jj;
-#ifdef DEBUG_BUILDHAMILTONIAN
-  fprintf(stderr, "H[%d*%d + %d] = ", idx1, N, idx2);
-  fprintf(stderr, "V[%d][%d] = ", idx1, idx2);
-  fprintf(stderr, "%e\n", p->V.at(idx1)[idx2]);
-#endif
-  H[idx1*N + idx2] = p->V.at(idx1)[idx2];
-  H[idx2*N + idx1] = p->V.at(idx2)[idx1];
-      }
-    }
-  }
-
-#ifdef DEBUG
-  std::cout << "\nTotal number of states: " << p->NEQ << std::endl;
-  std::cout << p->Nk << " bulk, " << p->Nc << " QD, " << p->Nb << " bridge, " << p->Nl << " bulk VB.\n";
-#endif
-  // assign times.
-  p->times.resize(p->numOutputSteps+1);
-  for (int ii = 0; ii <= p->numOutputSteps; ii++) {
-    p->times[ii] = float(ii)/p->numOutputSteps*p->tout;
-  }
-}
 
 /* Updates \rho(t) at each time step. */
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, struct PARAMETERS * p) {
@@ -811,8 +711,6 @@ void initWavefunction(PARAMETERS * p) {
   }
 }
 
-
-
 int main (int argc, char * argv[]) {
   //// DECLARING VARIABLES
 
@@ -965,17 +863,7 @@ int main (int argc, char * argv[]) {
 #ifdef DEBUG
   fprintf(stderr, "Building Hamiltonian.\n");
 #endif
-  realtype * H = NULL;
-  H = new realtype [p.NEQ2];
-  for (int ii = 0; ii < p.NEQ2; ii++) {
-    H[ii] = 0.0;
-  }
-  buildHamiltonian(H, p.energies, &p);
-  // add Hamiltonian to p
-  p.H.resize(p.NEQ2);
-  for (int ii = 0; ii < p.NEQ2; ii++) {
-    p.H[ii] = H[ii];
-  }
+  p.buildHamiltonian();
   // create sparse version of H
   p.H_sp.resize(p.NEQ2);
   p.H_cols.resize(p.NEQ2);
@@ -1177,7 +1065,6 @@ std::cout << "\n\n\nWHOOOOOT\n\n\n";
   fprintf(stdout, "Freeing memory in main.\n");
 #endif
   // delete all these guys
-  delete [] H;
   if (p.wavefunction) {
     delete [] wfnt;
   }

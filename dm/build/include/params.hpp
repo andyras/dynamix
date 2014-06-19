@@ -126,6 +126,9 @@ public:
 
   double lastMu;                        // value of Fermi level at last time point
   double lastMuQD;                      // value of Fermi level in QD at last time point
+
+  // methods ///////////////////////////////////////////////////////////////////
+  void buildHamiltonian();
 };
 
 #endif
