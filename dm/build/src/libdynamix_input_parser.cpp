@@ -92,6 +92,13 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
   if ((isOutput(outs, "dmt_z.plt")) && (! p->wavefunction)) {
     outs.insert(std::pair<const std::string,bool>("dmt_z.out", true));
   }
+
+  // create output directory if it does not exist //////////////////////////////
+
+  int flag;
+  if (!fileExists(p->outputDir)) {
+    flag = mkdir(p->outputDir.c_str(), 0755);
+  }
 }
 
 /* assigns params to the Params struct from the input file */

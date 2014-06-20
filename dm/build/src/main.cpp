@@ -70,21 +70,24 @@ int main (int argc, char * argv[]) {
     }
   }
 
-  //// ASSIGN PARAMETERS FROM INPUT FILE
-
-
+  if (fileExists(p.outputDir)) {
+    flag = mkdir(p.outputDir.c_str(), 0755);
+  }
   // ---- TODO create output directory if it does not exist ---- //
-  flag = mkdir(p.outputDir.c_str(), 0755);
+
+  // assign parameters from input file /////////////////////////////////////////
 
   assignParams(p.inputFile.c_str(), &p);
 
-  // Decide which output files to make
+  // Decide which output files to make /////////////////////////////////////////
+
 #ifdef DEBUG
   std::cout << "Assigning outputs as specified in " << p.inputFile << "\n";
 #endif
   assignOutputs(p.inputFile.c_str(), p.outs, &p);
 
   // print start time to log file //////////////////////////////////////////////
+
   if (isOutput(p.outs, "log.out")) {
     log = fopen("log.out", "w"); // note that this file is closed at the end of the program
   }
@@ -104,6 +107,7 @@ int main (int argc, char * argv[]) {
   initWavefunction(&p);
 
   // set number of processors for OpenMP ///////////////////////////////////////
+
   omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
 
