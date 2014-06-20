@@ -333,6 +333,13 @@ void assignParams(std::string inputFile, Params * p) {
     std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
   }
 
+  // Decide which output files to make /////////////////////////////////////////
+
+#ifdef DEBUG
+  std::cout << "Assigning outputs as specified in " << p->inputFile << "\n";
+#endif
+  assignOutputs(p->inputFile.c_str(), p->outs, p);
+
   return;
 }
 

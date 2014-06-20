@@ -74,13 +74,6 @@ int main (int argc, char * argv[]) {
 
   assignParams(p.inputFile.c_str(), &p);
 
-  // Decide which output files to make /////////////////////////////////////////
-
-#ifdef DEBUG
-  std::cout << "Assigning outputs as specified in " << p.inputFile << "\n";
-#endif
-  assignOutputs(p.inputFile.c_str(), p.outs, &p);
-
   // print start time to log file //////////////////////////////////////////////
 
   if (isOutput(p.outs, "log.out")) {
@@ -188,12 +181,14 @@ int main (int argc, char * argv[]) {
   realImaginary = fopen("real_imaginary.out", "w");
 #endif
 
-  // Make plot files
+  // Make plot files ///////////////////////////////////////////////////////////
   makePlots(&p);
 
-  // only do propagation if not just making plots
+  // only do propagation if not just making plots //////////////////////////////
+
   if (! p.justPlots) {
-    // Make outputs independent of time propagation
+    // Make outputs independent of time propagation ////////////////////////////
+
     computeGeneralOutputs(&p);
 
     // create CVode object
