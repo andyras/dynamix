@@ -218,44 +218,6 @@ void updateHamiltonian(Params * p, realtype t) {
 #include "params.hpp"
 
 void initialize(Params * p) {
-  // This function performs error checking on various parameters
-
-  // check torsion parameters, set up torsion spline
-  if (p->torsion) {
-#ifdef DEBUG
-    std::cout << "Torsion is on." << std::endl;
-#endif
-
-    // error checking
-    if (p->torsionSite > p->Nb) {
-      std::cerr << "ERROR: torsion site (" << p->torsionSite
-        << ") is larger than number of bridge sites (" << p->Nb << ")." << std::endl;
-      exit(-1);
-    }
-    else if (p->torsionSite < 0) {
-      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
-      exit(-1);
-    }
-
-    if (!p->torsionSin2) {
-      if (!fileExists(p->torsionFile)) {
-      std::cerr << "ERROR: torsion file " << p->torsionFile << " does not exist." << std::endl;
-      exit(-1);
-      }
-
-      // create spline
-      p->torsionV.readFile(p->torsionFile.c_str());
-      if (p->torsionV.getFirstX() != 0.0) {
-        std::cerr << "ERROR: time in " << p->torsionFile << " should start at 0.0." << std::endl;
-        exit(-1);
-      }
-
-      if (p->torsionV.getLastX() < p->tout) {
-        std::cerr << "ERROR: time in " << p->torsionFile << " should be >= tout." << std::endl;
-        exit(-1);
-      }
-    }
-  }
 }
 
 // This function builds up the Hamiltonian, as well as the constituent site
