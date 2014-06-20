@@ -24,7 +24,7 @@ void computeAnalyticOutputs(Params * p) {
   std::complex <double> cn_term2 (0, 0);
   std::complex <double> cn_diag (0, 0);
   std::complex <double> cn_offdiag (0, 0);
-  double cn_tot;
+  // double cn_tot;
   // complex numbers are dumb
   std::complex <double> C0 (0.0, 0.0);
   std::complex <double> C1 (1.0, 0.0);

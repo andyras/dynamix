@@ -16,8 +16,6 @@ void Params::buildCoupling () {
     V[ii].assign(NEQ, 0.0);
   }
 
-std::cout << "\n\n\nWHOOOOOT\n\n\n";
-
 #ifdef DEBUG_BUILDCOUPLING
   if (bridge_on) {
     for (int ii = 0; ii < Nb + 1; ii++) {

@@ -1,5 +1,5 @@
 #ifndef __PLOTS__
-#define __PLOTS
+#define __PLOTS__
 
 #include <iostream>
 #include <fstream>

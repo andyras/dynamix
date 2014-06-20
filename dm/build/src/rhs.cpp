@@ -39,7 +39,7 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype * ydotp = N_VGetArrayPointer(ydot);
 
   // set up BLAS variables
-  const char TRANS = 'n';
+  // const char TRANS = 'n';
   const char UPLO = 'l';
   double beta = 0.0;
   double alpha_re = 1.0;	// alpha value for real part of wfn derivative
@@ -127,7 +127,6 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
     std::cerr << "        setting g1 to 1.0" << std::endl;
     g1 = 1.0;
   }
-  double g2 = p->gamma2;
   double mu = p->EF;
   double T = p->temperature;
   double * E = &(p->energies[start]);
@@ -561,14 +560,14 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   char TRANSA = 'n';
-  char TRANSB = 'n';
-  char LEFT = 'l';
+  // char TRANSB = 'n';
+  // char LEFT = 'l';
   char RGHT = 'r';
   char UPLO = 'l';
   double ONE = 1.0;
   double NEG = -1.0;
 
-  realtype * H_sp = &(p->H_sp)[0];
+  // realtype * H_sp = &(p->H_sp)[0];
   int * columns = &(p->H_cols)[0];
   int * rowind = &(p->H_rowind)[0];
 
@@ -642,7 +641,7 @@ double findDynamicMu(double pop, double T, int bandFlag, Params * p) {
   summ = FDDSum(mu, T, bandFlag, p);
 
   // just in case mu is exactly zero
-  if (fabs((summ - pop) > 1e-10)) {
+  if (bool(fabs((summ - pop) > 1e-10))) {
     // otherwise search in increments of 1 a.u. energy
     if (summ < pop) {
       lower = -1.0;
@@ -854,7 +853,7 @@ void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
 #endif
   double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
   double bm = 0.0;
-  double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
+  // double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
 
   // loop applies Newton-Raphson method to get zero of function
   double f = 0.0;		// value of function (f)
@@ -1125,14 +1124,14 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
     ydotp[ii] = 0.0;
   }
   char TRANSA = 'n';
-  char TRANSB = 'n';
-  char LEFT = 'l';
+  // char TRANSB = 'n';
+  // char LEFT = 'l';
   char RGHT = 'r';
   char UPLO = 'l';
   double ONE = 1.0;
   double NEG = -1.0;
 
-  realtype * H_sp = &(p->H_sp)[0];
+  // realtype * H_sp = &(p->H_sp)[0];
   int * columns = &(p->H_cols)[0];
   int * rowind = &(p->H_rowind)[0];
 
@@ -1150,7 +1149,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // Re(\dot{\rho}) += H*Im(\rho)
   mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
              &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
-  
+
   // Re(\dot{\rho}) -= Im(\rho)*H
   DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
 

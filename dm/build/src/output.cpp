@@ -737,7 +737,7 @@ void outputMuFromPops(char * fileName, realtype * dmt, Params * p) {
 #endif
 
   std::ofstream output(outputFileName(fileName, p).c_str());
-  std::ofstream average(outputFileName("muFromPopsAvg.out", p).c_str());
+  std::ofstream average(outputFileName((char *)"muFromPopsAvg.out", p).c_str());
 
   double kT = p->temperature/3.185e5;
   double pop, mu;
@@ -807,7 +807,6 @@ void outputRTA(std::map<const std::string, bool> &outs,
   const double X = 4*ne*pow(M_PI/(2*p->me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
   double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
   double bm = 0.0;
-  const double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
   double f = 0.0;		// value of function (f)
   double fp = 0.0;		// value of function derivative (f')
   double mue = 0.0;
@@ -882,7 +881,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
     }
   }
   if (isOutput(outs, "mu.out")) {
-    std::ofstream mu_out(outputFileName("mu.out", p).c_str());
+    std::ofstream mu_out(outputFileName((char *)"mu.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       mu_out << p->times[kk] << " " << mu_t[kk] << std::endl;
     }
@@ -894,7 +893,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "temp.out")) {
-    std::ofstream temp_out(outputFileName("temp.out", p).c_str());
+    std::ofstream temp_out(outputFileName((char *)"temp.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       temp_out << p->times[kk] << " " << temp_t[kk]*AU2K << std::endl;
     }
@@ -906,7 +905,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "ne.out")) {
-    std::ofstream ne_out(outputFileName("ne.out", p).c_str());
+    std::ofstream ne_out(outputFileName((char *)"ne.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       ne_out << p->times[kk] << " " << ne_t[kk] << std::endl;
     }
@@ -918,7 +917,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "ekin.out")) {
-    std::ofstream ekin_out(outputFileName("ekin.out", p).c_str());
+    std::ofstream ekin_out(outputFileName((char *)"ekin.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       ekin_out << p->times[kk] << " " << ekin_t[kk] << std::endl;
     }
@@ -930,7 +929,7 @@ void outputRTA(std::map<const std::string, bool> &outs,
   }
 
   if (isOutput(outs, "fdd.out")) {
-    std::ofstream fdd_out(outputFileName("fdd.out", p).c_str());
+    std::ofstream fdd_out(outputFileName((char *)"fdd.out", p).c_str());
     for (int kk = 0; kk <= p->numOutputSteps; kk++) {
       fdd_out << p->times[kk];
       for (int ii = 0; ii < p->Nk; ii++) {
@@ -1151,35 +1150,35 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
     // take derivative
     arrayDeriv(&(pops[p->Ik*nt]), nt, p->Nk, N, &(kderivs[0]), p->tout/(nt-1));
     // print derivative
-    outputDeriv("derivKprobs.out", p->Nk, &(kderivs[0]), p);
+    outputDeriv((char *)"derivKprobs.out", p->Nk, &(kderivs[0]), p);
   }
 
   // deriv of QD populations
   if (isOutput(outs, "derivCprobs.out")) {
     std::vector<realtype> cderivs (p->Nc*(nt-5), 0.0);
     arrayDeriv(&(pops[p->Ic*nt]), nt, p->Nc, N, &(cderivs[0]), p->tout/(nt-1));
-    outputDeriv("derivCprobs.out", p->Nc, &(cderivs[0]), p);
+    outputDeriv((char *)"derivCprobs.out", p->Nc, &(cderivs[0]), p);
   }
 
   // deriv of bridge populations
   if (isOutput(outs, "derivBprobs.out")) {
     std::vector<realtype> bderivs (p->Nb*(nt-5), 0.0);
     arrayDeriv(&(pops[p->Ib*nt]), nt, p->Nb, N, &(bderivs[0]), p->tout/(nt-1));
-    outputDeriv("derivBprobs.out", p->Nb, &(bderivs[0]), p);
+    outputDeriv((char *)"derivBprobs.out", p->Nb, &(bderivs[0]), p);
   }
 
   // deriv of VB populations
   if (isOutput(outs, "derivLprobs.out")) {
     std::vector<realtype> lderivs (p->Nl*(nt-5), 0.0);
     arrayDeriv(&(pops[p->Il*nt]), nt, p->Nl, N, &(lderivs[0]), p->tout/(nt-1));
-    outputDeriv("derivLprobs.out", p->Nl, &(lderivs[0]), p);
+    outputDeriv((char *)"derivLprobs.out", p->Nl, &(lderivs[0]), p);
   }
 
   // deriv of all populations
   if (isOutput(outs, "derivAllprobs.out")) {
     std::vector<realtype> derivs (N*(nt-5));
     arrayDeriv(&(pops[0]), nt, N, N, &(derivs[0]), p->tout/(nt-1));
-    outputDeriv("derivAllprobs.out", N, &(derivs[0]), p);
+    outputDeriv((char *)"derivAllprobs.out", N, &(derivs[0]), p);
   }
 
   // deriv of total CB population
@@ -1196,7 +1195,7 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
     // take derivative
     arrayDeriv(&(tkpops[0]), nt, 1, 1, &(tkderivs[0]), p->tout/(nt-1));
     // print derivative
-    outputDeriv("derivTkprob.out", 1, &(tkderivs[0]), p);
+    outputDeriv((char *)"derivTkprob.out", 1, &(tkderivs[0]), p);
   }
 
   // deriv of total QD population
@@ -1209,7 +1208,7 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
     }
     std::vector<realtype> tcderivs (nt-5);
     arrayDeriv(&(tcpops[0]), nt, 1, 1, &(tcderivs[0]), p->tout/(nt-1));
-    outputDeriv("derivTcprob.out", 1, &(tcderivs[0]), p);
+    outputDeriv((char *)"derivTcprob.out", 1, &(tcderivs[0]), p);
   }
 
   // deriv of total bridge population
@@ -1222,7 +1221,7 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
     }
     std::vector<realtype> tbderivs (nt-5);
     arrayDeriv(&(tbpops[0]), nt, 1, 1, &(tbderivs[0]), p->tout/(nt-1));
-    outputDeriv("derivTbprob.out", 1, &(tbderivs[0]), p);
+    outputDeriv((char *)"derivTbprob.out", 1, &(tbderivs[0]), p);
   }
 
   // deriv of total VB population
@@ -1235,7 +1234,7 @@ void outputDerivsWfn(std::map<const std::string, bool> &outs, realtype * yt,
     }
     std::vector<realtype> tlderivs (nt-5);
     arrayDeriv(&(tlpops[0]), nt, 1, 1, &(tlderivs[0]), p->tout/(nt-1));
-    outputDeriv("derivTlprob.out", 1, &(tlderivs[0]), p);
+    outputDeriv((char *)"derivTlprob.out", 1, &(tlderivs[0]), p);
   }
 
   return;
@@ -1248,17 +1247,16 @@ void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
 
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(Params * p) {
-std::cout << "\n\nWHOO from computing outputs\n\n";
   // torsion-mediated coupling
   if (p->torsion) {
     if (p->torsionSin2) {
       if (isOutput(p->outs, "torsionSin2.out")) {
-        outputTorsionSin2(p, "torsionSin2.out");
+        outputTorsionSin2(p, (char *)"torsionSin2.out");
       }
     }
     else {
       if (isOutput(p->outs, "torsion.out")) {
-        outputTorsion(p, "torsion.out");
+        outputTorsion(p, (char *)"torsion.out");
       }
     }
   }
@@ -1266,21 +1264,21 @@ std::cout << "\n\nWHOO from computing outputs\n\n";
   // hamiltonian at time zero
   if (isOutput(p->outs, "ham.out")) {
     // &(p->H)[0] is address of first element of array in vector
-    outputSquareMatrix(&(p->H)[0], p->NEQ, "ham.out");
+    outputSquareMatrix(&(p->H)[0], p->NEQ, (char *)"ham.out");
   }
 
   // pump intensity
   if (isOutput(p->outs, "pump_intensity.out")) {
-    outputPumpIntensity(p, "pump_intensity.out");
+    outputPumpIntensity(p, (char *)"pump_intensity.out");
   }
 
   // energies of all states
   if (isOutput(p->outs, "energies.out")) {
-    outputEnergy("energies.out", p);
+    outputEnergy((char *)"energies.out", p);
   }
 
   if (isOutput(p->outs, "couplings.out")) {
-    outputCouplings(p, "couplings.out");
+    outputCouplings(p, (char *)"couplings.out");
   }
 
   return;
@@ -1290,99 +1288,99 @@ std::cout << "\n\nWHOO from computing outputs\n\n";
 void computeWfnOutput(realtype * wfnt, Params * p) {
   // total population on all sites
   if (isOutput(p->outs, "totprob.out")) {
-    outputtXprobWfn("totprob.out", 0, p->NEQ, wfnt, p);
+    outputtXprobWfn((char *)"totprob.out", 0, p->NEQ, wfnt, p);
   }
 
   // total population on bulk conduction band
   if (isOutput(p->outs, "tkprob.out")) {
-    outputtXprobWfn("tkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+    outputtXprobWfn((char *)"tkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
 
   // total population on QD
   if (isOutput(p->outs, "tcprob.out")) {
-    outputtXprobWfn("tcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+    outputtXprobWfn((char *)"tcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
 
   // total population on bridge
   if (isOutput(p->outs, "tbprob.out")) {
-    outputtXprobWfn("tbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+    outputtXprobWfn((char *)"tbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
 
   // total population on bulk valence band
   if (isOutput(p->outs, "tlprob.out")) {
-    outputtXprobWfn("tlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+    outputtXprobWfn((char *)"tlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // populations in all states
   if (isOutput(p->outs, "allprobs.out")) {
-    outputXProbsWfn("allprobs.out", 0, p->NEQ, wfnt, p);
+    outputXProbsWfn((char *)"allprobs.out", 0, p->NEQ, wfnt, p);
   }
 
   // populations in bulk CB
   if (isOutput(p->outs, "kprobs.out")) {
-    outputXProbsWfn("kprobs.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+    outputXProbsWfn((char *)"kprobs.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
 
   // populations in QD
   if (isOutput(p->outs, "cprobs.out")) {
-    outputXProbsWfn("cprobs.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+    outputXProbsWfn((char *)"cprobs.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
 
   // populations in bridge states
   if (isOutput(p->outs, "bprobs.out")) {
-    outputXProbsWfn("bprobs.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+    outputXProbsWfn((char *)"bprobs.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
 
   // populations in bulk VB
   if (isOutput(p->outs, "lprobs.out")) {
-    outputXProbsWfn("lprobs.out", p->Il, p->Il + p->Nl, wfnt, p);
+    outputXProbsWfn((char *)"lprobs.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // integrated population on QD
   if (isOutput(p->outs, "cumItkprob.out")) {
-    outputIntegralWfn("cumItkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+    outputIntegralWfn((char *)"cumItkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
   if (isOutput(p->outs, "cumItcprob.out")) {
-    outputIntegralWfn("cumItcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+    outputIntegralWfn((char *)"cumItcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
   if (isOutput(p->outs, "cumItbprob.out")) {
-    outputIntegralWfn("cumItbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+    outputIntegralWfn((char *)"cumItbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
   if (isOutput(p->outs, "cumItlprob.out")) {
-    outputIntegralWfn("cumItlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+    outputIntegralWfn((char *)"cumItlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // integrated population on QD over all time
   if (isOutput(p->outs, "Itkprob.out")) {
-    outputIntegratedWfn("Itkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+    outputIntegratedWfn((char *)"Itkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
   if (isOutput(p->outs, "Itcprob.out")) {
-    outputIntegratedWfn("Itcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+    outputIntegratedWfn((char *)"Itcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
   if (isOutput(p->outs, "Itbprob.out")) {
-    outputIntegratedWfn("Itbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+    outputIntegratedWfn((char *)"Itbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
   if (isOutput(p->outs, "Itlprob.out")) {
-    outputIntegratedWfn("Itlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+    outputIntegratedWfn((char *)"Itlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // energy expectation value
   if (isOutput(p->outs, "energyexp.out")) {
-    outputEnergyExpWfn("energyexp.out", p, wfnt);
+    outputEnergyExpWfn((char *)"energyexp.out", p, wfnt);
   }
 
   // peaks in populations
   if (isOutput(p->outs, "peaksTkprob.out")) {
-    findPeaksWfn("peaksTkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
+    findPeaksWfn((char *)"peaksTkprob.out", p->Ik, p->Ik + p->Nk, wfnt, p);
   }
   if (isOutput(p->outs, "peaksTcprob.out")) {
-    findPeaksWfn("peaksTcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
+    findPeaksWfn((char *)"peaksTcprob.out", p->Ic, p->Ic + p->Nc, wfnt, p);
   }
   if (isOutput(p->outs, "peaksTbprob.out")) {
-    findPeaksWfn("peaksTbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
+    findPeaksWfn((char *)"peaksTbprob.out", p->Ib, p->Ib + p->Nb, wfnt, p);
   }
   if (isOutput(p->outs, "peaksTlprob.out")) {
-    findPeaksWfn("peaksTlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
+    findPeaksWfn((char *)"peaksTlprob.out", p->Il, p->Il + p->Nl, wfnt, p);
   }
 
   // derivatives of populations
@@ -1396,112 +1394,112 @@ void computeDMOutput(realtype * dmt, Params * p) {
 
   // total population
   if (isOutput(p->outs, "totprob.out")) {
-    outputtXprob("totprob.out", 0, p->NEQ, dmt, p);
+    outputtXprob((char *)"totprob.out", 0, p->NEQ, dmt, p);
   }
 
   // populations in k states
   if (isOutput(p->outs, "kprobs.out")) {
-    outputXProbs("kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
+    outputXProbs((char *)"kprobs.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
   if (isOutput(p->outs, "tkprob.out")) {
-    outputtXprob("tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
+    outputtXprob((char *)"tkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
 
   // populations in c states
   if (isOutput(p->outs, "cprobs.out")) {
-    outputXProbs("cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
+    outputXProbs((char *)"cprobs.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
   if (isOutput(p->outs, "tcprob.out")) {
-    outputtXprob("tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
+    outputtXprob((char *)"tcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
 
   // populations in b states
   if (isOutput(p->outs, "bprobs.out")) {
-    outputXProbs("bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
+    outputXProbs((char *)"bprobs.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
   if (isOutput(p->outs, "tbprob.out")) {
-    outputtXprob("tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
+    outputtXprob((char *)"tbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
 
   // populations in l states
   if (isOutput(p->outs, "lprobs.out")) {
-    outputXProbs("lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
+    outputXProbs((char *)"lprobs.out", p->Il, p->Il + p->Nl, dmt, p);
   }
   if (isOutput(p->outs, "tlprob.out")) {
-    outputtXprob("tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
+    outputtXprob((char *)"tlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // integrated populations
   if (isOutput(p->outs, "cumItkprob.out")) {
-    outputIntegralDM("cumItkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
+    outputIntegralDM((char *)"cumItkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
   if (isOutput(p->outs, "cumItcprob.out")) {
-    outputIntegralDM("cumItcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
+    outputIntegralDM((char *)"cumItcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
   if (isOutput(p->outs, "cumItbprob.out")) {
-    outputIntegralDM("cumItbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
+    outputIntegralDM((char *)"cumItbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
   if (isOutput(p->outs, "cumItlprob.out")) {
-    outputIntegralDM("cumItlprob.out", p->Il, p->Il + p->Nl, dmt, p);
+    outputIntegralDM((char *)"cumItlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // integrated populations over all time
   if (isOutput(p->outs, "Itkprob.out")) {
-    outputIntegratedDM("Itkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
+    outputIntegratedDM((char *)"Itkprob.out", p->Ik, p->Ik + p->Nk, dmt, p);
   }
   if (isOutput(p->outs, "Itcprob.out")) {
-    outputIntegratedDM("Itcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
+    outputIntegratedDM((char *)"Itcprob.out", p->Ic, p->Ic + p->Nc, dmt, p);
   }
   if (isOutput(p->outs, "Itbprob.out")) {
-    outputIntegratedDM("Itbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
+    outputIntegratedDM((char *)"Itbprob.out", p->Ib, p->Ib + p->Nb, dmt, p);
   }
   if (isOutput(p->outs, "Itlprob.out")) {
-    outputIntegratedDM("Itlprob.out", p->Il, p->Il + p->Nl, dmt, p);
+    outputIntegratedDM((char *)"Itlprob.out", p->Il, p->Il + p->Nl, dmt, p);
   }
 
   // norm of DM elements
   if (isOutput(p->outs, "dmt_z.out")) {
-    outputDMZ("dmt_z.out", dmt, p);
+    outputDMZ((char *)"dmt_z.out", dmt, p);
   }
 
   // norm of DM elements
   if (isOutput(p->outs, "dmt_re.out")) {
-    outputDMRe("dmt_re.out", dmt, p);
+    outputDMRe((char *)"dmt_re.out", dmt, p);
   }
 
   // norm of DM elements
   if (isOutput(p->outs, "dmt_im.out")) {
-    outputDMIm("dmt_im.out", dmt, p);
+    outputDMIm((char *)"dmt_im.out", dmt, p);
   }
 
   // coherences (magnitude)
   if (isOutput(p->outs, "dmCoherences.out")) {
-    outputDMCoherences("dmCoherences.out", dmt, p);
+    outputDMCoherences((char *)"dmCoherences.out", dmt, p);
   }
 
   // all time steps
   if (isOutput(p->outs, "times.out")) {
-    outputTimes("times.out", p);
+    outputTimes((char *)"times.out", p);
   }
 
   // expectation value of energy
   if (isOutput(p->outs, "energyexp.out")) {
-    outputEnergyExp("energyexp.out", dmt, p);
+    outputEnergyExp((char *)"energyexp.out", dmt, p);
   }
 
   // Fermi level as calculated from populations
   if (isOutput(p->outs, "muFromPops.out")) {
-    outputMuFromPops("muFromPops.out", dmt, p);
+    outputMuFromPops((char *)"muFromPops.out", dmt, p);
   }
 
   // Fermi level in bulk as calculated from populations
   if (isOutput(p->outs, "dynamicMuBulk.out")) {
-    outputDynamicMu("dynamicMuBulk.out", dmt, CONDUCTION, p);
+    outputDynamicMu((char *)"dynamicMuBulk.out", dmt, CONDUCTION, p);
   }
 
   // Fermi level in bulk as calculated from populations
   if (isOutput(p->outs, "dynamicMuQD.out")) {
-    outputDynamicMu("dynamicMuQD.out", dmt, QD_CONDUCTION, p);
+    outputDynamicMu((char *)"dynamicMuQD.out", dmt, QD_CONDUCTION, p);
   }
 
   // derivatives of populations

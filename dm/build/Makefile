@@ -18,8 +18,8 @@ CPP = g++
 # optimized CPPFLAGS
 # Intel
 #CPPFLAGS = -O0 -Wall --std=c++11 -openmp
-CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall --std=c++11 -fopenmp -mkl -no-multibyte-chars
-CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
+CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall -std=c++11 -fopenmp -mkl -no-multibyte-chars
+CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug
@@ -32,8 +32,12 @@ endif
 INCLUDES = -I$(INCDIR) -I$(MKLROOT)/include/fftw
 # includes for CVODE
 INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib -I/usr/include/sundials -I/usr/include/cvode -L/usr/lib
+INCLUDES += -I/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/include/
+INCLUDES += -L/opt/intel/composer_xe_2013_sp1.1.103/mkl/lib/
+INCLUDES += -L/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/
 #LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lgomp -lfftw3
 # Intel flags for linker
+LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lmkl_intel_ilp64 -lgomp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 ifdef DEBUG_MAKE
   LDFLAGS += -pg -g -debug
@@ -63,15 +67,11 @@ $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean cleantest build install uninstall $(BINDIR)
+.PHONY: clean build install uninstall $(BINDIR)
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(BIN)
-
-cleantest:
-	rm -f *.out
-	rm -f *.plt
-	rm -f *test
 
 build:
 	make clean
@@ -85,18 +85,3 @@ uninstall:
 
 $(BINDIR):
 	mkdir -p ../bin
-
-# TODO update testing section of this file
-tests: dynamix libdynamix_outputs_test.o libdynamix_input_parser_test.o
-	$(CPP) -o libdynamix_outputs_test \
-	 libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
-	$(CPP) -o libdynamix_input_parser_test \
-	 libdynamix_input_parser_test.o libdynamix_input_parser.o $(LDFLAGS)
-
-libdynamix_outputs_test.o: libdynamix_outputs_test.cpp \
-        libdynamix_outputs.cpp libdynamix_outputs.h
-	$(CPP) $(CPPFLAGS) -c libdynamix_outputs_test.cpp
-
-libdynamix_input_parser_test.o: libdynamix_input_parser_test.cpp \
-        libdynamix_input_parser.cpp libdynamix_input_parser.h
-	$(CPP) $(CPPFLAGS) -c libdynamix_input_parser_test.cpp

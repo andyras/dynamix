@@ -92,6 +92,13 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
   if ((isOutput(outs, "dmt_z.plt")) && (! p->wavefunction)) {
     outs.insert(std::pair<const std::string,bool>("dmt_z.out", true));
   }
+
+  // create output directory if it does not exist //////////////////////////////
+
+  int flag;
+  if (!fileExists(p->outputDir)) {
+    flag = mkdir(p->outputDir.c_str(), 0755);
+  }
 }
 
 /* assigns params to the Params struct from the input file */
@@ -326,11 +333,58 @@ void assignParams(std::string inputFile, Params * p) {
     std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
   }
 
+  // Decide which output files to make /////////////////////////////////////////
+
+#ifdef DEBUG
+  std::cout << "Assigning outputs as specified in " << p->inputFile << "\n";
+#endif
+  assignOutputs(p->inputFile.c_str(), p->outs, p);
+
+  // error checking on various parameters //////////////////////////////////////
+
+  // check torsion parameters, set up torsion spline ///////////////////////////
+
+  if (p->torsion) {
+#ifdef DEBUG
+    std::cout << "Torsion is on." << std::endl;
+#endif
+
+    // error checking
+    if (p->torsionSite > p->Nb) {
+      std::cerr << "ERROR: torsion site (" << p->torsionSite
+        << ") is larger than number of bridge sites (" << p->Nb << ")." << std::endl;
+      exit(-1);
+    }
+    else if (p->torsionSite < 0) {
+      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
+      exit(-1);
+    }
+
+    if (!p->torsionSin2) {
+      if (!fileExists(p->torsionFile)) {
+      std::cerr << "ERROR: torsion file " << p->torsionFile << " does not exist." << std::endl;
+      exit(-1);
+      }
+
+      // create spline
+      p->torsionV.readFile(p->torsionFile.c_str());
+      if (p->torsionV.getFirstX() != 0.0) {
+        std::cerr << "ERROR: time in " << p->torsionFile << " should start at 0.0." << std::endl;
+        exit(-1);
+      }
+
+      if (p->torsionV.getLastX() < p->tout) {
+        std::cerr << "ERROR: time in " << p->torsionFile << " should be >= tout." << std::endl;
+        exit(-1);
+      }
+    }
+  }
+
   return;
 }
 
 // checks if a file exists (can be opened)
 bool fileExists(std::string fileName) {
   std::ifstream ifile(fileName.c_str());
-  return ifile;
+  return ifile.good();
 }

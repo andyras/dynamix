@@ -62,7 +62,7 @@ void readVectorFromFile(std::vector<realtype> & v, const char * fileName, int n)
 #endif
   if (numberOfValuesInFile(fileName) != n) {
     std::cerr << "ERROR reading in vector from " << fileName << ": wrong number of values in file." << std::endl;
-    _exit(1);
+    exit(1);
   }
 
   // read in the file
@@ -228,7 +228,7 @@ void arrayDeriv(double * in, int nt, int m, int dim, double * out, double dt) {
   // dim is p->NEQ
   if (nt < 6) {
     std::cerr << "Error [" << __FUNCTION__ << "]: array must be at least six elements." << std::endl;
-    _exit(-1);
+    exit(-1);
   }
 
   for (int ii = 0; ii < m; ii++) {

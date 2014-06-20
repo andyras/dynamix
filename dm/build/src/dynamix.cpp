@@ -1,7 +1,7 @@
 #include "dynamix.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+// #define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
@@ -9,16 +9,16 @@
 // DEBUGf: debug inner CVode loop
 // #define DEBUGf
 
-#define DEBUG_UPDATEDM
-#define DEBUG_UPDATEWFN
+// #define DEBUG_UPDATEDM
+// #define DEBUG_UPDATEWFN
 
 /* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, Params * p) {
+void updateDM(N_Vector dm, std::vector<realtype> * dmt, int timeStep, Params * p) {
 #ifdef DEBUG_UPDATEDM
   std::cout << "Updating DM at step " << timeStep << "...";
 #endif
   int N = 2*p->NEQ2;
-  memcpy(&dmt[N*timeStep], N_VGetArrayPointer(dm), N*sizeof(realtype));
+  memcpy(&(dmt->at(N*timeStep)), N_VGetArrayPointer(dm), N*sizeof(realtype));
 #ifdef DEBUG_UPDATEDM
   std::cout << "done.\n";
 #endif
@@ -27,14 +27,14 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, Params * p) {
 }
 
 /* Updates \psi(t) at each time step. */
-void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, Params * p) {
+void updateWfn(N_Vector wfn, std::vector<realtype> * wfnt, int timeStep, Params * p) {
 #ifdef DEBUG_UPDATEWFN
   std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
   std::cout << "Wavefunction is " << std::endl;
   N_VPrint_Serial(wfn);
 #endif
   int N = 2*p->NEQ;
-  memcpy(&wfnt[N*timeStep], N_VGetArrayPointer(wfn), N*sizeof(realtype));
+  memcpy(&(wfnt->at(N*timeStep)), N_VGetArrayPointer(wfn), N*sizeof(realtype));
 #ifdef DEBUG_UPDATEWFN
   std::cout << "done updating wavefunction." << std::endl;
 #endif
@@ -218,44 +218,8 @@ void updateHamiltonian(Params * p, realtype t) {
 #include "params.hpp"
 
 void initialize(Params * p) {
-  // This function performs error checking on various parameters
-
-  // check torsion parameters, set up torsion spline
-  if (p->torsion) {
-#ifdef DEBUG
-    std::cout << "Torsion is on." << std::endl;
-#endif
-
-    // error checking
-    if (p->torsionSite > p->Nb) {
-      std::cerr << "ERROR: torsion site (" << p->torsionSite
-        << ") is larger than number of bridge sites (" << p->Nb << ")." << std::endl;
-      exit(-1);
-    }
-    else if (p->torsionSite < 0) {
-      std::cerr << "ERROR: torsion site is less than zero." << std::endl;
-      exit(-1);
-    }
-
-    if (!p->torsionSin2) {
-      if (!fileExists(p->torsionFile)) {
-      std::cerr << "ERROR: torsion file " << p->torsionFile << " does not exist." << std::endl;
-      exit(-1);
-      }
-
-      // create spline
-      p->torsionV.readFile(p->torsionFile.c_str());
-      if (p->torsionV.getFirstX() != 0.0) {
-        std::cerr << "ERROR: time in " << p->torsionFile << " should start at 0.0." << std::endl;
-        exit(-1);
-      }
-
-      if (p->torsionV.getLastX() < p->tout) {
-        std::cerr << "ERROR: time in " << p->torsionFile << " should be >= tout." << std::endl;
-        exit(-1);
-      }
-    }
-  }
+  initHamiltonian(p);
+  initWavefunction(p);
 }
 
 // This function builds up the Hamiltonian, as well as the constituent site
@@ -277,7 +241,7 @@ void initHamiltonian(Params * p) {
   if (p->bridge_on) {
     if (p->Nb < 1) {
       std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
-      _exit(-1);
+      exit(-1);
     }
 
     readVectorFromFile(b_energies, p->bEnergiesInput.c_str(), p->Nb);
@@ -349,6 +313,15 @@ void initHamiltonian(Params * p) {
     std::cout << "energies[" << ii << "] is " << p->energies[ii] << "\n";
   }
 #endif
+
+  // set up Hamiltonian ////////////////////////////////////////////////////////
+
+#ifdef DEBUG
+  fprintf(stderr, "Building Hamiltonian.\n");
+#endif
+
+  p->buildCoupling();
+  p->buildHamiltonian();
 }
 
 // This function builds up the initial wavefunction coefficients based on inputs
@@ -545,7 +518,7 @@ void initWavefunction(Params * p) {
       }
       if ( summ == 0.0 ) {
         std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-        _exit(-1);
+        exit(-1);
       }
       if (summ != 1.0) {
         // the variable 'summ' is now a multiplicative normalization factor
