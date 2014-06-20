@@ -12,13 +12,14 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = icpc
+CPP = g++
 
 # flags for compiler
 # optimized CPPFLAGS
 # Intel
 #CPPFLAGS = -O0 -Wall --std=c++11 -openmp
 CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall --std=c++11 -fopenmp -mkl -no-multibyte-chars
+CPPFLAGS = -O3 -Wall --std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug
