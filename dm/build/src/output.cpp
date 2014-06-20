@@ -1248,7 +1248,6 @@ void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
 
 /* Computes outputs independent of DM or wavefunction propagation*/
 void computeGeneralOutputs(Params * p) {
-std::cout << "\n\nWHOO from computing outputs\n\n";
   // torsion-mediated coupling
   if (p->torsion) {
     if (p->torsionSin2) {

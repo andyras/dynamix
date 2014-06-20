@@ -66,8 +66,6 @@ fi
 if [ justPlots == 0 ]; then
   [ -d outs ] && rm -rf outs
 fi
-mkdir -p outs
-mv *.out outs/
 # move plot files
 [ -d figures ] && rm -rf figures/*
 mkdir -p figures

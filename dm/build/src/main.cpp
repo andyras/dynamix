@@ -195,7 +195,6 @@ int main (int argc, char * argv[]) {
   if (! p.justPlots) {
     // Make outputs independent of time propagation
     computeGeneralOutputs(&p);
-std::cout << "\n\n\nWHOOOOOT\n\n\n";
 
     // create CVode object
     // this is a stiff problem, I guess?

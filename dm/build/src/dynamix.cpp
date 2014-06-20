@@ -1,7 +1,7 @@
 #include "dynamix.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+// #define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
@@ -9,8 +9,8 @@
 // DEBUGf: debug inner CVode loop
 // #define DEBUGf
 
-#define DEBUG_UPDATEDM
-#define DEBUG_UPDATEWFN
+// #define DEBUG_UPDATEDM
+// #define DEBUG_UPDATEWFN
 
 /* Updates \rho(t) at each time step. */
 void updateDM(N_Vector dm, realtype * dmt, int timeStep, Params * p) {
