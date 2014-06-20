@@ -74,6 +74,8 @@ int main (int argc, char * argv[]) {
 
   assignParams(p.inputFile.c_str(), &p);
 
+  initialize(&p);
+
   // print start time to log file //////////////////////////////////////////////
 
   if (isOutput(p.outs, "log.out")) {
@@ -90,18 +92,10 @@ int main (int argc, char * argv[]) {
     fprintf(log,"The laser intensity is %.5e W/cm^2.\n\n",pow(p.pumpAmpl,2)*3.5094452e16);
   }
 
-  // TODO replace with initialize function
-  initHamiltonian(&p);
-  initWavefunction(&p);
-
   // set number of processors for OpenMP ///////////////////////////////////////
 
   omp_set_num_threads(p.nproc);
   mkl_set_num_threads(p.nproc);
-
-  // Assign coupling matrix ////////////////////////////////////////////////////
-
-  p.buildCoupling();
 
   if (isOutput(p.outs, "log.out")) {
     // make a note in the log about system timescales
@@ -140,11 +134,6 @@ int main (int argc, char * argv[]) {
     dmt = new realtype [2*p.NEQ2*(p.numOutputSteps+1)];
     initializeArray(dmt, 2*p.NEQ2*(p.numOutputSteps+1), 0.0);
   }
-
-#ifdef DEBUG
-  fprintf(stderr, "Building Hamiltonian.\n");
-#endif
-  p.buildHamiltonian();
 
 
   //// SET UP CVODE VARIABLES

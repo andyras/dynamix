@@ -218,6 +218,8 @@ void updateHamiltonian(Params * p, realtype t) {
 #include "params.hpp"
 
 void initialize(Params * p) {
+  initHamiltonian(p);
+  initWavefunction(p);
 }
 
 // This function builds up the Hamiltonian, as well as the constituent site
@@ -311,6 +313,15 @@ void initHamiltonian(Params * p) {
     std::cout << "energies[" << ii << "] is " << p->energies[ii] << "\n";
   }
 #endif
+
+  // set up Hamiltonian ////////////////////////////////////////////////////////
+
+#ifdef DEBUG
+  fprintf(stderr, "Building Hamiltonian.\n");
+#endif
+
+  p->buildCoupling();
+  p->buildHamiltonian();
 }
 
 // This function builds up the initial wavefunction coefficients based on inputs

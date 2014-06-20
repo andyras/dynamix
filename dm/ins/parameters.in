@@ -60,7 +60,7 @@ pumpAmpl=5.338027e-8			# intensity of pump pulse (electric field a.u.)
 #pumpAmpl=5.338027e-9			# intensity of pump pulse (electric field a.u.)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
-CBPopFlag=2				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
+CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 VBPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 QDPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 Nk_first=1        # first k state initially populated
