@@ -1,4 +1,5 @@
 #include "dynamix.hpp"
+#include <getopt.h>
 
 int main (int argc, char * argv[]) {
   // Declare variables

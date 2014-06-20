@@ -277,7 +277,7 @@ void initHamiltonian(Params * p) {
   if (p->bridge_on) {
     if (p->Nb < 1) {
       std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
-      _exit(-1);
+      exit(-1);
     }
 
     readVectorFromFile(b_energies, p->bEnergiesInput.c_str(), p->Nb);
@@ -545,7 +545,7 @@ void initWavefunction(Params * p) {
       }
       if ( summ == 0.0 ) {
         std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-        _exit(-1);
+        exit(-1);
       }
       if (summ != 1.0) {
         // the variable 'summ' is now a multiplicative normalization factor

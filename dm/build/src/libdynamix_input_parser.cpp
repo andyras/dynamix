@@ -332,5 +332,5 @@ void assignParams(std::string inputFile, Params * p) {
 // checks if a file exists (can be opened)
 bool fileExists(std::string fileName) {
   std::ifstream ifile(fileName.c_str());
-  return ifile;
+  return ifile.good();
 }

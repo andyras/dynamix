@@ -18,7 +18,8 @@ CPP = icpc
 # optimized CPPFLAGS
 # Intel
 #CPPFLAGS = -O0 -Wall --std=c++11 -openmp
-CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall --std=c++11 -fopenmp -mkl -no-multibyte-chars
+CPPFLAGS = -O3 -fast -xHOST -no-prec-div -Wall -std=c++11 -fopenmp -mkl -no-multibyte-chars
+CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug
@@ -31,8 +32,12 @@ endif
 INCLUDES = -I$(INCDIR) -I$(MKLROOT)/include/fftw
 # includes for CVODE
 INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -L$(HOME)/bin/lib -I/usr/include/sundials -I/usr/include/cvode -L/usr/lib
+INCLUDES += -I/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/include/
+INCLUDES += -L/opt/intel/composer_xe_2013_sp1.1.103/mkl/lib/
+INCLUDES += -L/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/
 #LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lgomp -lfftw3
 # Intel flags for linker
+LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lmkl_intel_ilp64 -lgomp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial -mkl
 ifdef DEBUG_MAKE
   LDFLAGS += -pg -g -debug
