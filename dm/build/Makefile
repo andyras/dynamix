@@ -12,7 +12,7 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = icpc
+CPP = clang++
 
 # flags for compiler
 # optimized CPPFLAGS
@@ -67,15 +67,11 @@ $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean cleantest build install uninstall $(BINDIR)
+.PHONY: clean build install uninstall $(BINDIR)
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(BIN)
-
-cleantest:
-	rm -f *.out
-	rm -f *.plt
-	rm -f *test
 
 build:
 	make clean
@@ -89,18 +85,3 @@ uninstall:
 
 $(BINDIR):
 	mkdir -p ../bin
-
-# TODO update testing section of this file
-tests: dynamix libdynamix_outputs_test.o libdynamix_input_parser_test.o
-	$(CPP) -o libdynamix_outputs_test \
-	 libdynamix_outputs_test.o libdynamix_outputs.o $(LDFLAGS)
-	$(CPP) -o libdynamix_input_parser_test \
-	 libdynamix_input_parser_test.o libdynamix_input_parser.o $(LDFLAGS)
-
-libdynamix_outputs_test.o: libdynamix_outputs_test.cpp \
-        libdynamix_outputs.cpp libdynamix_outputs.h
-	$(CPP) $(CPPFLAGS) -c libdynamix_outputs_test.cpp
-
-libdynamix_input_parser_test.o: libdynamix_input_parser_test.cpp \
-        libdynamix_input_parser.cpp libdynamix_input_parser.h
-	$(CPP) $(CPPFLAGS) -c libdynamix_input_parser_test.cpp

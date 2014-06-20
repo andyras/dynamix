@@ -10,10 +10,6 @@ void Spline::readFile(const char * dataFile) {
   std::cout << "Creating spline from data file " << dataFile << "." << std::endl;
 #endif
 
-  // placeholders for x and a values
-  double xTmp;
-  double aTmp;
-
   Point p;
 
   // stream for input data file

@@ -7,12 +7,12 @@ using namespace std;
 void makePlots(Params * p) {
   // populations in subsystems
   if (isOutput(p->outs, "populations.plt")) {
-    plotPopulations("populations.plt", p);
+    plotPopulations((char *)"populations.plt", p);
   }
 
   // probabilities in k states
   if (isOutput(p->outs, "kprobs.plt") && (p->Nk > 1)) {
-    plotKProbs("kprobs.plt", p);
+    plotKProbs((char *)"kprobs.plt", p);
   }
   else {
     if (p->Nk < 2) {
@@ -35,17 +35,17 @@ void makePlots(Params * p) {
     if (!isOutput(p->outs, "muFromPops.out")) {
       std::cout << "WARNING: making muFromPops.plt although muFromPops.out does not exist." << std::endl;
     }
-    plotMuFromPops("muFromPops.plt", p);
+    plotMuFromPops((char *)"muFromPops.plt", p);
   }
 
   // density matrix in time
   if (isOutput(p->outs, "dmt_z.plt")) {
-    plotDMt_z("dmt_z.plt", p);
+    plotDMt_z((char *)"dmt_z.plt", p);
   }
 
   // populations in k states as a movie
   if (isOutput(p->outs, "kprobs_movie.plt") && (p->Nk > 1)) {
-    plotKProbsMovie("kprobs_movie.plt", p);
+    plotKProbsMovie((char *)"kprobs_movie.plt", p);
   }
   else {
     if (p->Nk < 2) {
@@ -55,7 +55,7 @@ void makePlots(Params * p) {
 
   // populations in c states as a movie
   if (isOutput(p->outs, "cprobs_movie.plt") && (p->Nc > 1)) {
-    plotCProbsMovie("cprobs_movie.plt", p);
+    plotCProbsMovie((char *)"cprobs_movie.plt", p);
   }
   else {
     if (p->Nc < 2) {
