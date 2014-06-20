@@ -8,28 +8,20 @@ void propagate(Params * p) {
   N_Vector y, yout;                     // arrays of populations
 
   int flag;
-  realtype * dmt = NULL;                                // density matrix in time
-  realtype * wfnt = NULL;                               // wave function in time
+  std::vector<realtype> dmt;                                // density matrix in time
+  std::vector<realtype> wfnt;                               // wave function in time
   realtype t0 = 0.0;                            // initial time
   realtype t = 0;
   realtype tret = 0;                                    // time returned by the solver
 
-
+  // set up vectors which hold the wfn/DM over all time ////////////////////////
   if (p->wavefunction) {
-    // Create the array to store the wavefunction in time
-    wfnt = new realtype [2*p->NEQ*(p->numOutputSteps+1)];
-    initializeArray(wfnt, 2*p->NEQ*(p->numOutputSteps+1), 0.0);
-    for (int ii = 0; ii < 2*p->NEQ*(p->numOutputSteps+1); ii++) {
-      wfnt[ii] = p->startWfn[ii];
-    }
+    wfnt.assign(p->startWfn.begin(), p->startWfn.end());
+    wfnt.resize(2*p->NEQ*(p->numOutputSteps + 1), 0.0);
   }
   else {
-    // Create the array to store the density matrix in time
-    dmt = new realtype [2*p->NEQ2*(p->numOutputSteps+1)];
-    initializeArray(dmt, 2*p->NEQ2*(p->numOutputSteps+1), 0.0);
-    for (int ii = 0; ii < 2*p->NEQ2*(p->numOutputSteps+1); ii++) {
-      dmt[ii] = p->startDM[ii];
-    }
+    dmt.assign(p->startDM.begin(), p->startDM.end());
+    dmt.resize(2*p->NEQ2*(p->numOutputSteps + 1), 0.0);
   }
 
 
@@ -137,10 +129,10 @@ void propagate(Params * p) {
         progressFile.close();
       }
       if (p->wavefunction) {
-        updateWfn(yout, wfnt, ii*p->numOutputSteps/p->numsteps, p);
+        updateWfn(yout, &wfnt, ii*p->numOutputSteps/p->numsteps, p);
       }
       else {
-        updateDM(yout, dmt, ii*p->numOutputSteps/p->numsteps, p);
+        updateDM(yout, &dmt, ii*p->numOutputSteps/p->numsteps, p);
       }
     }
   }
@@ -150,10 +142,10 @@ void propagate(Params * p) {
   std::cout << "Computing outputs..." << std::endl;
 #endif
   if (p->wavefunction) {
-    computeWfnOutput(wfnt, p);
+    computeWfnOutput(&(wfnt[0]), p);
   }
   else {
-    computeDMOutput(dmt, p);
+    computeDMOutput(&(dmt[0]), p);
   }
 #ifdef DEBUG
   std::cout << "done computing outputs" << std::endl;
@@ -180,17 +172,6 @@ void propagate(Params * p) {
 #endif
   // free solver memory //
   CVodeFree(&cvode_mem);
-
-#ifdef DEBUG
-  fprintf(stdout, "Freeing memory in main.\n");
-#endif
-  // delete all these guys
-  if (p->wavefunction) {
-    delete [] wfnt;
-  }
-  else {
-    delete [] dmt;
-  }
 
   return;
 }

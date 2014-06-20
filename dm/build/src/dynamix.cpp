@@ -13,12 +13,12 @@
 // #define DEBUG_UPDATEWFN
 
 /* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, realtype * dmt, int timeStep, Params * p) {
+void updateDM(N_Vector dm, std::vector<realtype> * dmt, int timeStep, Params * p) {
 #ifdef DEBUG_UPDATEDM
   std::cout << "Updating DM at step " << timeStep << "...";
 #endif
   int N = 2*p->NEQ2;
-  memcpy(&dmt[N*timeStep], N_VGetArrayPointer(dm), N*sizeof(realtype));
+  memcpy(&(dmt->at(N*timeStep)), N_VGetArrayPointer(dm), N*sizeof(realtype));
 #ifdef DEBUG_UPDATEDM
   std::cout << "done.\n";
 #endif
@@ -27,14 +27,14 @@ void updateDM(N_Vector dm, realtype * dmt, int timeStep, Params * p) {
 }
 
 /* Updates \psi(t) at each time step. */
-void updateWfn(N_Vector wfn, realtype * wfnt, int timeStep, Params * p) {
+void updateWfn(N_Vector wfn, std::vector<realtype> * wfnt, int timeStep, Params * p) {
 #ifdef DEBUG_UPDATEWFN
   std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
   std::cout << "Wavefunction is " << std::endl;
   N_VPrint_Serial(wfn);
 #endif
   int N = 2*p->NEQ;
-  memcpy(&wfnt[N*timeStep], N_VGetArrayPointer(wfn), N*sizeof(realtype));
+  memcpy(&(wfnt->at(N*timeStep)), N_VGetArrayPointer(wfn), N*sizeof(realtype));
 #ifdef DEBUG_UPDATEWFN
   std::cout << "done updating wavefunction." << std::endl;
 #endif
