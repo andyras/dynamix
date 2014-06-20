@@ -70,11 +70,6 @@ int main (int argc, char * argv[]) {
     }
   }
 
-  if (fileExists(p.outputDir)) {
-    flag = mkdir(p.outputDir.c_str(), 0755);
-  }
-  // ---- TODO create output directory if it does not exist ---- //
-
   // assign parameters from input file /////////////////////////////////////////
 
   assignParams(p.inputFile.c_str(), &p);
