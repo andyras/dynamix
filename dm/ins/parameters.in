@@ -56,8 +56,7 @@ muLK=1e0				# transition dipole moment from l to k (dipole a.u.)
 pumpFWHM=4000				# FWHM of pump pulse (time a.u.)
 pumpPeak=6000				# time of peak of pump pulse (a.u.)
 pumpFreq=1.0e-2				# frequency of pump pulse (energy a.u.)
-pumpAmpl=5.338027e-8			# intensity of pump pulse (electric field a.u.)
-#pumpAmpl=5.338027e-9			# intensity of pump pulse (electric field a.u.)
+pumpAmpl=5.338027e-8			# intensity of pump pulse (electric field a.u.; square and multiply by 3.5094452e16 to get W/cm^2)
 pumpPhase=0.0				# pump pulse phase (units of radians)
 # starting condition switches #
 CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
@@ -136,7 +135,6 @@ energies.out
 kprobs.out
 #kprobs_gnuplot.out
 #lprobs.out
-#log.out
 #mu.out
 #muFromPops.out
 #ne.out
