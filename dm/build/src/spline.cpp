@@ -36,7 +36,7 @@ void Spline::readFile(const char * dataFile) {
 
   //// Step 1: compute differences between x points
 
-  for (int ii = 0; ii < (s.size() - 1); ii++) {
+  for (int ii = 0; (unsigned int)ii < (s.size() - 1); ii++) {
     h[ii] = s[ii+1].x - s[ii].x;
     // check that there are no duplicates
     if (h[ii] == 0.0) {
@@ -46,7 +46,7 @@ void Spline::readFile(const char * dataFile) {
   }
 
   //// Step 2: compute alpha
-  for (int ii = 1; ii < (s.size() - 1); ii++) {
+  for (int ii = 1; (unsigned int)ii < (s.size() - 1); ii++) {
     al[ii] = (3.0/h[ii])*(s[ii+1].a - s[ii].a) - (3.0/h[ii-1])*(s[ii].a - s[ii-1].a);
   }
 
@@ -56,7 +56,7 @@ void Spline::readFile(const char * dataFile) {
   z[0] = 0.0;
 
   //// Step 4: set I, mu, and z for other points
-  for (int ii = 1; ii < (s.size() - 1); ii++) {
+  for (int ii = 1; (unsigned int)ii < (s.size() - 1); ii++) {
     I[ii] = 2.0*(s[ii+1].x - s[ii-1].x) - h[ii-1]*mu[ii-1];
     mu[ii] = h[ii]/I[ii];
     z[ii] = (al[ii] - h[ii-1]*z[ii-1])/I[ii];
@@ -103,7 +103,7 @@ double Spline::value(double x) {
   int index = 0;
 
   // s[ii].x <= x < s[ii+1].x
-  for (int ii = 0; ii < (s.size() - 1); ii++) {
+  for (int ii = 0; (unsigned int)ii < (s.size() - 1); ii++) {
     if ((x >= s[ii].x) && (x < s[ii+1].x)) {
       index = ii;
       break;
@@ -129,7 +129,7 @@ void Spline::print() {
   std::cout << std::setw(13) << "c      ";
   std::cout << std::setw(13) << "d      ";
   std::cout << std::endl;
-  for (int ii = 0; ii < s.size(); ii++) {
+  for (int ii = 0; (unsigned int)ii < s.size(); ii++) {
     std::cout << std::setw(6) << std::scientific << ii << " ";
     std::cout << std::setw(13) << std::scientific << s[ii].x;
     std::cout << std::setw(13) << std::scientific << s[ii].a;

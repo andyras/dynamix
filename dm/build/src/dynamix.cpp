@@ -110,7 +110,7 @@ void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, P
     s = 1;
     m = p->me;
   }
-  else if (flag == VALENCE) {
+  else { // (flag == VALENCE)
     s = -1;
     m = p->mh;
   }
