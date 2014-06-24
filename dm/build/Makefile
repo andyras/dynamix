@@ -12,7 +12,7 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = g++
+CPP = icpc
 
 # flags for compiler
 # optimized CPPFLAGS
