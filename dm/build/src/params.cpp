@@ -12,7 +12,7 @@ void Params::buildCoupling () {
 
   // initialize the coupling array
   V.resize(NEQ);
-  for (int ii = 0; ii < V.size(); ii++) {
+  for (int ii = 0; (unsigned int)ii < V.size(); ii++) {
     V[ii].assign(NEQ, 0.0);
   }
 

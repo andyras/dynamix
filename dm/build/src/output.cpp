@@ -1067,7 +1067,7 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
   std::cout << "size of peaks vector is " << peaks.size() << std::endl;
 #endif
   if (peaks.size() > 1) {	// don't do this with zero or one peak
-    for (int ii = 0; ii < (peaks.size()-1); ii++) {
+    for (int ii = 0; (unsigned int)ii < (peaks.size()-1); ii++) {
       peaks[ii].nextPeakTime = peaks[ii+1].time - peaks[ii].time;
     }
   }
@@ -1083,7 +1083,7 @@ void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
 #endif
   }
   else {
-    for (int ii = 0; ii < peaks.size(); ii++) {
+    for (int ii = 0; (unsigned int)ii < peaks.size(); ii++) {
 #ifdef DEBUG_OUTPUT
       std::cout << "Peak (" << peaks[ii].peak << ") at " << peaks[ii].time << std::endl;
 #endif
