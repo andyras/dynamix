@@ -12,7 +12,7 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = g++
+CPP = icpc
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial

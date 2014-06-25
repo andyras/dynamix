@@ -173,5 +173,10 @@ void propagate(Params * p) {
   // free solver memory //
   CVodeFree(&cvode_mem);
 
+  // this is just to make g++ not complain that the flag variable is unused...
+  FILE * devnull = fopen("/dev/null", "w");
+  fprintf(devnull, "%d", flag);
+  fclose(devnull);
+
   return;
 }
