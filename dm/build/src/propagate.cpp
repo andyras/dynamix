@@ -1,6 +1,6 @@
 #include "propagate.hpp"
 
-#define DEBUG
+// #define DEBUG
 
 void propagate(Params * p) {
   // CVode variables
@@ -68,7 +68,6 @@ void propagate(Params * p) {
   if (p->wavefunction) {
     //flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
     flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
-    std::cout << "Chose RHS_WFN_SPARSE\n";
   }
   else {
     if (p->kinetic) {

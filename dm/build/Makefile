@@ -12,7 +12,7 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = g++-4.8
+CPP = icpc
 
 # flags for compiler
 # optimized CPPFLAGS
@@ -27,7 +27,7 @@ INCLUDES = -I$(INCDIR)
 ifeq ($(CPP),g++-4.8)
   CPPFLAGS += -O0 -Wall -std=c++11 -fopenmp
   LDFLAGS += -lsundials_cvode -lsundials_nvecserial -lgomp
-  LDFLAGS += -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
+  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   ifeq ($(shell hostname),tim.selfip.org)
     #INCLUDES += -L/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64/
     LDFLAGS += -lpthread -lm
