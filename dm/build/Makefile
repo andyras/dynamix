@@ -30,19 +30,10 @@ else # g++*
   endif
 endif
 
-# includes for SUNDIALS/CVODE, useful on Arch
-#INCLUDES += -I/usr/include/sundials -I/usr/include/cvode
-
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug
   LDFLAGS += -pg -g -debug
 endif
-
-
-#INCLUDES += -I/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/include/
-#INCLUDES += -L/opt/intel/composer_xe_2013_sp1.1.103/mkl/lib/
-#INCLUDES += -L/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/
-#LDFLAGS = -lsundials_cvode -lsundials_nvecserial -lgomp -lfftw3
 
 # make will look for .cpp files in $(SRCDIR)
 vpath %.cpp $(SRCDIR)
@@ -64,25 +55,20 @@ $(OBJDIR)/%.o: %.cpp
 # all objects depend on object directory
 $(OBJECTS): | $(OBJDIR)
 
-# make object directory if it does not exist
-$(OBJDIR):
-	mkdir -p $(OBJDIR)
-
-.PHONY: clean build install uninstall $(BINDIR)
+.PHONY: clean install uninstall $(BINDIR) $(OBJDIR)
 
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(BIN)
-
-build:
-	make clean
-	make
 
 install: $(BIN) | $(BINDIR)
 	cp dynamix $(BINDIR)
 
 uninstall:
 	rm -rf $(BINDIR)/$(BIN)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 $(BINDIR):
 	mkdir -p ../bin
