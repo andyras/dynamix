@@ -14,37 +14,21 @@ BINDIR = ../bin
 # compiler
 CPP = icpc
 
-# flags for compiler
-# optimized CPPFLAGS
-# Intel
-#CPPFLAGS = -O0 -Wall --std=c++11 -openmp
-
-CPPFLAGS =
-LDFLAGS =
+CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
+LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
 
 # basic compiler-dependent flags
-ifeq ($(CPP),g++-4.8)
-  CPPFLAGS += -O0 -Wall -std=c++11 -fopenmp
-  LDFLAGS += -lsundials_cvode -lsundials_nvecserial -lgomp
+ifeq ($(CPP),icpc)
+  CPPFLAGS += -fast -xHOST -no-prec-div -mkl -no-multibyte-chars
+  LDFLAGS += -mkl
+else # g++*
+  LDFLAGS += -lgomp
   LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   ifeq ($(shell hostname),tim.selfip.org)
     #INCLUDES += -L/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64/
     LDFLAGS += -lpthread -lm
   endif
-  ifeq ($(shell uname),Darwin)
-    # flags for OpenMP
-    #INCLUDES += -I/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/include/
-    #LDFLAGS += -L/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/
-    # flags for CVODE
-    # INCLUDES += -I/Users/andyras/bin/cvode-2.7.0/include/
-    # LDFLAGS += -L/Users/andyras/bin/cvode-2.7.0/lib/
-
-    #LDFLAGS += -L/opt/intel/composer_xe_2013_sp1.1.103/mkl/lib/
-  endif
-else # icpc
-  CPPFLAGS += -O3 -fast -xHOST -no-prec-div -Wall -std=c++11 -fopenmp -mkl -no-multibyte-chars
-  LDFLAGS += -lsundials_cvode -lsundials_nvecserial -mkl
 endif
 
 # includes for SUNDIALS/CVODE, useful on Arch
