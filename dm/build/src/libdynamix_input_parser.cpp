@@ -95,9 +95,8 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
 
   // create output directory if it does not exist //////////////////////////////
 
-  int flag;
   if (!fileExists(p->outputDir)) {
-    flag = mkdir(p->outputDir.c_str(), 0755);
+    mkdir(p->outputDir.c_str(), 0755);
   }
 }
 

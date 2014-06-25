@@ -3,7 +3,7 @@ do_compile=1
 do_run=1
 do_plot=1
 do_backup=0
-debug=0
+debug=1
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
@@ -33,7 +33,7 @@ numOutputSteps=200			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=101					# number of k states to have
+Nk=11					# number of k states to have
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states

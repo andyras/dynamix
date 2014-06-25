@@ -4,7 +4,7 @@
 //#define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
-//#define DEBUGf
+// #define DEBUGf
 //
 // DEBUGf_DM flag: DEBUGf for density matrix EOM
 // #define DEBUGf_DM
@@ -97,6 +97,7 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   mkl_set_num_threads(1);
 
+std::cout << "What is wrong with little old " << N << "\n";
   // Re(\dot{\psi}) = \hat{H}Im(\psi)
   mkl_dcsrmv(&transa, &N, &N, &alpha_re, &matdescra[0], &H[0], &columns[0],
              &rowind[0], &rowind[1], &yp[N], &beta, &ydotp[0]);

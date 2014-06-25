@@ -68,6 +68,7 @@ void propagate(Params * p) {
   if (p->wavefunction) {
     //flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
     flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
+    std::cout << "Chose RHS_WFN_SPARSE\n";
   }
   else {
     if (p->kinetic) {
@@ -113,7 +114,6 @@ void propagate(Params * p) {
   for (int ii = 1; ii <= p->numsteps; ii++) {
     t = (p->tout*((double) ii)/((double) p->numsteps));
     flag = CVode(cvode_mem, t, yout, &tret, 1);
-std::cout << "\nWHOOOOOOT\n";
 #ifdef DEBUGf
     std::cout << std::endl << "CVode flag at step " << ii << ": " << flag << std::endl;
 #endif

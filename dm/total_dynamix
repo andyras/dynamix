@@ -18,15 +18,6 @@ function compile {
 
 fecho "compiling dynamix.cpp..."
 
-# select a compiler
-if command -v icpc &> /dev/null; then
-  CPP=icpc
-elif command -v g++ &> /dev/null;then
-  CPP=g++
-else
-  CPP=c++
-fi
-
 cd build
 if [[ $(uname) == "Darwin" ]]; then
   ncores=$(sysctl -n hw.ncpu)
