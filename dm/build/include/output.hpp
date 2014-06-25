@@ -4,7 +4,6 @@
 #include <map>
 #include <cmath>
 #include <string>
-#include <fftw3.h>
 #include <nvector/nvector_serial.h>
 #include <iostream>
 #include <fstream>
@@ -12,7 +11,6 @@
 
 #include "conversions.hpp"
 #include "numerical.hpp"
-#include "fftmanip.hpp"
 #include "dynamix.hpp"
 #include "params.hpp"
 #include "rhs.hpp"
@@ -30,15 +28,6 @@ typedef struct {
 bool isOutput(std::map<const std::string, bool> &myMap, const std::string myStr);
 
 std::string outputFileName(char * fileName, Params * p);
-
-/* prints out array of fftw_complex values.  The 'x' array is
- * the x-axis variable: time, energy, &c.
- */
-void outputFFTWVector(const char * fileName, fftw_complex * vec, double * x, int len);
-
-/* Wrapper to outputFFTWVector, which fftshifts the output.
-*/
-void outputFFTWVectorShift(const char * fileName, fftw_complex * vec, double * x, int len);
 
 /* prints out initial wave function.  Inputs are the wave function array and
  * the number of equations.

@@ -12,7 +12,7 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = g++
+CPP = g++-4.8
 
 # flags for compiler
 # optimized CPPFLAGS
@@ -21,12 +21,12 @@ CPP = g++
 
 CPPFLAGS =
 LDFLAGS =
-INCLUDES = -I$(INCDIR) -I$(MKLROOT)/include/fftw/
+INCLUDES = -I$(INCDIR)
 
 # basic compiler-dependent flags
-ifeq ($(CPP),g++)
+ifeq ($(CPP),g++-4.8)
   CPPFLAGS += -O3 -Wall -std=c++11
-  LDFLAGS += -lsundials_cvode -lsundials_nvecserial -lmkl_intel_ilp64 -lgomp
+  LDFLAGS += -lsundials_cvode -lsundials_nvecserial -lgomp
   LDFLAGS += -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
   ifeq ($(shell hostname),tim.selfip.org)
     #INCLUDES += -L/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64/
@@ -37,15 +37,15 @@ ifeq ($(CPP),g++)
     INCLUDES += -I/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/include/
     LDFLAGS += -L/usr/local/Cellar/gcc48/4.8.3/lib/gcc/x86_64-apple-darwin13.2.0/4.8.3/
     # flags for MKL
-    LDFLAGS += -L/opt/intel/composer_xe_2013_sp1.1.103/mkl/lib/
+    #LDFLAGS += -L/opt/intel/composer_xe_2013_sp1.1.103/mkl/lib/
   endif
 else # icpc
   CPPFLAGS += -O3 -fast -xHOST -no-prec-div -Wall -std=c++11 -fopenmp -mkl -no-multibyte-chars
   LDFLAGS += -lsundials_cvode -lsundials_nvecserial -mkl
 endif
 
-# includes for SUNDIALS/CVODE
-INCLUDES += -I$(HOME)/bin/include -I$(HOME)/bin/include/cvode -I/usr/include/sundials -I/usr/include/cvode
+# includes for SUNDIALS/CVODE, useful on Arch
+#INCLUDES += -I/usr/include/sundials -I/usr/include/cvode
 
 ifdef DEBUG_MAKE
   CPPFLAGS += -pg -g -debug
@@ -69,7 +69,7 @@ OBJECTS = $(patsubst $(SRCDIR)/%.cpp,obj/%.o,$(SOURCES))
 
 # build the main executable; this should be listed first
 $(BIN): $(OBJECTS)
-	$(CPP) -o $@ $^ $(LDFLAGS) $(INCLUDES)
+	$(CPP) -o $@ $^ $(LDFLAGS)
 
 # automatic rule for building objects
 $(OBJDIR)/%.o: %.cpp
