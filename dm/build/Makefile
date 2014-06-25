@@ -12,7 +12,7 @@ SRCDIR = ./src
 BINDIR = ../bin
 
 # compiler
-CPP = icpc
+CPP = g++
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
@@ -23,10 +23,9 @@ ifeq ($(CPP),icpc)
   CPPFLAGS += -fast -xHOST -no-prec-div -mkl -no-multibyte-chars
   LDFLAGS += -mkl
 else # g++*
-  LDFLAGS += -lgomp
+  LDFLAGS += -liomp5
   LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   ifeq ($(shell hostname),tim.selfip.org)
-    #INCLUDES += -L/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64/
     LDFLAGS += -lpthread -lm
   endif
 endif
@@ -56,7 +55,7 @@ OBJECTS = $(patsubst $(SRCDIR)/%.cpp,obj/%.o,$(SOURCES))
 
 # build the main executable; this should be listed first
 $(BIN): $(OBJECTS)
-	$(CPP) -o $@ $^ $(LDFLAGS)
+	$(CPP) -o $@ $^ $(LDFLAGS) -fopenmp
 
 # automatic rule for building objects
 $(OBJDIR)/%.o: %.cpp
