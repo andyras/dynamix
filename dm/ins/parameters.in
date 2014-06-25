@@ -7,7 +7,7 @@ debug=0
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
-nproc=1
+nproc=2
 # method parameters #
 wavefunction=1				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
@@ -22,7 +22,7 @@ rta=0					# use relaxation time approximation (RTA)
 rtaQD=0					# use relaxation time approximation (RTA) on QD
 dephasing=0				# turn on dephasing (gamma2)
 progressFile=0				# create file to show progress of run
-progressStdout=0			# show progress in stdout
+progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
@@ -33,7 +33,7 @@ numOutputSteps=200			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=101					# number of k states to have
+Nk=501					# number of k states to have
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states

@@ -95,8 +95,6 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
       'C', // zero-based indexing (C-style)
       '*', '*'}; // extra characters
 
-  mkl_set_num_threads(1);
-
   // Re(\dot{\psi}) = \hat{H}Im(\psi)
   mkl_dcsrmv(&transa, &N, &N, &alpha_re, &matdescra[0], &H[0], &columns[0],
              &rowind[0], &rowind[1], &yp[N], &beta, &ydotp[0]);
@@ -138,17 +136,17 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
   }
 
   // do the (N-1) pairs of states along diagonal
-  double ePi, ePj;	// equilibrium populations, i and j indices
-  double rel;		// relaxation term
-  int Ii, Ij;		// indices
+  double ePi, ePj;      // equilibrium populations, i and j indices
+  double rel;           // relaxation term
+  int Ii, Ij;           // indices
 
   // find equilibrium FDD
   double * fdd = new double [Ni];
 
   if ((p->dynamicMu) && (pop > 0.0)) {
-    if (pop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+    if (pop > 1.001) {  // test is against 1.001 since there may be some numerical drift
       std::cout << "WARNING [" << __FUNCTION__
-	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+        << "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
     }
 
     //// find bounds for Fermi level
@@ -163,7 +161,7 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
   for (int ii = 0; ii < (Ni-1); ii++) {
     // precalculate indices and such
     Ii = (start + ii)*N + start + ii;
-    Ij = Ii + N + 1;		// this index is the next diagonal element, so N+1 places up
+    Ij = Ii + N + 1;            // this index is the next diagonal element, so N+1 places up
     ePi = fdd[ii];
     ePj = fdd[ii+1];
 
@@ -257,13 +255,13 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
-	//// real parts of ydot
-	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+        //// real parts of ydot
+        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
-	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+        //// imaginary parts of ydot (lower triangle and complex conjugate)
+        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
@@ -343,9 +341,9 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   }
 
   // do the (N-1) pairs of states along diagonal
-  double ePi, ePj;	// equilibrium populations, i and j indices
-  double rel;		// relaxation term
-  int Ii, Ij;		// indices
+  double ePi, ePj;      // equilibrium populations, i and j indices
+  double rel;           // relaxation term
+  int Ii, Ij;           // indices
 
   //// Kinetic relaxation model here
 
@@ -353,9 +351,9 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   double * fdd = new double [Nk];
 
   if ((p->dynamicMu) && (CBPop > 0.0)) {
-    if (CBPop > 1.001) {	// test is against 1.001 since there may be some numerical drift
+    if (CBPop > 1.001) {        // test is against 1.001 since there may be some numerical drift
       std::cout << "WARNING [" << __FUNCTION__
-	<< "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
+        << "]: population in band is > 1; dynamic Fermi level may be spurious" << std::endl;
     }
 
     //// find bounds for Fermi level
@@ -370,7 +368,7 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < (Nk-1); ii++) {
     // precalculate indices and such
     Ii = (Ik + ii)*N + Ik + ii;
-    Ij = Ii + N + 1;		// this index is the next diagonal element, so N+1 places up
+    Ij = Ii + N + 1;            // this index is the next diagonal element, so N+1 places up
     ePi = fdd[ii];
     ePj = fdd[ii+1];
 
@@ -395,13 +393,13 @@ int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
-	//// real parts of ydot
-	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+        //// real parts of ydot
+        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
-	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+        //// imaginary parts of ydot (lower triangle and complex conjugate)
+        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
@@ -489,13 +487,13 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
-	//// real parts of ydot
-	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+        //// real parts of ydot
+        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
-	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+        //// imaginary parts of ydot (lower triangle and complex conjugate)
+        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
@@ -574,14 +572,13 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // set up MKL variables
   double beta = 0.0;
   char matdescra [6] = {'T', // symmetric matrix
-			'L', // lower triangle
-			'N', // non-unit on diagonal
-			'C', // zero-based indexing (C-style)
-			'*', '*'};
+                        'L', // lower triangle
+                        'N', // non-unit on diagonal
+                        'C', // zero-based indexing (C-style)
+                        '*', '*'};
 
-			// set beta to zero for first call
+                        // set beta to zero for first call
 
-  mkl_set_num_threads(p->nproc);
   // Re(\dot{\rho}) += H*Im(\rho)
   //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
   //DSYMM(&LEFT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
@@ -589,7 +586,7 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // Re(\dot{\psi}) = \hat{H}Im(\psi)
   mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
              &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
-  
+
   // Re(\dot{\rho}) -= Im(\rho)*H
   //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &yp[N2], &N, &H[0], &N, &ONE, &ydotp[0], &N);
   DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
@@ -647,26 +644,26 @@ double findDynamicMu(double pop, double T, int bandFlag, Params * p) {
       lower = -1.0;
       upper = 0.0;
       while (summ < pop) {
-	lower++;
-	upper++;
+        lower++;
+        upper++;
 #ifdef DEBUG_DYNAMIC_MU
-	std::cout << "Lower bound for mu: " << lower << std::endl;
-	std::cout << "Upper bound for mu: " << upper << std::endl;
+        std::cout << "Lower bound for mu: " << lower << std::endl;
+        std::cout << "Upper bound for mu: " << upper << std::endl;
 #endif
-	summ = FDDSum(upper, T, bandFlag, p);
+        summ = FDDSum(upper, T, bandFlag, p);
       }
     }
     else {
       lower = 0.0;
       upper = 1.0;
       while (summ > pop) {
-	lower--;
-	upper--;
+        lower--;
+        upper--;
 #ifdef DEBUG_DYNAMIC_MU
-	std::cout << "Lower bound for mu: " << lower << std::endl;
-	std::cout << "Upper bound for mu: " << upper << std::endl;
+        std::cout << "Lower bound for mu: " << lower << std::endl;
+        std::cout << "Upper bound for mu: " << upper << std::endl;
 #endif
-	summ = FDDSum(lower, T, bandFlag, p);
+        summ = FDDSum(lower, T, bandFlag, p);
       }
     }
 
@@ -768,17 +765,17 @@ void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
 #endif
   // unpack parameters
   int N = p->NEQ;
-  int Ni;		// number of states
-  int Ii;		// index of states
-  if (flag == 1) {	// FDD in conduction band
+  int Ni;               // number of states
+  int Ii;               // index of states
+  if (flag == 1) {      // FDD in conduction band
     Ni = p->Nk;
     Ii = p->Ik;
   }
-  else {		// FDD in QD
+  else {                // FDD in QD
     Ni = p->Nc;
     Ii = p->Ic;
   }
-  double me;		// electron effective mass
+  double me;            // electron effective mass
   if (flag == 1) {
     me = p->me;
   }
@@ -802,7 +799,7 @@ void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
 #endif
   // assign vector of energies
   std::vector<double> Ev (Ni,0.0);
-  realtype * E = &(Ev[0]);		// TODO don't need this if have Intel/GCC flag
+  realtype * E = &(Ev[0]);              // TODO don't need this if have Intel/GCC flag
   for (int ii = 0; ii < Ni; ii++) {
     E[ii] = pow(ii,2)/(2*me*pow(X2,2));
   }
@@ -812,8 +809,8 @@ void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
 #endif
   // Simpson's Rule method
   // skip the first point because the value will be zero
-  double SF = 4.0;	// Simpson's factor
-  int sign = -1;	// sign
+  double SF = 4.0;      // Simpson's factor
+  int sign = -1;        // sign
   for (int ii = 1; ii < (Ni-1); ii++) {
     ne += SF*factor*ii*ii*y[(Ii + ii)*N + (Ii + ii)];
     ekin += SF*factor*pow(ii,2)*y[(Ii + ii)*N + (Ii + ii)]*E[ii];
@@ -844,20 +841,20 @@ void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
   int iter = 0;
   const int maxiter = 60;
   double tol = 1e-12;
-  double K1 = 4.8966851;		// constants
+  double K1 = 4.8966851;                // constants
   double K2 = 0.04496457;
   double K3 = 0.133376;
   double X = 4*ne*pow(M_PI/(2*me),1.5)*6.9608/6.95369; // FIXME conversion at end to match Sai's values...
 #ifdef DEBUG_RTA
   std::cout << "XX " << X/pow(2.293710449e+17,1.5) << std::endl;
 #endif
-  double bn = 1.9e20*4.3597482e-18*0.5;		// intermediate values of beta; bn is higher iteration
+  double bn = 1.9e20*4.3597482e-18*0.5;         // intermediate values of beta; bn is higher iteration
   double bm = 0.0;
-  // double vol = pow(1.0/5.29e-11,3);		// volume element, multiply to go from a0^-3 to m^-3
+  // double vol = pow(1.0/5.29e-11,3);          // volume element, multiply to go from a0^-3 to m^-3
 
   // loop applies Newton-Raphson method to get zero of function
-  double f = 0.0;		// value of function (f)
-  double fp = 0.0;		// value of function derivative (f')
+  double f = 0.0;               // value of function (f)
+  double fp = 0.0;              // value of function derivative (f')
 #ifdef DEBUG_RTA
   std::cout << "Newton-Raphson to find inverse temperature" << std::endl;
 #endif
@@ -886,7 +883,7 @@ void FDD_RTA(Params * p, realtype * y, double * fdd, int flag) {
 
   //// use beta to find chemical potential
   double mue = 0.0;
-  double nue = 4*ne*pow(M_PI*bn/(2*me),1.5);	// constant to simplify
+  double nue = 4*ne*pow(M_PI*bn/(2*me),1.5);    // constant to simplify
   mue = (log(nue) + K1*log(K2*nue + 1) + K3*nue)/bn;
 #ifdef DEBUG_RTA
   std::cout << "Chemical potential " << mue*4.3597482e-18 << std::endl;
@@ -1043,13 +1040,13 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
-	//// real parts of ydot
-	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+        //// real parts of ydot
+        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
-	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+        //// imaginary parts of ydot (lower triangle and complex conjugate)
+        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
@@ -1138,14 +1135,13 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // set up MKL variables
   double beta = 0.0;
   char matdescra [6] = {'T', // symmetric matrix
-			'L', // lower triangle
-			'N', // non-unit on diagonal
-			'C', // zero-based indexing (C-style)
-			'*', '*'};
+                        'L', // lower triangle
+                        'N', // non-unit on diagonal
+                        'C', // zero-based indexing (C-style)
+                        '*', '*'};
 
-			// set beta to zero for first call
+                        // set beta to zero for first call
 
-  mkl_set_num_threads(p->nproc);
   // Re(\dot{\rho}) += H*Im(\rho)
   mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
              &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
@@ -1271,13 +1267,13 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < ii; jj++) {
       for (int kk = 0; kk < N; kk++) {
-	//// real parts of ydot
-	ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-	ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
+        //// real parts of ydot
+        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
+        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
 
-	//// imaginary parts of ydot (lower triangle and complex conjugate)
-	ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-	ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
+        //// imaginary parts of ydot (lower triangle and complex conjugate)
+        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
+        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
       }
       // the complex conjugate
       ydotp[jj*N + ii] = ydotp[ii*N + jj];
