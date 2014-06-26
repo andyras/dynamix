@@ -9,10 +9,11 @@ BIN = dynamix
 INCDIR = ./include
 OBJDIR = ./obj
 SRCDIR = ./src
+LIBDIR = ./lib
 BINDIR = ../bin
 
 # compiler
-CPP = icpc
+CPP = g++-4.8
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
@@ -55,11 +56,17 @@ $(OBJDIR)/%.o: %.cpp
 # all objects depend on object directory
 $(OBJECTS): | $(OBJDIR)
 
+library: $(OBJECTS) $(LIBDIR)
+	# add all obj files except main to library
+	find $(OBJDIR) -name *.o ! -name main.o | xargs ar vrs $(LIBDIR)/lib$(BIN).a
+
 .PHONY: clean install uninstall $(BINDIR) $(OBJDIR)
 
 clean:
-	rm -rf $(OBJDIR)
 	rm -f $(BIN)
+	rm -rf $(OBJDIR)
+	rm -rf $(LIBDIR)
+	rm -rf $(BINDIR)
 
 install: $(BIN) | $(BINDIR)
 	cp dynamix $(BINDIR)
@@ -72,3 +79,6 @@ $(OBJDIR):
 
 $(BINDIR):
 	mkdir -p ../bin
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)

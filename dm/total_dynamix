@@ -28,9 +28,9 @@ else
 fi
 if [ $debug == 1 ]; then
   make clean
-  make -j ${ncores} CPP=$CPP DEBUG_MAKE="1"
+  make -j ${ncores} DEBUG_MAKE="1"
 else
-  make -j ${ncores} CPP=$CPP
+  make -j ${ncores}
 fi
 if [ $? == 0 ] ; then
   fecho "done compiling!" && make install
