@@ -105,6 +105,8 @@ public:
   std::vector<realtype> times;
   std::vector<realtype> startWfn;
   std::vector<realtype> startDM;
+  std::vector<realtype> wfnt;
+  std::vector<realtype> dmt;
 
   // map of output file names to bool
   std::map<const std::string, bool> outs;

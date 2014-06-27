@@ -9,7 +9,7 @@ debug=0
 # number of processors to use with OpenMP
 nproc=2
 # method parameters #
-wavefunction=1				# 1 => wavefunction; 0 => density matrix
+wavefunction=0				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
@@ -28,7 +28,7 @@ abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
 tout=10000				# final time reached by solver (a.u.)
 numsteps=10000				# number of timesteps
-numOutputSteps=200			# number of output timesteps
+numOutputSteps=2000			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)

@@ -1,7 +1,8 @@
 #include <params.hpp>
 
+#define DEBUG
 #define DEBUG_BUILDCOUPLING
-//#define DEBUG_BUILDHAMILTONIAN
+#define DEBUG_BUILDHAMILTONIAN
 
 /* assign coupling constants to global array V */
 void Params::buildCoupling () {

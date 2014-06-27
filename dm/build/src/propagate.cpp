@@ -1,6 +1,6 @@
 #include "propagate.hpp"
 
-// #define DEBUG
+#define DEBUG
 
 void propagate(Params * p) {
   // CVode variables
@@ -8,20 +8,24 @@ void propagate(Params * p) {
   N_Vector y, yout;                     // arrays of populations
 
   int flag;
-  std::vector<realtype> dmt;                                // density matrix in time
-  std::vector<realtype> wfnt;                               // wave function in time
   realtype t0 = 0.0;                            // initial time
   realtype t = 0;
   realtype tret = 0;                                    // time returned by the solver
 
   // set up vectors which hold the wfn/DM over all time ////////////////////////
   if (p->wavefunction) {
-    wfnt.assign(p->startWfn.begin(), p->startWfn.end());
-    wfnt.resize(2*p->NEQ*(p->numOutputSteps + 1), 0.0);
+    p->wfnt.assign(p->startWfn.begin(), p->startWfn.end());
+    p->wfnt.resize(2*p->NEQ*(p->numOutputSteps + 1), 0.0);
   }
   else {
-    dmt.assign(p->startDM.begin(), p->startDM.end());
-    dmt.resize(2*p->NEQ2*(p->numOutputSteps + 1), 0.0);
+    int dmSize = 2*p->NEQ2*(p->numOutputSteps + 1);
+    if (dmSize > 1e9) {
+      std::cerr << "WARNING: time-dependent density matrix will take "
+        << (float)dmSize/(float)pow(1024,3) << "GB!"
+        << std::endl;
+    }
+    p->dmt.assign(p->startDM.begin(), p->startDM.end());
+    p->dmt.resize(2*p->NEQ2*(p->numOutputSteps + 1), 0.0);
   }
 
 
@@ -129,10 +133,10 @@ void propagate(Params * p) {
         progressFile.close();
       }
       if (p->wavefunction) {
-        updateWfn(yout, &wfnt, ii*p->numOutputSteps/p->numsteps, p);
+        updateWfn(yout, ii, p);
       }
       else {
-        updateDM(yout, &dmt, ii*p->numOutputSteps/p->numsteps, p);
+        updateDM(yout, ii, p);
       }
     }
   }
@@ -142,10 +146,10 @@ void propagate(Params * p) {
   std::cout << "Computing outputs..." << std::endl;
 #endif
   if (p->wavefunction) {
-    computeWfnOutput(&(wfnt[0]), p);
+    computeWfnOutput(&(p->wfnt[0]), p);
   }
   else {
-    computeDMOutput(&(dmt[0]), p);
+    computeDMOutput(&(p->dmt[0]), p);
   }
 #ifdef DEBUG
   std::cout << "done computing outputs" << std::endl;

@@ -33,9 +33,9 @@
 #include "conversions.hpp"
 #include "analytic.hpp"
 
-void updateDM(N_Vector dm, std::vector<realtype> *  dmt, int timeStep, Params * p);
+void updateDM(N_Vector dm, int timeStep, Params * p);
 
-void updateWfn(N_Vector wfn, std::vector<realtype> *  wfnt, int timeStep, Params * p);
+void updateWfn(N_Vector wfn, int timeStep, Params * p);
 
 int bandStartIdx(int bandFlag, Params * p);
 

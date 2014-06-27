@@ -1,7 +1,7 @@
 #include "dynamix.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-// #define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
@@ -9,17 +9,17 @@
 // DEBUGf: debug inner CVode loop
 // #define DEBUGf
 
-// #define DEBUG_UPDATEDM
-// #define DEBUG_UPDATEWFN
+// #define DEBUG_UPDATE
 
 /* Updates \rho(t) at each time step. */
-void updateDM(N_Vector dm, std::vector<realtype> * dmt, int timeStep, Params * p) {
-#ifdef DEBUG_UPDATEDM
+void updateDM(N_Vector dm, int timeStep, Params * p) {
+  timeStep = timeStep*p->numOutputSteps/p->numsteps;
+#ifdef DEBUG_UPDATE
   std::cout << "Updating DM at step " << timeStep << "...";
 #endif
   int N = 2*p->NEQ2;
-  memcpy(&(dmt->at(N*timeStep)), N_VGetArrayPointer(dm), N*sizeof(realtype));
-#ifdef DEBUG_UPDATEDM
+  memcpy(&(p->dmt[N*timeStep]), N_VGetArrayPointer(dm), N*sizeof(realtype));
+#ifdef DEBUG_UPDATE
   std::cout << "done.\n";
 #endif
 
@@ -27,15 +27,16 @@ void updateDM(N_Vector dm, std::vector<realtype> * dmt, int timeStep, Params * p
 }
 
 /* Updates \psi(t) at each time step. */
-void updateWfn(N_Vector wfn, std::vector<realtype> * wfnt, int timeStep, Params * p) {
-#ifdef DEBUG_UPDATEWFN
+void updateWfn(N_Vector wfn, int timeStep, Params * p) {
+  timeStep = timeStep*p->numOutputSteps/p->numsteps;
+#ifdef DEBUG_UPDATE
   std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
   std::cout << "Wavefunction is " << std::endl;
   N_VPrint_Serial(wfn);
 #endif
   int N = 2*p->NEQ;
-  memcpy(&(wfnt->at(N*timeStep)), N_VGetArrayPointer(wfn), N*sizeof(realtype));
-#ifdef DEBUG_UPDATEWFN
+  memcpy(&(p->wfnt[N*timeStep]), N_VGetArrayPointer(wfn), N*sizeof(realtype));
+#ifdef DEBUG_UPDATE
   std::cout << "done updating wavefunction." << std::endl;
 #endif
   return;
@@ -408,6 +409,9 @@ void initWavefunction(Params * p) {
 
   // create empty wavefunction
   p->startWfn.resize(2*p->NEQ, 0.0);
+  if (!p->wavefunction) {
+    p->startDM.resize(2*p->NEQ2, 0.0);
+  }
 
   // assign real parts of wavefunction coefficients (imaginary are zero)
   for (int ii = 0; ii < p->Nk; ii++) {
@@ -478,11 +482,17 @@ void initWavefunction(Params * p) {
   //// CREATE DENSITY MATRIX
 
   if (! p->wavefunction) {
-#pragma omp parallel for
+// #pragma omp parallel for
     for (int ii = 0; ii < p->NEQ; ii++) {
       // diagonal part
+  std::cout << "\n\nWHOOOOO\n\n";
+  std::cout << "\nValue of p->coherent is " << p->coherent << std::endl;
+  std::cout << "\nSize of DM is " << p->startDM.size() << std::endl;
       p->startDM[p->NEQ*ii + ii] = pow(p->startWfn[ii],2) + pow(p->startWfn[ii + p->NEQ],2);
       if (p->coherent) {
+#ifdef DEBUG
+        std::cout << "\nDM starting state is coherent.\n\n";
+#endif
         // off-diagonal part
         for (int jj = 0; jj < ii; jj++) {
           // real part of \rho_{ii,jj}
