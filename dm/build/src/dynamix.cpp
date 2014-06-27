@@ -1,13 +1,10 @@
 #include "dynamix.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-#define DEBUG
+// #define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
-
-// DEBUGf: debug inner CVode loop
-// #define DEBUGf
 
 // #define DEBUG_UPDATE
 
@@ -482,16 +479,15 @@ void initWavefunction(Params * p) {
   //// CREATE DENSITY MATRIX
 
   if (! p->wavefunction) {
-// #pragma omp parallel for
+#pragma omp parallel for
     for (int ii = 0; ii < p->NEQ; ii++) {
       // diagonal part
-  std::cout << "\n\nWHOOOOO\n\n";
-  std::cout << "\nValue of p->coherent is " << p->coherent << std::endl;
-  std::cout << "\nSize of DM is " << p->startDM.size() << std::endl;
       p->startDM[p->NEQ*ii + ii] = pow(p->startWfn[ii],2) + pow(p->startWfn[ii + p->NEQ],2);
       if (p->coherent) {
 #ifdef DEBUG
-        std::cout << "\nDM starting state is coherent.\n\n";
+        if (ii == 0) {
+          std::cout << "\nDM starting state is coherent.\n\n";
+        }
 #endif
         // off-diagonal part
         for (int jj = 0; jj < ii; jj++) {

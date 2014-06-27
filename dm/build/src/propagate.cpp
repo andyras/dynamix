@@ -1,6 +1,7 @@
 #include "propagate.hpp"
 
-#define DEBUG
+// #define DEBUG
+// #define DEBUGf
 
 void propagate(Params * p) {
   // CVode variables
@@ -85,7 +86,7 @@ void propagate(Params * p) {
       flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
     }
     else {
-      //flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+      // flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
       flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
     }
   }
@@ -138,6 +139,11 @@ void propagate(Params * p) {
       else {
         updateDM(yout, ii, p);
       }
+#ifdef DEBUGf
+      std::cout << "system state at time step "
+        << ii*p->numsteps/p->numOutputSteps << ":" << std::endl;
+      N_VPrint_Serial(yout);
+#endif
     }
   }
 

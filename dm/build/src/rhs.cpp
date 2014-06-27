@@ -1,7 +1,7 @@
 #include "rhs.hpp"
 
 // #define DEBUG_RHS
-//#define DEBUG_RTA
+// #define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
 // #define DEBUGf
@@ -9,8 +9,8 @@
 // DEBUGf_DM flag: DEBUGf for density matrix EOM
 // #define DEBUGf_DM
 
-//#define DEBUG_TORSION
-//#define DEBUG_DYNAMIC_MU
+// #define DEBUG_TORSION
+// #define DEBUG_DYNAMIC_MU
 
 
 /* Right-hand-side equation for wavefunction */
@@ -441,7 +441,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // file for density matrix coeff derivatives in time
   FILE * dmf;
   std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
+  dmf = fopen("dmf.out", "a");
 #endif
 
   // data is a pointer to the params struct
@@ -524,7 +524,7 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // file for density matrix coeff derivatives in time
   FILE * dmf;
   std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
+  dmf = fopen("dmf.out", "a");
 #endif
 
   // data is a pointer to the params struct
@@ -557,54 +557,24 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
     ydotp[ii] = 0.0;
   }
 
-  char TRANSA = 'n';
-  // char TRANSB = 'n';
-  // char LEFT = 'l';
+  char LEFT = 'l';
   char RGHT = 'r';
-  char UPLO = 'l';
+  char UP = 'l';
   double ONE = 1.0;
   double NEG = -1.0;
-
-  // realtype * H_sp = &(p->H_sp)[0];
-  int * columns = &(p->H_cols)[0];
-  int * rowind = &(p->H_rowind)[0];
-
-  // set up MKL variables
-  double beta = 0.0;
-  char matdescra [6] = {'T', // symmetric matrix
-                        'L', // lower triangle
-                        'N', // non-unit on diagonal
-                        'C', // zero-based indexing (C-style)
-                        '*', '*'};
-
-                        // set beta to zero for first call
+  double ZERO = 0.0;
 
   // Re(\dot{\rho}) += H*Im(\rho)
-  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
-  //DSYMM(&LEFT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
-  //N_VPrint_Serial(ydot);
-  // Re(\dot{\psi}) = \hat{H}Im(\psi)
-  mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
-             &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
+  DSYMM(&LEFT, &UP, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ZERO, &ydotp[0], &N);
 
   // Re(\dot{\rho}) -= Im(\rho)*H
-  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &yp[N2], &N, &H[0], &N, &ONE, &ydotp[0], &N);
-  DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  DSYMM(&RGHT, &UP, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
 
-  //N_VPrint_Serial(ydot);
   // Im(\dot{\rho}) += i*Re(\rho)*H
-  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &ONE, &yp[0], &N, &H[0], &N, &ONE, &ydotp[N2], &N);
-  DSYMM(&RGHT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  DSYMM(&RGHT, &UP, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
 
-  //N_VPrint_Serial(ydot);
   // Im(\dot{\rho}) -= i*H*Re(\rho)
-  //DGEMM(&TRANSA, &TRANSB, &N, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
-  //DSYMM(&LEFT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
-  //N_VPrint_Serial(ydot);
-
-  // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
-  mkl_dcsrmm(&TRANSA, &N, &N, &N, &NEG, &matdescra[0], &H[0], &columns[0],
-             &rowind[0], &rowind[1], &yp[0], &N, &beta, &ydotp[N2], &N);
+  DSYMM(&LEFT, &UP, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
 
 #ifdef DEBUGf_DM
   fprintf(dmf, "%+.7e", t);
@@ -966,7 +936,7 @@ int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // file for density matrix coeff derivatives in time
   FILE * dmf;
   std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
+  dmf = fopen("dmf.out", "a");
 #endif
 
 #ifdef DEBUG_RHS
@@ -1081,7 +1051,7 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // file for density matrix coeff derivatives in time
   FILE * dmf;
   std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
+  dmf = fopen("dmf.out", "a");
 #endif
 
 #ifdef DEBUG_RHS
@@ -1120,41 +1090,24 @@ int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   for (int ii = 0; ii < 2*N2; ii++) {
     ydotp[ii] = 0.0;
   }
-  char TRANSA = 'n';
-  // char TRANSB = 'n';
-  // char LEFT = 'l';
+  char LEFT = 'l';
   char RGHT = 'r';
-  char UPLO = 'l';
+  char UP = 'l';
   double ONE = 1.0;
   double NEG = -1.0;
-
-  // realtype * H_sp = &(p->H_sp)[0];
-  int * columns = &(p->H_cols)[0];
-  int * rowind = &(p->H_rowind)[0];
-
-  // set up MKL variables
-  double beta = 0.0;
-  char matdescra [6] = {'T', // symmetric matrix
-                        'L', // lower triangle
-                        'N', // non-unit on diagonal
-                        'C', // zero-based indexing (C-style)
-                        '*', '*'};
-
-                        // set beta to zero for first call
+  double ZERO = 0.0;
 
   // Re(\dot{\rho}) += H*Im(\rho)
-  mkl_dcsrmm(&TRANSA, &N, &N, &N, &ONE, &matdescra[0], &H[0], &columns[0],
-             &rowind[0], &rowind[1], &yp[N2], &N, &beta, &ydotp[0], &N);
+  DSYMM(&LEFT, &UP, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ZERO, &ydotp[0], &N);
 
   // Re(\dot{\rho}) -= Im(\rho)*H
-  DSYMM(&RGHT, &UPLO, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  DSYMM(&RGHT, &UP, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
 
   // Im(\dot{\rho}) += i*Re(\rho)*H
-  DSYMM(&RGHT, &UPLO, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  DSYMM(&RGHT, &UP, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
 
   // Im(\dot{\rho}) -= i*H*Re(\rho)
-  mkl_dcsrmm(&TRANSA, &N, &N, &N, &NEG, &matdescra[0], &H[0], &columns[0],
-             &rowind[0], &rowind[1], &yp[0], &N, &beta, &ydotp[N2], &N);
+  DSYMM(&LEFT, &UP, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
 
   //// diagonal; no need to calculate the imaginary part
   //   get equilibrium FDD populations
@@ -1224,7 +1177,7 @@ int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // file for density matrix coeff derivatives in time
   FILE * dmf;
   std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "w");
+  dmf = fopen("dmf.out", "a");
 #endif
 
 
