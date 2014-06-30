@@ -1,7 +1,7 @@
 #include "libdynamix_input_parser.hpp"
 
-//#define DEBUG
-//#define DEBUG_INPUT_PARSER
+// #define DEBUG
+// #define DEBUG_INPUT_PARSER
 
 
 void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outs,
@@ -108,7 +108,11 @@ void assignParams(std::string inputFile, Params * p) {
   size_t equals_pos;
   size_t space_pos;
 
-  std::ifstream bash_in;	// declare input file stream
+#ifdef DEBUG_INPUT_PARSER
+  std::cout << "\nParsing file: " << inputFile << "\n";
+#endif
+
+  std::ifstream bash_in;  // declare input file stream
 
   bash_in.open(inputFile.c_str(), std::ios::in);	// open file as input stream
   if (bash_in.good() == false) {

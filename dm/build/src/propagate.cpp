@@ -28,7 +28,14 @@ void propagate(Params * p) {
     p->dmt.assign(p->startDM.begin(), p->startDM.end());
     p->dmt.resize(2*p->NEQ2*(p->numOutputSteps + 1), 0.0);
   }
-
+#ifdef DEBUG
+  if (p->wavefunction) {
+    std::cout << "\nSize of wfnt array is " << p->wfnt.size() << "\n";
+  }
+  else {
+    std::cout << "\nSize of dmt array is " << p->dmt.size() << "\n";
+  }
+#endif
 
   //// SET UP CVODE VARIABLES
 
