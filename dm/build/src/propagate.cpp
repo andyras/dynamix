@@ -15,8 +15,10 @@ void propagate(Params * p) {
 
   // set up vectors which hold the wfn/DM over all time ////////////////////////
   if (p->wavefunction) {
-    p->wfnt.assign(p->startWfn.begin(), p->startWfn.end());
     p->wfnt.resize(2*p->NEQ*(p->numOutputSteps + 1), 0.0);
+    for (int ii = 0; ii < 2*p->NEQ; ii++) {
+      p->wfnt[ii] = p->startWfn[ii];
+    }
   }
   else {
     int dmSize = 2*p->NEQ2*(p->numOutputSteps + 1);
@@ -25,8 +27,10 @@ void propagate(Params * p) {
         << (float)dmSize/(float)pow(1024,3) << "GB!"
         << std::endl;
     }
-    p->dmt.assign(p->startDM.begin(), p->startDM.end());
-    p->dmt.resize(2*p->NEQ2*(p->numOutputSteps + 1), 0.0);
+    p->dmt.resize(dmSize, 0.0);
+    for (int ii = 0; ii < 2*p->NEQ2; ii++) {
+      p->dmt[ii] = p->startDM[ii];
+    }
   }
 #ifdef DEBUG
   if (p->wavefunction) {
@@ -148,7 +152,7 @@ void propagate(Params * p) {
       }
 #ifdef DEBUGf
       std::cout << "system state at time step "
-        << ii*p->numsteps/p->numOutputSteps << ":" << std::endl;
+        << ii << ":" << std::endl;
       N_VPrint_Serial(yout);
 #endif
     }
