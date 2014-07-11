@@ -296,7 +296,7 @@ void assignParams(std::string inputFile, Params * p) {
 #endif
 
   // Error checking
-  if ((p->VBPopFlag + p->CBPopFlag + p->QDPopFlag) > 1) {
+  if ((p->VBPopFlag && p->CBPopFlag) || (p->VBPopFlag && p->QDPopFlag) || (p->CBPopFlag && p->QDPopFlag)) {
     std::cerr << "\nWARNING: population starting in multiple locations.\n";
   }
 

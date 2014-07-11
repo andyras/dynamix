@@ -13,7 +13,7 @@ LIBDIR = ./lib
 BINDIR = ../bin
 
 # compiler
-CPP = g++
+CPP = g++-4.8
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial

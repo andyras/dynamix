@@ -505,8 +505,12 @@ void initWavefunction(Params * p) {
           p->startDM[p->NEQ*jj + ii + p->NEQ2] = -1*p->startDM[p->NEQ*ii + jj + p->NEQ*p->NEQ];
         }
       }
-      else if (ii == 0) {
-        std::cout << "\nDM starting state is incoherent.\n\n";
+      else {
+#ifdef DEBUG
+        if (ii == 0) {
+          std::cout << "\nDM starting state is incoherent.\n\n";
+        }
+#endif
       }
     }
 
