@@ -11,21 +11,21 @@ void makePlots(Params * p) {
   }
 
   // probabilities in k states
-  if (isOutput(p->outs, "kprobs.plt") && (p->Nk > 1)) {
-    plotKProbs((char *)"kprobs.plt", p);
-  }
-  else {
-    if (p->Nk < 2) {
+  if (isOutput(p->outs, "kprobs.plt")) {
+    if (p->Nk > 1) {
+      plotKProbs((char *)"kprobs.plt", p);
+    }
+    else {
       cerr << "WARNING: <= 1 k states, not making kprobs.plt" << endl;
     }
   }
 
   // probabilities in c states
-  if (isOutput(p->outs, "cprobs.plt") && (p->Nc > 1)) {
-    plotCProbs(p);
-  }
-  else {
-    if (p->Nc < 2) {
+  if (isOutput(p->outs, "cprobs.plt")) {
+    if (p->Nc > 1) {
+      plotCProbs(p);
+    }
+    else {
       cerr << "WARNING: <= 1 c states, not making cprobs.plt" << endl;
     }
   }
@@ -44,21 +44,21 @@ void makePlots(Params * p) {
   }
 
   // populations in k states as a movie
-  if (isOutput(p->outs, "kprobs_movie.plt") && (p->Nk > 1)) {
-    plotKProbsMovie((char *)"kprobs_movie.plt", p);
-  }
-  else {
-    if (p->Nk < 2) {
+  if (isOutput(p->outs, "kprobs_movie.plt")) {
+    if (p->Nk > 1) {
+      plotKProbsMovie((char *)"kprobs_movie.plt", p);
+    }
+    else {
       cerr << "WARNING: <= 1 k states, not making kprobs_movie.plt" << endl;
     }
   }
 
   // populations in c states as a movie
-  if (isOutput(p->outs, "cprobs_movie.plt") && (p->Nc > 1)) {
-    plotCProbsMovie((char *)"cprobs_movie.plt", p);
-  }
-  else {
-    if (p->Nc < 2) {
+  if (isOutput(p->outs, "cprobs_movie.plt")) {
+    if (p->Nc > 1) {
+      plotCProbsMovie((char *)"cprobs_movie.plt", p);
+    }
+    else {
       cerr << "WARNING: <= 1 c states, not making cprobs_movie.plt" << endl;
     }
   }

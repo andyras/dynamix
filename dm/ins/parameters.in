@@ -7,15 +7,15 @@ debug=0
 
 ## START INPUT PARAMETERS ##
 # number of processors to use with OpenMP
-nproc=2
+nproc=1
 # method parameters #
 wavefunction=0				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=1				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
-kinetic=0				# kinetic relaxation model
-kineticQD=0				# kinetic relaxation model in QD
+kinetic=1				# kinetic relaxation model
+kineticQD=1				# kinetic relaxation model in QD
 dynamicMu=0				# for kinetic model, calculate Fermi level dynamically
 dynamicMuQD=0				# for kinetic model, calculate Fermi level dynamically on QD
 rta=0					# use relaxation time approximation (RTA)
@@ -33,7 +33,7 @@ numOutputSteps=200			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=101					# number of k states to have
+Nk=2					# number of k states to have
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
@@ -70,7 +70,7 @@ laser_on=0
 parabolicCoupling=0
 scale_bubr=0
 scale_brqd=0
-scale_buqd=1
+scale_buqd=0
 scale_laser=1
 bridge_on=0
 random_phase=0				# turning this on may break normalization
@@ -168,7 +168,7 @@ totprob.out
 #projections.plt
 populations.plt
 #cprobs.plt
-#kprobs.plt
+kprobs.plt
 #dmt_z.plt
 #kprobs_movie.plt
 #cprobs_movie.plt

@@ -152,7 +152,7 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
     //// find bounds for Fermi level
     mu = findDynamicMu(pop, T, CONDUCTION, p);
 #ifdef DEBUG_DYNAMIC_MU
-    std::cout << "mu at time " << t << " is " << mu << std::endl;
+    std::cout << "mu is " << mu << std::endl;
 #endif
   }
 
@@ -206,6 +206,10 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // more compact notation for N_Vectors
   realtype * yp = N_VGetArrayPointer(y);
   realtype * ydotp = N_VGetArrayPointer(ydot);
+
+  // std::cout << "time is " << t << std::endl;
+  // std::cout << ydotp << std::endl;
+  // N_VPrint_Serial(y);
 
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
@@ -275,12 +279,16 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
+  // std::cout << ydotp << std::endl;
+  // N_VPrint_Serial(ydot);
+
 #ifdef DEBUGf_DM
   // file for density matrix coeff derivatives in time
   FILE * dmf;
   dmf = fopen("dmf.out", "a");
   fprintf(dmf, "%+.7e", t);
   for (int ii = 0; ii < N; ii++) {
+    fprintf(dmf, "\n");
     for (int jj = 0; jj < N; jj++) {
       fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
     }
