@@ -213,8 +213,6 @@ void updateHamiltonian(Params * p, realtype t) {
   return;
 }
 
-#include "params.hpp"
-
 void initialize(Params * p) {
   initHamiltonian(p);
   initWavefunction(p);

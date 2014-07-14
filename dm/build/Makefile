@@ -10,7 +10,7 @@ INCDIR = ./include
 OBJDIR = ./obj
 SRCDIR = ./src
 LIBDIR = ./lib
-BINDIR = ../bin
+BINDIR = ./bin
 
 # compiler
 CPP = g++-4.8
@@ -56,11 +56,11 @@ $(OBJDIR)/%.o: %.cpp
 # all objects depend on object directory
 $(OBJECTS): | $(OBJDIR)
 
+# add all obj files except main to library
 library: $(OBJECTS) $(LIBDIR)
-	# add all obj files except main to library
 	find $(OBJDIR) -name *.o ! -name main.o | xargs ar vrs $(LIBDIR)/lib$(BIN).a
 
-.PHONY: clean install uninstall $(BINDIR) $(OBJDIR)
+.PHONY: clean install uninstall $(BINDIR) $(OBJDIR) $(LIBDIR	)
 
 clean:
 	rm -f $(BIN)
@@ -78,7 +78,7 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(BINDIR):
-	mkdir -p ../bin
+	mkdir -p $(BINDIR)
 
 $(LIBDIR):
 	mkdir -p $(LIBDIR)
