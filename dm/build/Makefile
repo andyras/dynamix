@@ -13,9 +13,9 @@ LIBDIR = ./lib
 BINDIR = ./bin
 
 # compiler
-CPP = g++-4.8
+CPP = icpc
 
-CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
+CPPFLAGS = -O3 -Wall -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
 
