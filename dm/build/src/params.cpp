@@ -140,9 +140,11 @@ void Params::buildHamiltonian() {
       H[idx1*N + idx2] = V[idx1][idx2];
       H[idx2*N + idx1] = V[idx2][idx1];
     }
-    fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
-    // assign bridge-bridge couplings
 #ifdef DEBUG_BUILDHAMILTONIAN
+    fprintf(stderr, "Done assigning bulk-bridge coupling elements in Hamiltonian.\n");
+#endif
+#ifdef DEBUG_BUILDHAMILTONIAN
+    // assign bridge-bridge couplings
     fprintf(stderr, "Assigning bridge-bridge coupling elements in Hamiltonian.\n");
 #endif
     for (int ii = 0; ii < (Nb-1); ii++) {
@@ -156,9 +158,11 @@ void Params::buildHamiltonian() {
       H[idx1*N + idx2] = V[idx1][idx2];
       H[idx2*N + idx1] = V[idx2][idx1];
     }
-    fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
-    // assign bridge-QD coupling
 #ifdef DEBUG_BUILDHAMILTONIAN
+    fprintf(stderr, "Done assigning bridge-bridge coupling elements in Hamiltonian.\n");
+#endif
+#ifdef DEBUG_BUILDHAMILTONIAN
+    // assign bridge-QD coupling
     fprintf(stderr, "Assigning bridge-QD coupling elements in Hamiltonian.\n");
 #endif
     idx2 = Ib + Nb - 1;
@@ -172,7 +176,9 @@ void Params::buildHamiltonian() {
       H[idx1*N + idx2] = V[idx1][idx2];
       H[idx2*N + idx1] = V[idx2][idx1];
     }
+#ifdef DEBUG_BUILDHAMILTONIAN
     fprintf(stderr, "Done assigning bridge-QD coupling elements in Hamiltonian.\n");
+#endif
   }
   // no bridge
   else {

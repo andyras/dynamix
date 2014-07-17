@@ -46,7 +46,7 @@ function run {
 fecho "running dynamix..."
 export OMP_NUM_THREADS=${nproc}
 export MKL_NUM_THREADS=${nproc}
-./bin/dynamix
+./build/bin/dynamix
 if [ $? == 0 ] ; then
   fecho "dynamix done!"
 else
@@ -67,7 +67,7 @@ rm -f progress.tmp
 
 # analyze debug output
 if [ $debug == 1 ]; then
-  gprof ./bin/dynamix ./outs/gmon.out > analysis.txt
+  gprof ./build/bin/dynamix ./outs/gmon.out > analysis.txt
 fi
 }
 

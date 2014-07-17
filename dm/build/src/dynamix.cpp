@@ -213,8 +213,6 @@ void updateHamiltonian(Params * p, realtype t) {
   return;
 }
 
-#include "params.hpp"
-
 void initialize(Params * p) {
   initHamiltonian(p);
   initWavefunction(p);
@@ -405,9 +403,12 @@ void initWavefunction(Params * p) {
   }
 
   // create empty wavefunction
+  // resize method does not initialize all values, hence second call
   p->startWfn.resize(2*p->NEQ, 0.0);
+  initializeArray(&(p->startWfn[0]), p->startWfn.size(), 0.0);
   if (!p->wavefunction) {
     p->startDM.resize(2*p->NEQ2, 0.0);
+    initializeArray(&(p->startDM[0]), p->startDM.size(), 0.0);
   }
 
   // assign real parts of wavefunction coefficients (imaginary are zero)
@@ -479,6 +480,7 @@ void initWavefunction(Params * p) {
   //// CREATE DENSITY MATRIX
 
   if (! p->wavefunction) {
+    initializeArray(&(p->startDM[0]), p->startDM.size(), 0.0);
 #pragma omp parallel for
     for (int ii = 0; ii < p->NEQ; ii++) {
       // diagonal part
@@ -500,6 +502,13 @@ void initWavefunction(Params * p) {
           // imaginary part of \rho_{jj,ii}
           p->startDM[p->NEQ*jj + ii + p->NEQ2] = -1*p->startDM[p->NEQ*ii + jj + p->NEQ*p->NEQ];
         }
+      }
+      else {
+#ifdef DEBUG
+        if (ii == 0) {
+          std::cout << "\nDM starting state is incoherent.\n\n";
+        }
+#endif
       }
     }
 

@@ -10,12 +10,12 @@ INCDIR = ./include
 OBJDIR = ./obj
 SRCDIR = ./src
 LIBDIR = ./lib
-BINDIR = ../bin
+BINDIR = ./bin
 
 # compiler
 CPP = icpc
 
-CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
+CPPFLAGS = -O3 -Wall -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
 
@@ -56,11 +56,11 @@ $(OBJDIR)/%.o: %.cpp
 # all objects depend on object directory
 $(OBJECTS): | $(OBJDIR)
 
+# add all obj files except main to library
 library: $(OBJECTS) $(LIBDIR)
-	# add all obj files except main to library
 	find $(OBJDIR) -name *.o ! -name main.o | xargs xiar vrs $(LIBDIR)/lib$(BIN).a
 
-.PHONY: clean install uninstall $(BINDIR) $(OBJDIR)
+.PHONY: clean install uninstall $(BINDIR) $(OBJDIR) $(LIBDIR	)
 
 clean:
 	rm -f $(BIN)
@@ -78,7 +78,7 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(BINDIR):
-	mkdir -p ../bin
+	mkdir -p $(BINDIR)
 
 $(LIBDIR):
 	mkdir -p $(LIBDIR)
