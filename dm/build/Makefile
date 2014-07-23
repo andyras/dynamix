@@ -12,8 +12,9 @@ SRCDIR = ./src
 LIBDIR = ./lib
 BINDIR = ./bin
 
-# compiler
+# compiler and archiver
 CPP = icpc
+AR = xiar
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
@@ -58,7 +59,7 @@ $(OBJECTS): | $(OBJDIR)
 
 # add all obj files except main to library
 library: $(OBJECTS) $(LIBDIR)
-	find $(OBJDIR) -name *.o ! -name main.o | xargs xiar vrs $(LIBDIR)/lib$(BIN).a
+	find $(OBJDIR) -name *.o ! -name main.o | xargs $(AR) vrs $(LIBDIR)/lib$(BIN).a
 
 .PHONY: clean install uninstall $(BINDIR) $(OBJDIR) $(LIBDIR	)
 
