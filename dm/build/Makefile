@@ -15,7 +15,7 @@ BINDIR = ./bin
 # compiler
 CPP = g++-4.9
 
-CPPFLAGS = -O3 -Wall -fopenmp
+CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
 
