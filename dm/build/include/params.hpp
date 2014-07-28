@@ -11,6 +11,13 @@
 #include "spline.hpp"
 #include "numerical.hpp"
 
+#ifdef __BOOST_SERIALIZE__
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/map.hpp>
+#endif
+
 class Params {
 public:
   int nproc = 0;                        // number of processors
@@ -131,7 +138,125 @@ public:
   // methods ///////////////////////////////////////////////////////////////////
   void buildHamiltonian();
 
-  void buildCoupling ();
+  void buildCoupling();
+#ifdef __BOOST_SERIALIZE__
+private:
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & nproc;
+    ar & wavefunction;
+    ar & coherent;
+    ar & justPlots;
+    ar & timedepH;
+    ar & analytical;
+    ar & kinetic;
+    ar & kineticQD;
+    ar & dynamicMu;
+    ar & dynamicMuQD;
+    ar & rta;
+    ar & rtaQD;
+    ar & dephasing;
+    ar & progressFile;
+    ar & progressStdout;
+    ar & abstol;
+    ar & reltol;
+    ar & tout;
+    ar & numsteps;
+    ar & numOutputSteps;
+    ar & NEQ;
+    ar & NEQ2;
+    ar & kBandEdge;
+    ar & kBandTop;
+    ar & lBandTop;
+    ar & bulk_gap;
+    ar & valenceBand;
+    ar & bulkGaussSigma;
+    ar & bulkGaussMu;
+    ar & me;
+    ar & mh;
+    ar & me_c;
+    ar & mh_c;
+    ar & X2;
+    ar & temperature;
+    ar & EF;
+    ar & gamma1;
+    ar & gamma1_c;
+    ar & gamma2;
+    ar & muLK;
+    ar & pumpFWHM;
+    ar & pumpPeak;
+    ar & pumpFreq;
+    ar & pumpAmpl;
+    ar & pumpPhase;
+    ar & CBPopFlag;
+    ar & VBPopFlag;
+    ar & QDPopFlag;
+    ar & Nk_first;
+    ar & Nk_final;
+    ar & Nc_first;
+    ar & Nc_final;
+    ar & laser_on;
+    ar & parabolicCoupling;
+    ar & scale_bubr;
+    ar & scale_brqd;
+    ar & scale_buqd;
+    ar & scale_laser;
+    ar & bridge_on;
+    ar & random_phase;
+    ar & random_seed;
+    ar & torsion;
+    ar & torsionFile;;
+    ar & torsionSite;
+    ar & torsionSin2;
+    ar & torsionSin2V0;
+    ar & torsionSin2V1;
+    ar & torsionSin2omega;
+    ar & torsionSin2phi;
+    ar & Nk;
+    ar & Nc;
+    ar & Nb;
+    ar & Nl;
+    ar & Ik;
+    ar & Ic;
+    ar & Ib;
+    ar & Il;
+
+    ar & kBandWidth;
+
+    ar & energies;
+    ar & Vbridge;
+    ar & Vnobridge;
+    ar & V;
+    ar & H;
+    ar & H_sp;
+    ar & H_cols;
+    ar & H_rowind;
+    ar & times;
+    ar & startWfn;
+    ar & startDM;
+    ar & wfnt;
+    ar & dmt;
+
+    ar & outs;
+
+    ar & outputDir;
+
+    ar & inputFile;
+    ar & cEnergiesInput;
+    ar & bEnergiesInput;
+    ar & VNoBridgeInput;
+    ar & VBridgeInput;
+
+    ar & torsionV;
+
+    ar & lastTime;
+
+    ar & lastMu;
+    ar & lastMuQD;
+  }
+#endif
 };
 
 #endif

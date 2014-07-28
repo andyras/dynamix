@@ -10,6 +10,12 @@
 #include <algorithm>
 #include <iomanip>
 
+#ifdef __BOOST_SERIALIZE__
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/string.hpp>
+#endif
+
 // this class holds the data for each point along the spline
 class Point {
 public:
@@ -18,6 +24,20 @@ public:
 
   // data
   double x, a, b, c, d;
+
+private:
+#ifdef __BOOST_SERIALIZE__
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & x;
+    ar & a;
+    ar & b;
+    ar & c;
+    ar & d;
+  }
+#endif
 };
 
 class Spline {
@@ -58,8 +78,19 @@ public:
   double getLastX();
   // method to print the contents of the spline (for debug)
   void print();
+
+  // data
   std::vector<Point> s;
-public:
+
+private:
+#ifdef __BOOST_SERIALIZE__
+  friend class boost::serialization::access;
+
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & s;
+  }
+#endif
 };
 
 bool comparePoints(const Point &pa, const Point &pb);

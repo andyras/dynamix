@@ -1,7 +1,7 @@
+### This line should be just about all you have to change ######################
 # name of main executable
-### This line should be just about all you have to change ###
 BIN = dynamix
-#############################################################
+################################################################################
 
 #DEBUG_MAKE = "foo"
 
@@ -19,6 +19,11 @@ AR = xiar
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
+
+# optional #####################################################################
+# comment this out if you do not want to add the boost serialization method
+CPPFLAGS += -D__BOOST_SERIALIZE__
+################################################################################
 
 # basic compiler-dependent flags
 ifeq ($(CPP),icpc)
