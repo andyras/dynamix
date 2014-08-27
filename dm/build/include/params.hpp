@@ -85,10 +85,12 @@ public:
   std::string torsionFile;
   int torsionSite = 0;
   bool torsionSin2 = false;             // flag to turn on sin^2 torsional coupling
-  double torsionSin2V0 = 0.001;         // V(t) = V0 + V1*sin^2(omega*t + phi)
-  double torsionSin2V1 = 0.001;
-  double torsionSin2omega = 0.001;
-  double torsionSin2phi = 0.0;
+  bool torsionGaussianPulse = false;    // flag for Gaussian "half-cycle" torsion coupling
+  bool torsionCos2Pulse = false;        // flag for cos^2 "half-cycle" torsion coupling
+  double torsionCouplingV0 = 0.001;     // V(t) = V0 + V1*sin^2(omega*t + phi)
+  double torsionCouplingV1 = 0.001;
+  double torsionCouplingOmega = 0.001;
+  double torsionCouplingPhi = 0.0;
 
   int Nk = 1;                           // number of each type of state
   int Nc = 0;                           // number of each type of state
@@ -139,6 +141,9 @@ public:
   void buildHamiltonian();
 
   void buildCoupling();
+
+  double getTorsionCoupling(double t);
+
 #ifdef __BOOST_SERIALIZE__
 private:
   friend class boost::serialization::access;
@@ -210,10 +215,12 @@ private:
     ar & torsionFile;;
     ar & torsionSite;
     ar & torsionSin2;
-    ar & torsionSin2V0;
-    ar & torsionSin2V1;
-    ar & torsionSin2omega;
-    ar & torsionSin2phi;
+    ar & torsionGaussianPulse;
+    ar & torsionCos2Pulse;
+    ar & torsionCouplingV0;
+    ar & torsionCouplingV1;
+    ar & torsionCouplingOmega;
+    ar & torsionCouplingPhi;
     ar & Nk;
     ar & Nc;
     ar & Nb;

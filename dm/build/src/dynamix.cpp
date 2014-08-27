@@ -1,7 +1,7 @@
 #include "dynamix.hpp"
 
 // DEBUG compiler flag: turn on to generate basic debug outputs.
-// #define DEBUG
+#define DEBUG
 
 // DEBUG2 flag: turn on for more numerical output
 // #define DEBUG2
@@ -133,13 +133,7 @@ void updateHamiltonian(Params * p, realtype t) {
   //// first handle torsion
   double torsionValue = 0.0;
   if (p->torsion) {
-    // regular (sinusoidal) coupling function
-    if (p->torsionSin2) {
-      torsionValue = sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, t);
-    }
-    else {
-      torsionValue = p->torsionV.value(t);
-    }
+    torsionValue = p->getTorsionCoupling(t);
 #ifdef DEBUG_TORSION
     std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
 #endif

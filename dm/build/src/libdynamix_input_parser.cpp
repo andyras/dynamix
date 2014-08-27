@@ -1,7 +1,7 @@
 #include "libdynamix_input_parser.hpp"
 
-// #define DEBUG
-// #define DEBUG_INPUT_PARSER
+#define DEBUG
+#define DEBUG_INPUT_PARSER
 
 void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outs,
     Params * p) {
@@ -210,10 +210,12 @@ void assignParams(std::string inputFile, Params * p) {
     else if (input_param == "torsionFile" ) { p->torsionFile = param_val; }
     else if (input_param == "torsionSite" ) { p->torsionSite = atoi(param_val.c_str()); }
     else if (input_param == "torsionSin2" ) { p->torsionSin2 = atoi(param_val.c_str()); }
-    else if (input_param == "torsionSin2V0" ) { p->torsionSin2V0 = atof(param_val.c_str()); }
-    else if (input_param == "torsionSin2V1" ) { p->torsionSin2V1 = atof(param_val.c_str()); }
-    else if (input_param == "torsionSin2omega" ) { p->torsionSin2omega = atof(param_val.c_str()); }
-    else if (input_param == "torsionSin2phi" ) { p->torsionSin2phi = atof(param_val.c_str()); }
+    else if (input_param == "torsionCos2Pulse" ) { p->torsionCos2Pulse = atoi(param_val.c_str()); }
+    else if (input_param == "torsionGaussianPulse" ) { p->torsionGaussianPulse = atoi(param_val.c_str()); }
+    else if (input_param == "torsionCouplingV0" ) { p->torsionCouplingV0 = atof(param_val.c_str()); }
+    else if (input_param == "torsionCouplingV1" ) { p->torsionCouplingV1 = atof(param_val.c_str()); }
+    else if (input_param == "torsionCouplingOmega" ) { p->torsionCouplingOmega = atof(param_val.c_str()); }
+    else if (input_param == "torsionCouplingPhi" ) { p->torsionCouplingPhi = atof(param_val.c_str()); }
     else {  }
     getline (bash_in,line);
   }
@@ -288,10 +290,12 @@ void assignParams(std::string inputFile, Params * p) {
   std::cout << "torsionFile is " << p->torsionFile << std::endl;
   std::cout << "torsionSite is " << p->torsionSite << std::endl;
   std::cout << "torsionSin2 is " << p->torsionSin2 << std::endl;
-  std::cout << "torsionSin2V0 is " << p->torsionSin2V0 << std::endl;
-  std::cout << "torsionSin2V1 is " << p->torsionSin2V1 << std::endl;
-  std::cout << "torsionSin2omega is " << p->torsionSin2omega << std::endl;
-  std::cout << "torsionSin2phi is " << p->torsionSin2phi << std::endl;
+  std::cout << "torsionCos2Pulse is " << p->torsionCos2Pulse << std::endl;
+  std::cout << "torsionGaussianPulse is " << p->torsionGaussianPulse << std::endl;
+  std::cout << "torsionCouplingV0 is " << p->torsionCouplingV0 << std::endl;
+  std::cout << "torsionCouplingV1 is " << p->torsionCouplingV1 << std::endl;
+  std::cout << "torsionCouplingOmega is " << p->torsionCouplingOmega << std::endl;
+  std::cout << "torsionCouplingPhi is " << p->torsionCouplingPhi << std::endl;
 #endif
 
   // Error checking
@@ -362,7 +366,7 @@ void assignParams(std::string inputFile, Params * p) {
       exit(-1);
     }
 
-    if (!p->torsionSin2) {
+    if (!p->torsionSin2 && !p->torsionCos2Pulse && !p->torsionGaussianPulse) {
       if (!fileExists(p->torsionFile)) {
       std::cerr << "ERROR: torsion file " << p->torsionFile << " does not exist." << std::endl;
       exit(-1);
@@ -379,6 +383,11 @@ void assignParams(std::string inputFile, Params * p) {
         std::cerr << "ERROR: time in " << p->torsionFile << " should be >= tout." << std::endl;
         exit(-1);
       }
+    }
+
+    if ((p->torsionSin2 + p->torsionCos2Pulse + p->torsionGaussianPulse) > 1) {
+      std::cerr << "ERROR: more than one torsional coupling turned on." << std::endl;
+      exit(-1);
     }
   }
 

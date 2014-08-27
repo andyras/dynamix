@@ -105,8 +105,6 @@ void outputRTA(std::map<const std::string, bool> &outs,
 
 void outputCouplings(Params * p, char * fileName);
 
-void outputTorsionSin2(Params * p, char * fileName);
-
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
     Params * p);
 

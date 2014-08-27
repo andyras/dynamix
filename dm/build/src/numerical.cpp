@@ -195,6 +195,23 @@ double sin2(double a, double b, double c, double d, double t) {
   return a + b*pow(sin(c*t + d),2);
 }
 
+/* gives value of Gaussian (not normalized) with time and vertical offsets.
+ * [a + b*exp(-(t-d)^2/(2*c^2))] */
+double gaussianOffset(double a, double b, double c, double d, double t) {
+  return a + b*exp(-1*pow(t-d,2)/(2.0*pow(c,2)));
+}
+
+/* gives value of a pulse given by half a cycle (one cycle of cos^2) with an
+ * offset. */
+double cos2Pulse(double a, double b, double c, double d, double t) {
+  if ((t < (d-M_PI/(2.0*c)) || t > (d+M_PI/(2.0*c)))) {
+    return 0;
+  }
+  else {
+    return a + b*pow(cos(c*(t-d)),2);
+  }
+}
+
 /* compute the six-point derivative of an array.
  * Assumes array elements are evenly spaced.
  * Output array is six elements shorter than input.

@@ -221,3 +221,18 @@ void Params::buildHamiltonian() {
   mkl_ddnscsr(&job[0], &(NEQ), &(NEQ), &(H)[0], &(NEQ), &(H_sp)[0],
       &(H_cols)[0], &(H_rowind)[0], &info);
 }
+
+double Params::getTorsionCoupling(double t) {
+  if (torsionSin2) {
+    return sin2(torsionCouplingV0, torsionCouplingV1, torsionCouplingOmega, torsionCouplingPhi, t);
+  }
+  else if (torsionGaussianPulse) {
+    return gaussianOffset(torsionCouplingV0, torsionCouplingV1, torsionCouplingOmega, torsionCouplingPhi, t);
+  }
+  else if (torsionCos2Pulse) {
+    return cos2Pulse(torsionCouplingV0, torsionCouplingV1, torsionCouplingOmega, torsionCouplingPhi, t);
+  }
+  else {
+    return torsionV.value(t);
+  }
+}
