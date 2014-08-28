@@ -104,6 +104,10 @@ public:
   realtype kBandWidth;
 
   std::vector<realtype> energies;
+  std::vector<realtype> k_energies;
+  std::vector<realtype> c_energies;
+  std::vector<realtype> b_energies;
+  std::vector<realtype> l_energies;
   std::vector<realtype> Vbridge;
   std::vector<realtype> Vnobridge;
   std::vector< std::vector<realtype> > V;
@@ -233,6 +237,10 @@ private:
     ar & kBandWidth;
 
     ar & energies;
+    ar & k_energies;
+    ar & c_energies;
+    ar & b_energies;
+    ar & l_energies;
     ar & Vbridge;
     ar & Vnobridge;
     ar & V;
