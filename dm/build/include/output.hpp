@@ -1,5 +1,4 @@
-#ifndef __OUTPUT_H__
-#define __OUTPUT_H__
+#pragma once
 
 #include <map>
 #include <cmath>
@@ -121,4 +120,3 @@ void computeGeneralOutputs(Params * p);
 void computeWfnOutput(realtype * wfnt, Params * p);
 
 void computeDMOutput(realtype * dmt, Params * p);
-#endif

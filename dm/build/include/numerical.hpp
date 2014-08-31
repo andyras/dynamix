@@ -1,5 +1,4 @@
-#ifndef __NUMERICAL_H__
-#define __NUMERICAL_H__
+#pragma once
 
 #include <map>
 #include <cmath>
@@ -96,5 +95,3 @@ int findArrayMaximumIndex(realtype * inputArray, int num);
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
-
-#endif

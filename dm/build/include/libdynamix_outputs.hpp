@@ -1,5 +1,4 @@
-#ifndef __LIBDYNAMIX_OUTPUTS_H__
-#define __LIBDYNAMIX_OUTPUTS_H__
+#pragma once
 
 /* Writes a scalar to a file */
 void outputDScalar(const char * fileName, double scalar);
@@ -18,5 +17,3 @@ void outputDMatrix(const char * fileName, double * mat, int n, int m);
 
 /* Writes transpose of a matrix with n rows and m columns to a file. */
 void outputDMatrixT(const char * fileName, double * mat, int n, int m);
-
-#endif

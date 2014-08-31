@@ -1,5 +1,4 @@
-#ifndef __CONSTANTS__
-#define __CONSTANTS__
+#pragma once
 
 // flags for conduction vs. valence bands
 #define CONDUCTION 0
@@ -13,5 +12,3 @@
 #define POP_CONSTANT 2
 #define POP_GAUSSIAN 3
 #define POP_FDD      4
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __LIBDYNAMIX_INPUT_PARSER_H__
-#define __LIBDYNAMIX_INPUT_PARSER_H__
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -23,5 +22,3 @@ void assignOutputs(const char * inputFile, std::map<const std::string, bool> &ou
 void assignParams(const std::string inputFile, Params * p);
 
 bool fileExists(std::string fileName);
-
-#endif

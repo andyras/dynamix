@@ -1,5 +1,4 @@
-#ifndef __DYNAMIX__
-#define __DYNAMIX__
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -52,5 +51,3 @@ void initialize(Params * p);
 void initHamiltonian(Params * p);
 
 void initWavefunction(Params * p);
-
-#endif

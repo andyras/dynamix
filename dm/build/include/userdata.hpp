@@ -1,9 +1,6 @@
-#ifndef __USERDATA__
-#define __USERDATA__
+#pragma once
 
 typedef struct {
   // Hamiltonian
   realtype * H;
 } *UserData;
-
-#endif

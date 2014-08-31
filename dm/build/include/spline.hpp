@@ -1,5 +1,4 @@
-#ifndef __SPLINE__
-#define __SPLINE__
+#pragma once
 
 #include <cstdlib>
 #include <iostream>
@@ -94,5 +93,3 @@ private:
 };
 
 bool comparePoints(const Point &pa, const Point &pb);
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __ANALYTIC__
-#define __ANALYTIC__
+#pragma once
 
 #include <complex>
 #include <vector>
@@ -8,5 +7,3 @@
 #include "params.hpp"
 
 void computeAnalyticOutputs(Params * p);
-
-#endif

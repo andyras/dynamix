@@ -1,5 +1,4 @@
-#ifndef __PARAMS__
-#define __PARAMS__
+#pragma once
 
 #include <vector>
 #include <cvode/cvode.h>
@@ -273,5 +272,3 @@ private:
   }
 #endif
 };
-
-#endif
