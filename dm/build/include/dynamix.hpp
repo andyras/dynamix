@@ -25,7 +25,6 @@
 #include "output.hpp"
 #include "numerical.hpp"
 #include "params.hpp"
-#include "userdata.hpp"
 #include "rhs.hpp"
 #include "plots.hpp"
 #include "constants.hpp"
