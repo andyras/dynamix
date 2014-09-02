@@ -1,7 +1,7 @@
 #include "libdynamix_input_parser.hpp"
 
-#define DEBUG
-#define DEBUG_INPUT_PARSER
+// #define DEBUG
+// #define DEBUG_INPUT_PARSER
 
 void assignOutputs(const char * inputFile, std::map<const std::string, bool> &outs,
     Params * p) {
