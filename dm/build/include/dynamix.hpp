@@ -45,8 +45,8 @@ void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, P
 
 void updateHamiltonian(Params * p, realtype t);
 
-void initialize(Params * p);
+void initialize(Params * p, const bool readFiles = true);
 
-void initHamiltonian(Params * p);
+void initHamiltonian(Params * p, const bool readFiles = true);
 
 void initWavefunction(Params * p);

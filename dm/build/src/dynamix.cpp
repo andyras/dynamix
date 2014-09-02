@@ -207,50 +207,52 @@ void updateHamiltonian(Params * p, realtype t) {
   return;
 }
 
-void initialize(Params * p) {
-  initHamiltonian(p);
+void initialize(Params * p, const bool readFiles) {
+  initHamiltonian(p, readFiles);
   initWavefunction(p);
 }
 
 // This function builds up the Hamiltonian, as well as the constituent site
 // energy array and coupling array.
-void initHamiltonian(Params * p) {
-  // first read in energies and couplings from files
-  p->Nc = numberOfValuesInFile(p->cEnergiesInput.c_str());
-  p->Nb = numberOfValuesInFile(p->bEnergiesInput.c_str());
+void initHamiltonian(Params * p, const bool readFiles) {
+  if (readFiles) {
+    // first read in energies and couplings from files
+    p->Nc = numberOfValuesInFile(p->cEnergiesInput.c_str());
+    p->Nb = numberOfValuesInFile(p->bEnergiesInput.c_str());
 
-  p->k_energies.resize(p->Nk, 0.0);
-  p->c_energies.resize(p->Nc, 0.0);
-  p->b_energies.resize(p->Nb, 0.0);
-  p->l_energies.resize(p->Nl, 0.0);
+    p->k_energies.resize(p->Nk, 0.0);
+    p->c_energies.resize(p->Nc, 0.0);
+    p->b_energies.resize(p->Nb, 0.0);
+    p->l_energies.resize(p->Nl, 0.0);
 
-  // c energies are defined in file
-  readVectorFromFile(p->c_energies, p->cEnergiesInput.c_str(), p->Nc);
+    // c energies are defined in file
+    readVectorFromFile(p->c_energies, p->cEnergiesInput.c_str(), p->Nc);
 
-  // bridge-dependent parameters
-  if (p->bridge_on) {
-    if (p->Nb < 1) {
-      std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
-      exit(-1);
+    // bridge-dependent parameters
+    if (p->bridge_on) {
+      if (p->Nb < 1) {
+        std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
+        exit(-1);
+      }
+
+      readVectorFromFile(p->b_energies, p->bEnergiesInput.c_str(), p->Nb);
+
+      p->Vbridge.resize(p->Nb+1);
+      readVectorFromFile(p->Vbridge, p->VBridgeInput.c_str(), p->Nb + 1);
+
+  #ifdef DEBUG
+      std::cout << "COUPLINGS:";
+      for (int ii = 0; ii < p->Nb+1; ii++) {
+        std::cout << " " << p->Vbridge[ii];
+      }
+      std::cout << std::endl;
+  #endif
     }
-
-    readVectorFromFile(p->b_energies, p->bEnergiesInput.c_str(), p->Nb);
-
-    p->Vbridge.resize(p->Nb+1);
-    readVectorFromFile(p->Vbridge, p->VBridgeInput.c_str(), p->Nb + 1);
-
-#ifdef DEBUG
-    std::cout << "COUPLINGS:";
-    for (int ii = 0; ii < p->Nb+1; ii++) {
-      std::cout << " " << p->Vbridge[ii];
+    else { // no bridge
+      p->Nb = 0;
+      p->Vnobridge.resize(1);
+      readVectorFromFile(p->Vnobridge, p->VNoBridgeInput.c_str(), 1);
     }
-    std::cout << std::endl;
-#endif
-  }
-  else { // no bridge
-    p->Nb = 0;
-    p->Vnobridge.resize(1);
-    readVectorFromFile(p->Vnobridge, p->VNoBridgeInput.c_str(), 1);
   }
 
 #ifdef DEBUG
