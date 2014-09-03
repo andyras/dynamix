@@ -13,8 +13,8 @@ LIBDIR = ./lib
 BINDIR = ./bin
 
 # compiler and archiver
-CPP = icpc
-AR = xiar
+CPP = g++
+AR = ar
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
