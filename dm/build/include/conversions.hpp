@@ -1,5 +1,4 @@
-#ifndef __CONVERSIONS__
-#define __CONVERSIONS__
+#pragma once
 
 /* Conversion factors to and from atomic units (a.u. or AU)
  *
@@ -60,5 +59,3 @@ const double PA2AU = 1.0/AU2PA;
 // Electric Field (V/m)
 const double AU2EFIELD = 5.1422065211e11;
 const double EFIELD2AU = 1.0/AU2EFIELD;
-
-#endif

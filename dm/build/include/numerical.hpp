@@ -1,5 +1,4 @@
-#ifndef __NUMERICAL_H__
-#define __NUMERICAL_H__
+#pragma once
 
 #include <map>
 #include <cmath>
@@ -53,6 +52,10 @@ realtype gaussPulse(realtype t, double pumpFWHM, double pumpAmpl, double pumpPea
 
 double sin2(double a, double b, double c, double d, double t);
 
+double gaussianOffset(double a, double b, double c, double d, double t);
+
+double cos2Pulse(double a, double b, double c, double d, double t);
+
 /* normalizes an N_Vector so that the populations of all states are
  * normalized to value 'total'
  */
@@ -92,5 +95,3 @@ int findArrayMaximumIndex(realtype * inputArray, int num);
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
-
-#endif

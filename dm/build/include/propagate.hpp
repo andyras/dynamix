@@ -1,8 +1,5 @@
-#ifndef __PROPAGATE__
-#define __PROPAGATE__
+#pragma once
 
 #include "dynamix.hpp"
 
 void propagate(Params * p);
-
-#endif

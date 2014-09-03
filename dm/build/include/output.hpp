@@ -1,5 +1,4 @@
-#ifndef __OUTPUT_H__
-#define __OUTPUT_H__
+#pragma once
 
 #include <map>
 #include <cmath>
@@ -105,8 +104,6 @@ void outputRTA(std::map<const std::string, bool> &outs,
 
 void outputCouplings(Params * p, char * fileName);
 
-void outputTorsionSin2(Params * p, char * fileName);
-
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
     Params * p);
 
@@ -123,4 +120,3 @@ void computeGeneralOutputs(Params * p);
 void computeWfnOutput(realtype * wfnt, Params * p);
 
 void computeDMOutput(realtype * dmt, Params * p);
-#endif

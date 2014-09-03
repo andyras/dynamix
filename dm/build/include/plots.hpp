@@ -1,5 +1,4 @@
-#ifndef __PLOTS__
-#define __PLOTS__
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -24,5 +23,3 @@ void plotDMt_z(char * fileName, Params * p);
 void plotKProbsMovie(char * fileName, Params * p);
 
 void plotCProbsMovie(char * fileName, Params * p);
-
-#endif

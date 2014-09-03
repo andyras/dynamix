@@ -133,13 +133,7 @@ void updateHamiltonian(Params * p, realtype t) {
   //// first handle torsion
   double torsionValue = 0.0;
   if (p->torsion) {
-    // regular (sinusoidal) coupling function
-    if (p->torsionSin2) {
-      torsionValue = sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, t);
-    }
-    else {
-      torsionValue = p->torsionV.value(t);
-    }
+    torsionValue = p->getTorsionCoupling(t);
 #ifdef DEBUG_TORSION
     std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
 #endif
@@ -213,50 +207,52 @@ void updateHamiltonian(Params * p, realtype t) {
   return;
 }
 
-void initialize(Params * p) {
-  initHamiltonian(p);
+void initialize(Params * p, const bool readFiles) {
+  initHamiltonian(p, readFiles);
   initWavefunction(p);
 }
 
 // This function builds up the Hamiltonian, as well as the constituent site
 // energy array and coupling array.
-void initHamiltonian(Params * p) {
-  // first read in energies and couplings from files
-  p->Nc = numberOfValuesInFile(p->cEnergiesInput.c_str());
-  p->Nb = numberOfValuesInFile(p->bEnergiesInput.c_str());
+void initHamiltonian(Params * p, const bool readFiles) {
+  if (readFiles) {
+    // first read in energies and couplings from files
+    p->Nc = numberOfValuesInFile(p->cEnergiesInput.c_str());
+    p->Nb = numberOfValuesInFile(p->bEnergiesInput.c_str());
 
-  std::vector<realtype> k_energies (p->Nk);
-  std::vector<realtype> c_energies (p->Nc);
-  std::vector<realtype> b_energies (p->Nb);
-  std::vector<realtype> l_energies (p->Nl);
+    p->k_energies.resize(p->Nk, 0.0);
+    p->c_energies.resize(p->Nc, 0.0);
+    p->b_energies.resize(p->Nb, 0.0);
+    p->l_energies.resize(p->Nl, 0.0);
 
-  // c energies are defined in file
-  readVectorFromFile(c_energies, p->cEnergiesInput.c_str(), p->Nc);
+    // c energies are defined in file
+    readVectorFromFile(p->c_energies, p->cEnergiesInput.c_str(), p->Nc);
 
-  // bridge-dependent parameters
-  if (p->bridge_on) {
-    if (p->Nb < 1) {
-      std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
-      exit(-1);
+    // bridge-dependent parameters
+    if (p->bridge_on) {
+      if (p->Nb < 1) {
+        std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
+        exit(-1);
+      }
+
+      readVectorFromFile(p->b_energies, p->bEnergiesInput.c_str(), p->Nb);
+
+      p->Vbridge.resize(p->Nb+1);
+      readVectorFromFile(p->Vbridge, p->VBridgeInput.c_str(), p->Nb + 1);
+
+  #ifdef DEBUG
+      std::cout << "COUPLINGS:";
+      for (int ii = 0; ii < p->Nb+1; ii++) {
+        std::cout << " " << p->Vbridge[ii];
+      }
+      std::cout << std::endl;
+  #endif
     }
-
-    readVectorFromFile(b_energies, p->bEnergiesInput.c_str(), p->Nb);
-
-    p->Vbridge.resize(p->Nb+1);
-    readVectorFromFile(p->Vbridge, p->VBridgeInput.c_str(), p->Nb + 1);
-
-#ifdef DEBUG
-    std::cout << "COUPLINGS:";
-    for (int ii = 0; ii < p->Nb+1; ii++) {
-      std::cout << " " << p->Vbridge[ii];
+    else { // no bridge
+      p->Nb = 0;
+      p->Vnobridge.resize(1);
+      readVectorFromFile(p->Vnobridge, p->VNoBridgeInput.c_str(), 1);
     }
-    std::cout << std::endl;
-#endif
-  }
-  else { // no bridge
-    p->Nb = 0;
-    p->Vnobridge.resize(1);
-    readVectorFromFile(p->Vnobridge, p->VNoBridgeInput.c_str(), 1);
   }
 
 #ifdef DEBUG
@@ -266,15 +262,15 @@ void initHamiltonian(Params * p) {
   // assign bulk conduction and valence band energies
   // for RTA, bulk and valence bands have parabolic energies
   if (p->rta) {
-    buildParabolicBand(&k_energies[0], p->Nk, p->kBandEdge, CONDUCTION, p);
-    buildParabolicBand(&l_energies[0], p->Nl, p->lBandTop, VALENCE, p);
+    buildParabolicBand(&(p->k_energies[0]), p->Nk, p->kBandEdge, CONDUCTION, p);
+    buildParabolicBand(&(p->l_energies[0]), p->Nl, p->lBandTop, VALENCE, p);
   }
   else {
-    buildContinuum(&k_energies[0], p->Nk, p->kBandEdge, p->kBandTop);
-    buildContinuum(&l_energies[0], p->Nl, p->kBandEdge - p->valenceBand - p->bulk_gap, p->kBandEdge - p->bulk_gap);
+    buildContinuum(&(p->k_energies[0]), p->Nk, p->kBandEdge, p->kBandTop);
+    buildContinuum(&(p->l_energies[0]), p->Nl, p->kBandEdge - p->valenceBand - p->bulk_gap, p->kBandEdge - p->bulk_gap);
   }
   // calculate band width
-  p->kBandWidth = k_energies[p->Nk - 1] - k_energies[0];
+  p->kBandWidth = fabs(p->k_energies.back() - p->k_energies.front());
 
   // set total number of equations
   p->NEQ = p->Nk+p->Nc+p->Nb+p->Nl;                          // total number of equations set
@@ -292,16 +288,16 @@ void initHamiltonian(Params * p) {
 
   p->energies.resize(p->NEQ);
   for (int ii = 0; ii < p->Nk; ii++) {
-    p->energies[p->Ik + ii] = k_energies[ii];
+    p->energies[p->Ik + ii] = p->k_energies[ii];
   }
   for (int ii = 0; ii < p->Nc; ii++) {
-    p->energies[p->Ic + ii] = c_energies[ii];
+    p->energies[p->Ic + ii] = p->c_energies[ii];
   }
   for (int ii = 0; ii < p->Nb; ii++) {
-    p->energies[p->Ib + ii] = b_energies[ii];
+    p->energies[p->Ib + ii] = p->b_energies[ii];
   }
   for (int ii = 0; ii < p->Nl; ii++) {
-    p->energies[p->Il + ii] = l_energies[ii];
+    p->energies[p->Il + ii] = p->l_energies[ii];
   }
 
 #ifdef DEBUG

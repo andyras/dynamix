@@ -737,7 +737,7 @@ void outputTorsion(Params * p, char * fileName) {
     output << std::setw(8) << std::scientific
       << p->times[ii] << " "
       << std::setw(8) << std::scientific
-      << p->torsionV.value(p->times[ii]) << std::endl;
+      << p->getTorsionCoupling(p->times[ii]) << std::endl;
   }
   return;
 }
@@ -944,19 +944,6 @@ void outputCouplings(Params * p, char * fileName) {
     o << std::endl;
   }
   o.close();
-
-  return;
-}
-
-/* outputs sin^2 function for torsional coupling */
-void outputTorsionSin2(Params * p, char * fileName) {
-  std::ofstream o(outputFileName(fileName, p).c_str());
-
-  for (int ii = 0; ii < p->numOutputSteps; ii++) {
-    o << p->times[ii] << " "
-      << sin2(p->torsionSin2V0, p->torsionSin2V1, p->torsionSin2omega, p->torsionSin2phi, p->times[ii])
-      << std::endl;
-  }
 
   return;
 }
@@ -1204,15 +1191,8 @@ void outputDerivsDM(std::map<const std::string, bool> &outs, realtype * dmt,
 void computeGeneralOutputs(Params * p) {
   // torsion-mediated coupling
   if (p->torsion) {
-    if (p->torsionSin2) {
-      if (isOutput(p->outs, "torsionSin2.out")) {
-        outputTorsionSin2(p, (char *)"torsionSin2.out");
-      }
-    }
-    else {
-      if (isOutput(p->outs, "torsion.out")) {
-        outputTorsion(p, (char *)"torsion.out");
-      }
+    if (isOutput(p->outs, "torsion.out")) {
+      outputTorsion(p, (char *)"torsion.out");
     }
   }
 

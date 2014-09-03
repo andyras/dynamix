@@ -1,5 +1,4 @@
-#ifndef __DYNAMIX__
-#define __DYNAMIX__
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -26,7 +25,6 @@
 #include "output.hpp"
 #include "numerical.hpp"
 #include "params.hpp"
-#include "userdata.hpp"
 #include "rhs.hpp"
 #include "plots.hpp"
 #include "constants.hpp"
@@ -47,10 +45,8 @@ void buildParabolicBand(realtype * energies, int n, double bandEdge, int flag, P
 
 void updateHamiltonian(Params * p, realtype t);
 
-void initialize(Params * p);
+void initialize(Params * p, const bool readFiles = true);
 
-void initHamiltonian(Params * p);
+void initHamiltonian(Params * p, const bool readFiles = true);
 
 void initWavefunction(Params * p);
-
-#endif
