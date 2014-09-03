@@ -356,12 +356,7 @@ void assignParams(std::string inputFile, Params * p) {
 #endif
 
     // error checking
-    if (p->torsionSite > p->Nb) {
-      std::cerr << "ERROR: torsion site (" << p->torsionSite
-        << ") is larger than number of bridge sites (" << p->Nb << ")." << std::endl;
-      exit(-1);
-    }
-    else if (p->torsionSite < 0) {
+    if (p->torsionSite < 0) {
       std::cerr << "ERROR: torsion site is less than zero." << std::endl;
       exit(-1);
     }

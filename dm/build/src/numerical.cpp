@@ -1,8 +1,8 @@
 #include "numerical.hpp"
-//#define DEBUG
+// #define DEBUG
 
-//#define DEBUG_NUMERICAL
-//#define DEBUG_READVECTOR
+// #define DEBUG_NUMERICAL
+// #define DEBUG_READVECTOR
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.

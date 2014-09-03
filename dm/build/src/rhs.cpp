@@ -21,12 +21,20 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
+#ifdef DEBUG
+    std::cout << "Updating Hamiltonian at time " << t << std::endl;
+#endif
     // only update if at a new time point
     if ((t > 0.0) && (t != p->lastTime)) {
       updateHamiltonian(p, t);
       // update time point
       p->lastTime = t;
     }
+  }
+  else {
+#ifdef DEBUG
+    std::cout << "Not updating Hamiltonian at time " << t << std::endl;
+#endif
   }
 
   // extract parameters from p
