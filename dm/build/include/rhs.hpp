@@ -35,5 +35,3 @@ double FDDBinarySearch(double lower, double upper, double T, double n,
 double FDDSum(double mu, double T, int bandFlag, Params * p);
 
 void FDD(double mu, double T, double * fdd, double * E, int N, double P);
-
-int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data);

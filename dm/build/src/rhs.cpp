@@ -569,7 +569,7 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
 #ifdef DEBUG_RHS
   // print DM'
-  std::cout << "DM' at time " << t << " after propogator applied:" << std::endl;
+  std::cout << "DM' at time " << t << " after propagator applied:" << std::endl;
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
       if (jj == 0) {
@@ -804,88 +804,4 @@ void FDD(double mu, double T, double * fdd, double * E, int N, double P) {
   }
 
   return;
-}
-
-/* Right-hand-side equation for density matrix
- * using dephasing */
-int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data) {
-
-#ifdef DEBUGf_DM
-  // file for density matrix coeff derivatives in time
-  FILE * dmf;
-  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "a");
-#endif
-
-
-  // data is a pointer to the params struct
-  Params * p;
-  p = (Params *) data;
-
-  // extract parameters from p
-  std::vector<realtype> H = p->H; // copying vector is OK performance-wise
-  int N = p->NEQ;
-  int N2 = p->NEQ2;
-  realtype g2 = p->gamma2;
-
-  // more compact notation for N_Vectors
-  realtype * yp = N_VGetArrayPointer(y);
-  realtype * ydotp = N_VGetArrayPointer(ydot);
-
-  // update Hamiltonian if it is time-dependent
-  if (p->torsion || p->laser_on) {
-    updateHamiltonian(p, t);
-  }
-
-  // initialize ydot
-  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
-#pragma omp parallel for
-  for (int ii = 0; ii < 2*N2; ii++) {
-    ydotp[ii] = 0.0;
-  }
-
-  //// diagonal; no need to calculate the imaginary part
-#pragma omp parallel for
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < N; jj++) {
-      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
-    }
-  }
-
-  //// off-diagonal
-#pragma omp parallel for
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < ii; jj++) {
-      for (int kk = 0; kk < N; kk++) {
-        //// real parts of ydot
-        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
-
-        //// imaginary parts of ydot (lower triangle and complex conjugate)
-        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
-      }
-      // the complex conjugate
-      ydotp[jj*N + ii] = ydotp[ii*N + jj];
-      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
-
-      // relaxation
-      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
-      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
-      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
-      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
-    }
-  }
-
-#ifdef DEBUGf_DM
-  fprintf(dmf, "%+.7e", t);
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
-    }
-  }
-  fprintf(dmf, "\n");
-#endif
-
-  return 0;
 }

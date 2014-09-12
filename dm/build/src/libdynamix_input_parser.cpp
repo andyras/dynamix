@@ -155,7 +155,6 @@ void assignParams(std::string inputFile, Params * p) {
     else if (input_param == "kineticQD") { p->kineticQD = atoi(param_val.c_str()); }
     else if (input_param == "dynamicMu") { p->dynamicMu = atoi(param_val.c_str()); }
     else if (input_param == "dynamicMuQD") { p->dynamicMuQD = atoi(param_val.c_str()); }
-    else if (input_param == "dephasing") { p->dephasing = atoi(param_val.c_str()); }
     else if (input_param == "progressFile") { p->progressFile = atoi(param_val.c_str()); }
     else if (input_param == "progressStdout") { p->progressStdout = atoi(param_val.c_str()); }
     else if (input_param == "abstol") { p->abstol = atof(param_val.c_str()); }
@@ -233,7 +232,6 @@ void assignParams(std::string inputFile, Params * p) {
   std::cout << "kineticQD is " << p->kineticQD << std::endl;
   std::cout << "dynamicMu is " << p->dynamicMu << std::endl;
   std::cout << "dynamicMuQD is " << p->dynamicMuQD << std::endl;
-  std::cout << "dephasing is " << p->dephasing << std::endl;
   std::cout << "progressFile is " << p->progressFile << std::endl;
   std::cout << "progressStdout is " << p->progressStdout << std::endl;
   std::cout << "abstol is " << p->abstol << std::endl;

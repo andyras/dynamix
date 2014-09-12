@@ -23,13 +23,12 @@ public:
   bool wavefunction = 1;                // 1 => wavefunction; 0 => density matrix
   bool coherent = 1;                    // 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_{ii} only
   bool justPlots = false;               // just make plots, no propagation or other output
-  bool timedepH = true;                 // if H is TD, use CVODE, else diag H and propogate
+  bool timedepH = true;                 // if H is TD, use CVODE, else diag H and propagate
   bool analytical = false;              // turn on analytical propagation
   bool kinetic = false;                 // kinetic relaxation model
   bool kineticQD = false;               // kinetic relaxation model in QD
   bool dynamicMu = false;               // for kinetic model, calculate Fermi level dynamically
   bool dynamicMuQD = false;             // for kinetic model, calculate Fermi level dynamically on QD
-  bool dephasing = false;               // turn on dephasing
   bool progressFile = false;            // create a file to show progress of the run
   bool progressStdout = false;          // show progress in stdout
   realtype abstol = 1e-10;              // absolute tolerance (for SUNDIALS)
@@ -161,7 +160,6 @@ private:
     ar & kineticQD;
     ar & dynamicMu;
     ar & dynamicMuQD;
-    ar & dephasing;
     ar & progressFile;
     ar & progressStdout;
     ar & abstol;

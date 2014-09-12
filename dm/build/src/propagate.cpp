@@ -95,12 +95,6 @@ void propagate(Params * p) {
 #endif
       flag = CVodeInit(cvode_mem, &RHS_DM_RELAX, t0, y);
     }
-    else if (p->dephasing) {
-#ifdef DEBUG
-    std::cout << "using dephasing RHS function." << std::endl;
-#endif
-      flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
-    }
     else {
 #ifdef DEBUG
     std::cout << "using plain DM RHS function." << std::endl;
