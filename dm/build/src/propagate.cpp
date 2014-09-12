@@ -89,19 +89,11 @@ void propagate(Params * p) {
     // flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
   }
   else {
-    if (p->kinetic) {
 #ifdef DEBUG
-    std::cout << "using kinetic RHS function." << std::endl;
+    std::cout << "using DM RHS function." << std::endl;
 #endif
-      flag = CVodeInit(cvode_mem, &RHS_DM_RELAX, t0, y);
-    }
-    else {
-#ifdef DEBUG
-    std::cout << "using plain DM RHS function." << std::endl;
-#endif
-      flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
-      // flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
-    }
+    flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+    // flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
   }
 
 #ifdef DEBUG

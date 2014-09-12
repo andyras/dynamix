@@ -204,7 +204,7 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
 }
 
 /* Right-hand-side equation for density matrix */
-int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
+int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   // data is a pointer to the params struct
   Params * p;
@@ -220,10 +220,6 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype * yp = N_VGetArrayPointer(y);
   realtype * ydotp = N_VGetArrayPointer(ydot);
 
-  // std::cout << "time is " << t << std::endl;
-  // std::cout << ydotp << std::endl;
-  // N_VPrint_Serial(y);
-
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -234,104 +230,12 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-  // initialize ydot
-  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
+  // initialize ydot; this needs to happen because between calls ydot gets
+  // overwritten with the y vector
 #pragma omp parallel for
   for (int ii = 0; ii < 2*N2; ii++) {
     ydotp[ii] = 0.0;
   }
-
-  //// relaxation in bulk conduction band
-
-  if (p->kinetic) {
-    RELAX_KINETIC(CONDUCTION, yp, ydotp, p);
-  }
-
-  //// relaxation in QD conduction band
-
-  if (p->kineticQD) {
-    RELAX_KINETIC(QD_CONDUCTION, yp, ydotp, p);
-  }
-
-  //// diagonal; no need to calculate the imaginary part
-#pragma omp parallel for
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < N; jj++) {
-      ydotp[ii*N + ii] += 2*H[ii*N + jj]*yp[jj*N + ii + N2];
-    }
-  }
-
-  //// off-diagonal
-#pragma omp parallel for
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < ii; jj++) {
-      for (int kk = 0; kk < N; kk++) {
-        //// real parts of ydot
-        ydotp[ii*N + jj] += H[ii*N + kk]*yp[kk*N + jj + N2];
-        ydotp[ii*N + jj] -= yp[ii*N + kk + N2]*H[kk*N + jj];
-
-        //// imaginary parts of ydot (lower triangle and complex conjugate)
-        ydotp[ii*N + jj + N2] -= H[ii*N + kk]*yp[kk*N + jj];
-        ydotp[ii*N + jj + N2] += yp[ii*N + kk]*H[kk*N + jj];
-      }
-      // the complex conjugate
-      ydotp[jj*N + ii] = ydotp[ii*N + jj];
-      ydotp[jj*N + ii + N2] = -1*ydotp[ii*N + jj + N2];
-
-      // dephasing
-      ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
-      ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
-      ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
-      ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
-    }
-  }
-
-#ifdef DEBUG_RHS
-  std::cout << ydotp << " at time " << t << std::endl;
-  N_VPrint_Serial(ydot);
-#endif
-
-#ifdef DEBUGf_DM
-  // file for density matrix coeff derivatives in time
-  FILE * dmf;
-  dmf = fopen("dmf.out", "a");
-  fprintf(dmf, "%+.7e", t);
-  for (int ii = 0; ii < N; ii++) {
-    fprintf(dmf, "\n");
-    for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
-    }
-  }
-  fprintf(dmf, "\n");
-
-  fclose(dmf);
-#endif
-
-  return 0;
-}
-
-/* Right-hand-side equation for density matrix */
-int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
-
-#ifdef DEBUGf_DM
-  // file for density matrix coeff derivatives in time
-  FILE * dmf;
-  std::cout << "Creating output file for density matrix coefficient derivatives in time.\n";
-  dmf = fopen("dmf.out", "a");
-#endif
-
-  // data is a pointer to the params struct
-  Params * p;
-  p = (Params *) data;
-
-  // extract parameters from p
-  std::vector<realtype> H = p->H; // copying vector is OK performance-wise
-  int N = p->NEQ;
-  int N2 = p->NEQ2;
-
-  // more compact notation for N_Vectors
-  realtype * yp = N_VGetArrayPointer(y);
-  realtype * ydotp = N_VGetArrayPointer(ydot);
 
 #ifdef DEBUG_RHS
   // print Hamiltonian
@@ -369,23 +273,6 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::cout << std::endl << std::endl;
 #endif
 
-  // update Hamiltonian if it is time-dependent
-  if (p->torsion || p->laser_on) {
-    // only update if at a new time point
-    if ((t > 0.0) && (t != p->lastTime)) {
-      updateHamiltonian(p, t);
-      // update time point
-      p->lastTime = t;
-    }
-  }
-
-  // initialize ydot
-  // THIS NEEDS TO BE HERE FOR SOME REASON EVEN IF ALL ELEMENTS ARE ASSIGNED LATER
-#pragma omp parallel for
-  for (int ii = 0; ii < 2*N2; ii++) {
-    ydotp[ii] = 0.0;
-  }
-
   //// diagonal; no need to calculate the imaginary part
 #pragma omp parallel for
   for (int ii = 0; ii < N; ii++) {
@@ -413,18 +300,30 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-#ifdef DEBUGf_DM
-  fprintf(dmf, "%+.7e", t);
-  for (int ii = 0; ii < N; ii++) {
-    for (int jj = 0; jj < N; jj++) {
-      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
+  // relaxation in donor conduction band ///////////////////////////////////////
+
+  if (p->kinetic) {
+    RELAX_KINETIC(CONDUCTION, yp, ydotp, p);
+  }
+
+  // relaxation in acceptor conduction band ////////////////////////////////////
+
+  if (p->kineticQD) {
+    RELAX_KINETIC(QD_CONDUCTION, yp, ydotp, p);
+  }
+
+  // dephasing term ////////////////////////////////////////////////////////////
+  if (p->kinetic) {
+#pragma omp parallel for
+    for (int ii = 0; ii < N; ii++) {
+      for (int jj = 0; jj < ii; jj++) {
+        ydotp[ii*N + jj] -= g2*yp[ii*N + jj];
+        ydotp[ii*N + jj + N2] -= g2*yp[ii*N + jj + N2];
+        ydotp[jj*N + ii] -= g2*yp[jj*N + ii];
+        ydotp[jj*N + ii + N2] -= g2*yp[jj*N + ii + N2];
+      }
     }
   }
-  fprintf(dmf, "\n");
-
-  std::cout << "Closing output file for density matrix coefficients in time.\n";
-  fclose(dmf);
-#endif
 
 #ifdef DEBUG_RHS
   // print DM'
@@ -448,10 +347,21 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::cout << std::endl << std::endl;
 #endif
 
-// #ifdef DEBUG_RHS
-//   std::cout << ydotp << " at time " << t << std::endl;
-//   N_VPrint_Serial(ydot);
-// #endif
+#ifdef DEBUGf_DM
+  // file for density matrix coeff derivatives in time
+  FILE * dmf;
+  dmf = fopen("dmf.out", "a");
+  fprintf(dmf, "%+.7e", t);
+  for (int ii = 0; ii < N; ii++) {
+    fprintf(dmf, "\n");
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(dmf, " (%+.2e,%+.2e)", ydotp[ii*N + jj], ydotp[ii*N + jj + N2]);
+    }
+  }
+  fprintf(dmf, "\n");
+
+  fclose(dmf);
+#endif
 
   return 0;
 }
