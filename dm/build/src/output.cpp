@@ -104,10 +104,10 @@ void outputSquareMatrix(realtype * M, int N, char * fileName) {
   for (int ii = 0; ii < N; ii++) {
     for (int jj = 0; jj < N; jj++) {
       if (jj == 0) {
-	fprintf(out, "%-.9e", M[ii*N + jj]);
+        fprintf(out, "%-.9e", M[ii*N + jj]);
       }
       else {
-	fprintf(out, " %-.9e", M[ii*N + jj]);
+        fprintf(out, " %-.9e", M[ii*N + jj]);
       }
     }
     fprintf(out, "\n");

@@ -9,13 +9,13 @@ debug=0
 # number of processors to use with OpenMP
 nproc=1
 # method parameters #
-wavefunction=1				# 1 => wavefunction; 0 => density matrix
+wavefunction=0				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
-timedepH=1				# if H is TD, use CVODE, else diag H and propogate
+timedepH=0				# if H is TD, use CVODE, else diag H and propogate
 analytical=0				# turn on analytical propagation
-kinetic=1				# kinetic relaxation model
-kineticQD=1				# kinetic relaxation model in QD
+kinetic=0				# kinetic relaxation model
+kineticQD=0				# kinetic relaxation model in QD
 dynamicMu=0				# for kinetic model, calculate Fermi level dynamically
 dynamicMuQD=0				# for kinetic model, calculate Fermi level dynamically on QD
 rta=0					# use relaxation time approximation (RTA)
@@ -33,7 +33,7 @@ numOutputSteps=200			# number of output timesteps
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
 lBandTop=-0.01				# upper band edge of bulk valence band (a.u.)
-Nk=25					# number of k states to have
+Nk=1					# number of k states to have
 bulk_gap=0.01				# bulk band gap (a.u.)
 valenceBand=0.01			# bulk valence band width
 Nl=0					# number of bulk valence band states
@@ -63,7 +63,7 @@ CBPopFlag=3				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 VBPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 QDPopFlag=0				# 0=empty, 1=full, 2=constant, 3=Gaussian, 4=FDD
 Nk_first=1        # first k state initially populated
-Nk_final=10        # final k state initially populated
+Nk_final=1        # final k state initially populated
 Nc_first=1        # first c state initially populated
 Nc_final=1        # final c state initially populated
 laser_on=0
@@ -72,11 +72,11 @@ scale_bubr=0
 scale_brqd=0
 scale_buqd=0
 scale_laser=1
-bridge_on=1
+bridge_on=0
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
-torsion=1				# turn torsion-mediated coupling on or off
+torsion=0				# turn torsion-mediated coupling on or off
 torsionFile=ins/tors.in
 torsionSite=1				# 0 = coupling between bulk and bridge
 torsionSin2=0				# flag to turn on sin^2 torsional coupling

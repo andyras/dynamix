@@ -1,16 +1,16 @@
 #include "rhs.hpp"
 
-// #define DEBUG_RHS
+#define DEBUG_RHS
 // #define DEBUG_RTA
 //
 // DEBUGf flag: general output at each CVode step
-// #define DEBUGf
+#define DEBUGf
 //
 // DEBUGf_DM flag: DEBUGf for density matrix EOM
 // #define DEBUGf_DM
 
-// #define DEBUG_TORSION
-// #define DEBUG_DYNAMIC_MU
+#define DEBUG_TORSION
+#define DEBUG_DYNAMIC_MU
 
 
 /* Right-hand-side equation for wavefunction */
@@ -45,6 +45,10 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // get pointer to y, ydot data
   realtype * yp = N_VGetArrayPointer(y);
   realtype * ydotp = N_VGetArrayPointer(ydot);
+
+#ifdef DEBUG_RHS
+  std::cout << "Pointer to ydot is " << ydotp << std::endl;
+#endif
 
   // set up BLAS variables
   // const char TRANS = 'n';
@@ -133,6 +137,12 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
     std::cerr << "        setting g1 to 1.0" << std::endl;
     g1 = 1.0;
   }
+
+  // don't do anything if there is no relaxation term
+  if (g1 == 0.0) {
+    return;
+  }
+
   double mu = p->EF;
   double T = p->temperature;
   double * E = &(p->energies[start]);
@@ -287,8 +297,10 @@ int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data) {
     }
   }
 
-  // std::cout << ydotp << std::endl;
-  // N_VPrint_Serial(ydot);
+#ifdef DEBUG_RHS
+  std::cout << ydotp << " at time " << t << std::endl;
+  N_VPrint_Serial(ydot);
+#endif
 
 #ifdef DEBUGf_DM
   // file for density matrix coeff derivatives in time
@@ -473,6 +485,42 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   realtype * yp = N_VGetArrayPointer(y);
   realtype * ydotp = N_VGetArrayPointer(ydot);
 
+#ifdef DEBUG_RHS
+  // print Hamiltonian
+  std::cout << "Hamiltonian at time " << t << std::endl;
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      if (jj == 0) {
+        fprintf(stdout, "%.9e", H[ii*N]);
+      }
+      else {
+        fprintf(stdout, " %.9e", H[ii*N + jj]);
+      }
+    }
+    fprintf(stdout, "\n");
+  }
+  std::cout << std::endl;
+  // print DM
+  std::cout << "DM at time " << t << std::endl;
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      if (jj == 0) {
+        fprintf(stdout, "%.9e", yp[ii*N]);
+      }
+      else {
+        fprintf(stdout, " %.9e", yp[ii*N + jj]);
+      }
+    }
+    // Imaginary part
+    fprintf(stdout, " ");
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(stdout, " %.9e", yp[ii*N + jj + N2]);
+    }
+    fprintf(stdout, "\n");
+  }
+  std::cout << std::endl << std::endl;
+#endif
+
   // update Hamiltonian if it is time-dependent
   if (p->torsion || p->laser_on) {
     // only update if at a new time point
@@ -529,6 +577,33 @@ int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data) {
   std::cout << "Closing output file for density matrix coefficients in time.\n";
   fclose(dmf);
 #endif
+
+#ifdef DEBUG_RHS
+  // print DM'
+  std::cout << "DM' at time " << t << " after propogator applied:" << std::endl;
+  for (int ii = 0; ii < N; ii++) {
+    for (int jj = 0; jj < N; jj++) {
+      if (jj == 0) {
+        fprintf(stdout, "%.9e", ydotp[ii*N]);
+      }
+      else {
+        fprintf(stdout, " %.9e", ydotp[ii*N + jj]);
+      }
+    }
+    // Imaginary part
+    fprintf(stdout, " ");
+    for (int jj = 0; jj < N; jj++) {
+      fprintf(stdout, " %.9e", ydotp[ii*N + jj + N2]);
+    }
+    fprintf(stdout, "\n");
+  }
+  std::cout << std::endl << std::endl;
+#endif
+
+// #ifdef DEBUG_RHS
+//   std::cout << ydotp << " at time " << t << std::endl;
+//   N_VPrint_Serial(ydot);
+// #endif
 
   return 0;
 }

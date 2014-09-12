@@ -30,7 +30,8 @@ ifeq ($(CPP),icpc)
   CPPFLAGS += -fast -xHOST -no-prec-div -mkl -no-multibyte-chars
   LDFLAGS += -mkl
 else # g++*
-  LDFLAGS += -liomp5
+  CPPFLAGS += -fopenmp
+  LDFLAGS += -fopenmp
   LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   ifeq ($(shell hostname),tim.selfip.org)
     LDFLAGS += -lpthread -lm
