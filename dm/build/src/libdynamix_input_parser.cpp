@@ -155,9 +155,6 @@ void assignParams(std::string inputFile, Params * p) {
     else if (input_param == "kineticQD") { p->kineticQD = atoi(param_val.c_str()); }
     else if (input_param == "dynamicMu") { p->dynamicMu = atoi(param_val.c_str()); }
     else if (input_param == "dynamicMuQD") { p->dynamicMuQD = atoi(param_val.c_str()); }
-    else if (input_param == "rta") { p->rta = atoi(param_val.c_str()); }
-    else if (input_param == "rtaQD") { p->rtaQD = atoi(param_val.c_str()); }
-    else if (input_param == "dephasing") { p->dephasing = atoi(param_val.c_str()); }
     else if (input_param == "progressFile") { p->progressFile = atoi(param_val.c_str()); }
     else if (input_param == "progressStdout") { p->progressStdout = atoi(param_val.c_str()); }
     else if (input_param == "abstol") { p->abstol = atof(param_val.c_str()); }
@@ -235,9 +232,6 @@ void assignParams(std::string inputFile, Params * p) {
   std::cout << "kineticQD is " << p->kineticQD << std::endl;
   std::cout << "dynamicMu is " << p->dynamicMu << std::endl;
   std::cout << "dynamicMuQD is " << p->dynamicMuQD << std::endl;
-  std::cout << "rta is " << p->rta << std::endl;
-  std::cout << "rtaQD is " << p->rtaQD << std::endl;
-  std::cout << "dephasing is " << p->dephasing << std::endl;
   std::cout << "progressFile is " << p->progressFile << std::endl;
   std::cout << "progressStdout is " << p->progressStdout << std::endl;
   std::cout << "abstol is " << p->abstol << std::endl;
@@ -333,10 +327,6 @@ void assignParams(std::string inputFile, Params * p) {
   if (p->random_seed < -1) {
     std::cerr << "\nERROR: random_phase must be -1 or greater.\n";
     exit(-1);
-  }
-
-  if ((p->Nk < 2) && (p->rta)) {
-    std::cerr << "\nERROR: when using RTA it is better to have many states in the conduction band." << std::endl;
   }
 
   // Decide which output files to make /////////////////////////////////////////

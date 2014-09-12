@@ -260,15 +260,9 @@ void initHamiltonian(Params * p, const bool readFiles) {
 #endif
 
   // assign bulk conduction and valence band energies
-  // for RTA, bulk and valence bands have parabolic energies
-  if (p->rta) {
-    buildParabolicBand(&(p->k_energies[0]), p->Nk, p->kBandEdge, CONDUCTION, p);
-    buildParabolicBand(&(p->l_energies[0]), p->Nl, p->lBandTop, VALENCE, p);
-  }
-  else {
-    buildContinuum(&(p->k_energies[0]), p->Nk, p->kBandEdge, p->kBandTop);
-    buildContinuum(&(p->l_energies[0]), p->Nl, p->kBandEdge - p->valenceBand - p->bulk_gap, p->kBandEdge - p->bulk_gap);
-  }
+  buildContinuum(&(p->k_energies[0]), p->Nk, p->kBandEdge, p->kBandTop);
+  buildContinuum(&(p->l_energies[0]), p->Nl, p->kBandEdge - p->valenceBand - p->bulk_gap, p->kBandEdge - p->bulk_gap);
+
   // calculate band width
   p->kBandWidth = fabs(p->k_energies.back() - p->k_energies.front());
 
@@ -365,9 +359,6 @@ void initWavefunction(Params * p) {
     std::cout << "Initializing constant distribution in conduction band" << std::endl;
 #endif
     k_coeffs.assign(k_coeffs.size(), 0.0);
-    if (p->rta) {
-      k_coeffs.assign(k_coeffs.size(), 1e-1); // FIXME
-    }
     initializeArray(&(k_coeffs[p->Nk_first-1]), p->Nk_final - p->Nk_first + 1, 1.0);
   }
   else if (p->CBPopFlag == POP_GAUSSIAN) {
@@ -520,35 +511,32 @@ void initWavefunction(Params * p) {
 #endif
 
     // Normalize the DM so that populations add up to 1.
-    // No normalization if RTA is on.
-    if (!p->rta) {
-      summ = 0.0;
-      for (int ii = 0; ii < p->NEQ; ii++) {
-        // assume here that diagonal elements are all real
-        summ += p->startDM[p->NEQ*ii + ii];
-      }
-      if ( summ == 0.0 ) {
-        std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
-        exit(-1);
-      }
-      if (summ != 1.0) {
-        // the variable 'summ' is now a multiplicative normalization factor
-        summ = 1.0/summ;
-        for (int ii = 0; ii < 2*p->NEQ2; ii++) {
-          p->startDM[ii] *= summ;
-        }
-      }
-#ifdef DEBUG
-      std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
-#endif
+    summ = 0.0;
+    for (int ii = 0; ii < p->NEQ; ii++) {
+      // assume here that diagonal elements are all real
+      summ += p->startDM[p->NEQ*ii + ii];
     }
+    if ( summ == 0.0 ) {
+      std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+      exit(-1);
+    }
+    if (summ != 1.0) {
+      // the variable 'summ' is now a multiplicative normalization factor
+      summ = 1.0/summ;
+      for (int ii = 0; ii < 2*p->NEQ2; ii++) {
+        p->startDM[ii] *= summ;
+      }
+    }
+#ifdef DEBUG
+    std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+#endif
 
     // Error checking for total population; recount population first
     summ = 0.0;
     for (int ii = 0; ii < p->NEQ; ii++) {
       summ += p->startDM[p->NEQ*ii + ii];
     }
-    if ( fabs(summ-1.0) > 1e-12  && (!p->rta)) {
+    if ( fabs(summ-1.0) > 1e-12) {
       std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
     }
 #ifdef DEBUG

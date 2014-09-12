@@ -19,12 +19,6 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p);
 
-void RELAX_RTA(int bandFlag, realtype * yp, realtype * ydotp, Params * p);
-
-int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data);
-
-int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data);
-
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
@@ -37,13 +31,3 @@ double FDDBinarySearch(double lower, double upper, double T, double n,
 double FDDSum(double mu, double T, int bandFlag, Params * p);
 
 void FDD(double mu, double T, double * fdd, double * E, int N, double P);
-
-void FDD_RTA(Params * p, realtype * y, std::vector<double> & fdd, int flag);
-
-double b13(double bm, double ekin, double ne, double K1, double K2, double K3, double X);
-
-int RHS_DM_RTA(realtype t, N_Vector y, N_Vector ydot, void * data);
-
-int RHS_DM_RTA_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
-
-int RHS_DM_dephasing(realtype t, N_Vector y, N_Vector ydot, void * data);

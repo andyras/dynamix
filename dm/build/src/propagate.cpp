@@ -82,24 +82,18 @@ void propagate(Params * p) {
   // initialize CVode solver //
 
   if (p->wavefunction) {
+#ifdef DEBUG
+    std::cout << "using wavefunction RHS function." << std::endl;
+#endif
     flag = CVodeInit(cvode_mem, &RHS_WFN, t0, y);
     // flag = CVodeInit(cvode_mem, &RHS_WFN_SPARSE, t0, y);
   }
   else {
-    if (p->kinetic) {
-      flag = CVodeInit(cvode_mem, &RHS_DM_RELAX, t0, y);
-    }
-    else if (p->rta) {
-      flag = CVodeInit(cvode_mem, &RHS_DM_RTA, t0, y);
-      //flag = CVodeInit(cvode_mem, &RHS_DM_RTA_BLAS, t0, y);
-    }
-    else if (p->dephasing) {
-      flag = CVodeInit(cvode_mem, &RHS_DM_dephasing, t0, y);
-    }
-    else {
-      // flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
-      flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
-    }
+#ifdef DEBUG
+    std::cout << "using DM RHS function." << std::endl;
+#endif
+    flag = CVodeInit(cvode_mem, &RHS_DM, t0, y);
+    // flag = CVodeInit(cvode_mem, &RHS_DM_BLAS, t0, y);
   }
 
 #ifdef DEBUG
