@@ -21,8 +21,6 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p);
 
 int RHS_DM_RELAX(realtype t, N_Vector y, N_Vector ydot, void * data);
 
-int RHS_DM_KINETIC(realtype t, N_Vector y, N_Vector ydot, void * data);
-
 int RHS_DM(realtype t, N_Vector y, N_Vector ydot, void * data);
 
 int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data);
