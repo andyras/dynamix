@@ -29,8 +29,6 @@ public:
   bool kineticQD = false;               // kinetic relaxation model in QD
   bool dynamicMu = false;               // for kinetic model, calculate Fermi level dynamically
   bool dynamicMuQD = false;             // for kinetic model, calculate Fermi level dynamically on QD
-  bool rta = true;                      // turn on relaxation time approximation (RTA)
-  bool rtaQD = true;                    // turn on relaxation time approximation (RTA)
   bool dephasing = false;               // turn on dephasing
   bool progressFile = false;            // create a file to show progress of the run
   bool progressStdout = false;          // show progress in stdout
@@ -55,9 +53,9 @@ public:
   double X2 = 1512.2873345935727;       // "Bohr radius" of material, inverse spacing in k-space
   realtype temperature = 3e2;           // temperature of the system
   double EF = 0.0;                      // Fermi level in bulk
-  realtype gamma1 = 1e-3;               // \gamma_1 in RTA (relaxation rate)
-  realtype gamma1_c = 1e-3;             // \gamma_1 in RTA (relaxation rate) on QD
-  realtype gamma2 = 1e-3;               // \gamma_2 in RTA (dephasing rate)
+  realtype gamma1 = 1e-3;               // \gamma_1 (relaxation rate)
+  realtype gamma1_c = 1e-3;             // \gamma_1 (relaxation rate) on QD
+  realtype gamma2 = 1e-3;               // \gamma_2 (dephasing rate)
   double muLK = 1.0;                    // transition dipole moment from l to k (energy a.u.)
   double pumpFWHM = 1000;               // FWHM of pump pulse (time a.u.)
   double pumpPeak = 2000;               // time of peak of pump pulse (a.u.)
@@ -163,8 +161,6 @@ private:
     ar & kineticQD;
     ar & dynamicMu;
     ar & dynamicMuQD;
-    ar & rta;
-    ar & rtaQD;
     ar & dephasing;
     ar & progressFile;
     ar & progressStdout;

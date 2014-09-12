@@ -99,9 +99,6 @@ void outputMuFromPops(char * fileName, realtype * dmt,
 
 void outputTorsion(Params * p, char * fileName);
 
-void outputRTA(std::map<const std::string, bool> &outs,
-    realtype * dmt, Params * p);
-
 void outputCouplings(Params * p, char * fileName);
 
 void findPeaksWfn(char * fileName, int start, int end, realtype * wfnt,
