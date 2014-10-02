@@ -32,7 +32,7 @@ ifeq ($(CPP),icpc)
 else # g++*
   CPPFLAGS += -fopenmp
   LDFLAGS += -fopenmp
-  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
+  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
   ifeq ($(shell hostname),tim.selfip.org)
     LDFLAGS += -lpthread -lm
   endif
