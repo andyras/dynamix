@@ -20,11 +20,10 @@
 #include <map>
 #include <omp.h>
 
-#include "libdynamix_input_parser.hpp"
-#include "libdynamix_outputs.hpp"
 #include "output.hpp"
 #include "numerical.hpp"
 #include "params.hpp"
+#include "parser.hpp"
 #include "rhs.hpp"
 #include "plots.hpp"
 #include "constants.hpp"
