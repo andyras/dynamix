@@ -213,7 +213,9 @@ void assignParams(std::string inputFile, Params * p) {
     else if (input_param == "torsionCouplingV1" ) { p->torsionCouplingV1 = atof(param_val.c_str()); }
     else if (input_param == "torsionCouplingOmega" ) { p->torsionCouplingOmega = atof(param_val.c_str()); }
     else if (input_param == "torsionCouplingPhi" ) { p->torsionCouplingPhi = atof(param_val.c_str()); }
-    else {  }
+    else {
+      std::cerr << "ERROR [" << __FUNCTION__ << "]: input parameter " << input_param << " not recognized." << std::endl;
+    }
     getline (bash_in,line);
   }
 
