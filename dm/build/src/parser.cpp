@@ -1,4 +1,4 @@
-#include "libdynamix_input_parser.hpp"
+#include "parser.hpp"
 
 // #define DEBUG
 // #define DEBUG_INPUT_PARSER
