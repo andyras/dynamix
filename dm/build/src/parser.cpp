@@ -312,7 +312,7 @@ void assignParams(std::string inputFile, Params * p) {
   }
 
   if (p->QDPopFlag == POP_CONSTANT) {
-    if (p->Nc_final > p->Nc || p->Nc_final < 1) {
+    if (p->Nc_final < 1) {
       fprintf(stderr, "ERROR [Inputs]: Nc_final greater than Nc or less than 1.\n");
       exit(-1);
     }

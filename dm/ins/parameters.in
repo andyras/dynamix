@@ -18,7 +18,6 @@ kinetic=0				# kinetic relaxation model
 kineticQD=0				# kinetic relaxation model in QD
 dynamicMu=0				# for kinetic model, calculate Fermi level dynamically
 dynamicMuQD=0				# for kinetic model, calculate Fermi level dynamically on QD
-dephasing=0				# turn on dephasing (gamma2)
 progressFile=0				# create file to show progress of run
 progressStdout=1			# show progress in stdout
 # numerical parameters #

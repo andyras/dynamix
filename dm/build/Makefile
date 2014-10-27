@@ -13,7 +13,7 @@ LIBDIR = ./lib
 BINDIR = ./bin
 
 # compiler and archiver
-CPP = g++
+CPP = g++-4.9
 AR = ar
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
