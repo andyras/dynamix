@@ -32,6 +32,7 @@ endif
 ifdef USE_MKL
   CPPFLAGS += -D__USE_MKL__
   LDFLAGS
+endif
 
 ifdef USE_BOOST
   CPPFLAGS += -D__BOOST_SERIALIZE__
