@@ -3,11 +3,10 @@
 BIN = dynamix
 ################################################################################
 
-#DEBUG_MAKE = "foo"
 # optional #####################################################################
-# USE_MKL = yes
-# USE_BOOST = yes
 # DEBUG_MAKE = yes
+# USE_MKL = yes
+USE_BOOST = yes
 ################################################################################
 
 # directories for headers, objects and source files
@@ -25,18 +24,18 @@ CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
 
-ifdef USE_BOOST
-  CPPFLAGS += -D__BOOST_SERIALIZE__
+ifdef DEBUG_MAKE
+  CPPFLAGS += -pg -g -debug
+  LDFLAGS += -pg -g -debug
 endif
 
 ifdef USE_MKL
   CPPFLAGS += -D__USE_MKL__
-  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
-endif
+  LDFLAGS
 
-ifdef DEBUG_MAKE
-  CPPFLAGS += -pg -g -debug
-  LDFLAGS += -pg -g -debug
+ifdef USE_BOOST
+  CPPFLAGS += -D__BOOST_SERIALIZE__
+endif+= -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
 endif
 
 # basic compiler-dependent flags
