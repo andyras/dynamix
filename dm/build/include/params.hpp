@@ -4,7 +4,9 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+#ifdef __USE_MKL__
 #include <mkl.h>
+#endif
 
 #include "constants.hpp"
 #include "spline.hpp"
@@ -108,9 +110,11 @@ public:
   std::vector<realtype> Vnobridge;
   std::vector< std::vector<realtype> > V;
   std::vector<realtype> H;
+#ifdef __USE_MKL__
   std::vector<realtype> H_sp;
   std::vector<int> H_cols;
   std::vector<int> H_rowind;
+#endif
   std::vector<realtype> times;
   std::vector<realtype> startWfn;
   std::vector<realtype> startDM;
@@ -238,9 +242,11 @@ private:
     ar & Vnobridge;
     ar & V;
     ar & H;
+#ifdef __USE_MKL__
     ar & H_sp;
     ar & H_cols;
     ar & H_rowind;
+#endif
     ar & times;
     ar & startWfn;
     ar & startDM;

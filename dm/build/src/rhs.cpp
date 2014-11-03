@@ -58,16 +58,17 @@ int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data) {
   int inc = 1;
 
   // Re(\dot{\psi}) = \hat{H}Im(\psi)
-  //DGEMV(&TRANS, &N, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
-  DSYMV(&UPLO, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+  //dgemv_(&TRANS, &N, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
+  dsymv_(&UPLO, &N, &alpha_re, &H[0], &N, &yp[N], &inc, &beta, &ydotp[0], &inc);
 
   // Im(\dot{\psi}) = -i\hat{H}Re(\psi)
-  //DGEMV(&TRANS, &N, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
-  DSYMV(&UPLO, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+  //dgemv_(&TRANS, &N, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
+  dsymv_(&UPLO, &N, &alpha_im, &H[0], &N, &yp[0], &inc, &beta, &ydotp[N], &inc);
 
   return 0;
 }
 
+#ifdef __USE_MKL__
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
   // data is a pointer to the params struct
   Params * p;
@@ -116,6 +117,7 @@ int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data) {
 
   return 0;
 }
+#endif
 
 /* apply the kinetic relaxation model to one band of the system */
 void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
@@ -414,16 +416,16 @@ int RHS_DM_BLAS(realtype t, N_Vector y, N_Vector ydot, void * data) {
   double ZERO = 0.0;
 
   // Re(\dot{\rho}) += H*Im(\rho)
-  DSYMM(&LEFT, &UP, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ZERO, &ydotp[0], &N);
+  dsymm_(&LEFT, &UP, &N, &N, &ONE, &H[0], &N, &yp[N2], &N, &ZERO, &ydotp[0], &N);
 
   // Re(\dot{\rho}) -= Im(\rho)*H
-  DSYMM(&RGHT, &UP, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
+  dsymm_(&RGHT, &UP, &N, &N, &NEG, &H[0], &N, &yp[N2], &N, &ONE, &ydotp[0], &N);
 
   // Im(\dot{\rho}) += i*Re(\rho)*H
-  DSYMM(&RGHT, &UP, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  dsymm_(&RGHT, &UP, &N, &N, &ONE, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
 
   // Im(\dot{\rho}) -= i*H*Re(\rho)
-  DSYMM(&LEFT, &UP, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
+  dsymm_(&LEFT, &UP, &N, &N, &NEG, &H[0], &N, &yp[0], &N, &ONE, &ydotp[N2], &N);
 
 #ifdef DEBUGf_DM
   fprintf(dmf, "%+.7e", t);

@@ -669,13 +669,13 @@ void outputEnergyExpWfn(char * fileName, Params * p,
       updateHamiltonian(p, ii*p->tout/p->numOutputSteps);
     }
     // take product \hat{H}(t)\ket{\psi(t)} (real part)
-    DGEMV(&TRANS, &N, &N, &ONE, &H[0], &N, &wfnt[ii*N*2], &INC, &ZERO, &psiH[0], &INC);
+    dgemv_(&TRANS, &N, &N, &ONE, &H[0], &N, &wfnt[ii*N*2], &INC, &ZERO, &psiH[0], &INC);
     // take product \hat{H}(t)\ket{\psi(t)} (imag part)
-    DGEMV(&TRANS, &N, &N, &ONE, &H[0], &N, &wfnt[ii*N*2 + N], &INC, &ZERO, &psiH[N], &INC);
+    dgemv_(&TRANS, &N, &N, &ONE, &H[0], &N, &wfnt[ii*N*2 + N], &INC, &ZERO, &psiH[N], &INC);
     // take dot product of \bra{\psi(t)} with Hpsi(t) (real part)
-    ee[ii] = DDOT(&N, &wfnt[ii*N*2], &INC, &psiH[0], &INC);
+    ee[ii] = ddot_(&N, &wfnt[ii*N*2], &INC, &psiH[0], &INC);
     // take dot product of \bra{\psi(t)} with Hpsi(t) (imag part)
-    ee[ii] += DDOT(&N, &wfnt[ii*N*2 + N], &INC, &psiH[N], &INC);
+    ee[ii] += ddot_(&N, &wfnt[ii*N*2 + N], &INC, &psiH[N], &INC);
     output << p->times[ii] << " " << ee[ii] << std::endl;
   }
 

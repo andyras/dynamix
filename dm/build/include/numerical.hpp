@@ -10,7 +10,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <nvector/nvector_serial.h>
-#include <mkl.h>
 
 #include "params.hpp"
 #include "constants.hpp"

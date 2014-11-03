@@ -61,7 +61,9 @@ int main (int argc, char * argv[]) {
   // set number of processors for OpenMP ///////////////////////////////////////
 
   omp_set_num_threads(p.nproc);
+#ifdef __USE_MKL__
   mkl_set_num_threads(p.nproc);
+#endif
 
   // Make plot files ///////////////////////////////////////////////////////////
 

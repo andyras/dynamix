@@ -16,7 +16,9 @@
 #include <cvode/cvode_dense.h>
 #include <cvode/cvode_diag.h>
 #include <nvector/nvector_serial.h>
-#include <mkl.h>
+#ifdef __USE_MKL__
+  #include <mkl.h>
+#endif
 #include <map>
 #include <omp.h>
 

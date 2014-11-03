@@ -197,12 +197,14 @@ void updateHamiltonian(Params * p, realtype t) {
     }
   }
 
+#ifdef __USE_MKL__
   // make sparse version of Hamiltonian
   int job [6] = {0, 0, 0, 2, p->NEQ2, 1};
   int info = 0;
 
   mkl_ddnscsr(&job[0], &(p->NEQ), &(p->NEQ), &(p->H)[0], &(p->NEQ), &(p->H_sp)[0],
       &(p->H_cols)[0], &(p->H_rowind)[0], &info);
+#endif
 
   return;
 }

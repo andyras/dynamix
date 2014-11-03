@@ -6,7 +6,19 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+
+#ifdef __USE_MKL__
 #include <mkl.h>
+#endif
+extern "C" void sgemm_( char *, char *, int *, int *, int *, float *, float *,
+  int *, float *, int *, float *, float *, int *);
+extern "C" void dsymv_(const char *, int *, double *, double *, int *, double *, int *,
+  double *, double *, int *);
+extern "C" void dsymm_(char *, char *, int *, int *, double *, double *, int *,
+  double *, int *, double *, double *, int *);
+extern "C" void dgemv_(char *, int *, int *, double *, double *, int *, double *,
+  int *, double *, double *, int *);
+extern "C" double ddot_(int *, double *, int *, double *, int *);
 
 #include "params.hpp"
 #include "numerical.hpp"
@@ -15,7 +27,9 @@
 
 int RHS_WFN(realtype t, N_Vector y, N_Vector ydot, void * data);
 
+#ifdef __USE_MKL__
 int RHS_WFN_SPARSE(realtype t, N_Vector y, N_Vector ydot, void * data);
+#endif
 
 void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p);
 

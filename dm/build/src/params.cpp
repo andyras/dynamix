@@ -211,6 +211,7 @@ void Params::buildHamiltonian() {
     times[ii] = float(ii)/numOutputSteps*tout;
   }
 
+#ifdef __USE_MKL__
   // create sparse version of H
   H_sp.resize(NEQ2);
   H_cols.resize(NEQ2);
@@ -220,6 +221,7 @@ void Params::buildHamiltonian() {
 
   mkl_ddnscsr(&job[0], &(NEQ), &(NEQ), &(H)[0], &(NEQ), &(H_sp)[0],
       &(H_cols)[0], &(H_rowind)[0], &info);
+#endif
 }
 
 double Params::getTorsionCoupling(double t) {

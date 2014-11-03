@@ -4,6 +4,11 @@ BIN = dynamix
 ################################################################################
 
 #DEBUG_MAKE = "foo"
+# optional #####################################################################
+# USE_MKL = yes
+USE_BOOST = yes
+# DEBUG_MAKE = yes
+################################################################################
 
 # directories for headers, objects and source files
 INCDIR = ./include
@@ -13,34 +18,36 @@ LIBDIR = ./lib
 BINDIR = ./bin
 
 # compiler and archiver
-CPP = g++-4.9
+CPP = g++
 AR = ar
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
 INCLUDES = -I$(INCDIR)
 
-# optional #####################################################################
-# comment this out if you do not want to add the boost serialization method
-CPPFLAGS += -D__BOOST_SERIALIZE__
-################################################################################
+ifdef USE_BOOST
+  CPPFLAGS += -D__BOOST_SERIALIZE__
+endif
+
+ifdef USE_MKL
+  CPPFLAGS += -D__USE_MKL__
+  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
+endif
+
+ifdef DEBUG_MAKE
+  CPPFLAGS += -pg -g -debug
+  LDFLAGS += -pg -g -debug
+endif
 
 # basic compiler-dependent flags
 ifeq ($(CPP),icpc)
   CPPFLAGS += -fast -xHOST -no-prec-div -mkl -no-multibyte-chars
   LDFLAGS += -mkl
 else # g++*
-  CPPFLAGS += -fopenmp
-  LDFLAGS += -fopenmp
-  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
+  LDFLAGS += -lblas -lgfortran
   ifeq ($(shell hostname),tim.selfip.org)
     LDFLAGS += -lpthread -lm
   endif
-endif
-
-ifdef DEBUG_MAKE
-  CPPFLAGS += -pg -g -debug
-  LDFLAGS += -pg -g -debug
 endif
 
 # make will look for .cpp files in $(SRCDIR)
