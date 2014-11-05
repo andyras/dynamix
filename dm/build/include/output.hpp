@@ -1,17 +1,17 @@
 #pragma once
 
-#include <map>
 #include <cmath>
-#include <string>
-#include <nvector/nvector_serial.h>
-#include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <map>
+#include <nvector/nvector_serial.h>
+#include <string>
 
 #include "conversions.hpp"
-#include "numerical.hpp"
 #include "dynamix.hpp"
 #include "params.hpp"
+#include "numerical.hpp"
 #include "rhs.hpp"
 
 /* TYPE DEFINITIONS */

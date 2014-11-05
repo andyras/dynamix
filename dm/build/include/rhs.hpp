@@ -1,8 +1,9 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
 #include <numeric>
+#include <vector>
+
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>

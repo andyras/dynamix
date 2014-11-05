@@ -1,6 +1,11 @@
 #pragma once
 
 #include <vector>
+
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/string.hpp>
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
@@ -10,13 +15,8 @@
 #endif
 
 #include "constants.hpp"
-#include "spline.hpp"
 #include "numerical.hpp"
-
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/map.hpp>
+#include "spline.hpp"
 
 class Params {
 public:

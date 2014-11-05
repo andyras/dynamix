@@ -2,8 +2,8 @@
 
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 #include "constants.hpp"
 #include "output.hpp"

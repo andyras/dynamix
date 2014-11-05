@@ -1,18 +1,18 @@
 #pragma once
 
-#include <map>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <map>
+#include <nvector/nvector_serial.h>
 #include <string>
 #include <string.h>
 #include <stdio.h>
-#include <iostream>
 #include <stdexcept>
-#include <nvector/nvector_serial.h>
 
-#include "params.hpp"
 #include "constants.hpp"
+#include "params.hpp"
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.

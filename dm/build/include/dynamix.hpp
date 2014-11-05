@@ -1,36 +1,38 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cstdlib>
-#include <vector>
 #include <cmath>
-#include <time.h>
-#include <numeric>
 #include <complex>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <numeric>
+#include <omp.h>
 #include <stdexcept>
-#include <sys/types.h>
+#include <string>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <vector>
+
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <cvode/cvode_diag.h>
 #include <nvector/nvector_serial.h>
+
 #ifdef __USE_MKL__
   #include <mkl.h>
 #endif
-#include <map>
-#include <omp.h>
 
-#include "output.hpp"
-#include "numerical.hpp"
-#include "params.hpp"
-#include "parser.hpp"
-#include "rhs.hpp"
-#include "plots.hpp"
+#include "analytic.hpp"
 #include "constants.hpp"
 #include "conversions.hpp"
-#include "analytic.hpp"
+#include "numerical.hpp"
+#include "output.hpp"
+#include "params.hpp"
+#include "parser.hpp"
+#include "plots.hpp"
+#include "rhs.hpp"
 
 void updateDM(N_Vector dm, int timeStep, Params * p);
 

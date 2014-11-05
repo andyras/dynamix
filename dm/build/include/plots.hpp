@@ -1,9 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <fstream>
-#include <stdexcept>
+#include <iostream>
 #include <map>
+#include <stdexcept>
 
 #include "output.hpp"
 #include "params.hpp"
