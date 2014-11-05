@@ -1,15 +1,19 @@
 ### Required Software/Libraries
- 
+
 ## icpc or g++
 For compiling the main executable.
 
+## boost
+For serialization and logging.
+
 ## FFTW
 Vanilla or Intel versions are OK.
+Only for original wavefunction code.
 
 ## Intel MKL or BLAS
 For linear algebra.
 
-## CVODE
+## CVODE (SUNDIALS)
 For integrating ODEs.
 
 ### Optional Software/Libraries
