@@ -1,9 +1,18 @@
 #include <getopt.h>
 
 #include "dynamix.hpp"
+#include "log.hpp"
 #include "propagate.hpp"
 
 int main (int argc, char * argv[]) {
+  // Set up logging ////////////////////////////////////////////////////////////
+
+  initLog();
+  logging::add_common_attributes();
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+
   // Struct of parameters //////////////////////////////////////////////////////
 
   Params p;

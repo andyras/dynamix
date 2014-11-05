@@ -22,6 +22,7 @@ AR = ar
 
 CPPFLAGS = -O3 -Wall -std=c++11 -fopenmp
 LDFLAGS = -lsundials_cvode -lsundials_nvecserial
+LDFLAGS += -lboost_log -lboost_log_setup -lboost_thread -lboost_system
 INCLUDES = -I$(INCDIR)
 
 ifdef DEBUG_MAKE
