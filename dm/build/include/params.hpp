@@ -4,6 +4,7 @@
 #include <cvode/cvode.h>
 #include <cvode/cvode_dense.h>
 #include <nvector/nvector_serial.h>
+
 #ifdef __USE_MKL__
 #include <mkl.h>
 #endif
@@ -12,12 +13,10 @@
 #include "spline.hpp"
 #include "numerical.hpp"
 
-#ifdef __BOOST_SERIALIZE__
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/map.hpp>
-#endif
 
 class Params {
 public:
@@ -148,7 +147,6 @@ public:
 
   double getTorsionCoupling(double t);
 
-#ifdef __BOOST_SERIALIZE__
 private:
   friend class boost::serialization::access;
 
@@ -270,5 +268,4 @@ private:
     ar & lastMu;
     ar & lastMuQD;
   }
-#endif
 };

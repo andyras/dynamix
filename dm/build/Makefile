@@ -6,7 +6,6 @@ BIN = dynamix
 # optional #####################################################################
 # DEBUG_MAKE = yes
 # USE_MKL = yes
-USE_BOOST = yes
 ################################################################################
 
 # directories for headers, objects and source files
@@ -32,12 +31,7 @@ endif
 
 ifdef USE_MKL
   CPPFLAGS += -D__USE_MKL__
-  LDFLAGS
-endif
-
-ifdef USE_BOOST
-  CPPFLAGS += -D__BOOST_SERIALIZE__
-endif+= -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
+  LDFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
 endif
 
 # basic compiler-dependent flags
