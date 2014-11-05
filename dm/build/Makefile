@@ -14,6 +14,7 @@ OBJDIR = ./obj
 SRCDIR = ./src
 LIBDIR = ./lib
 BINDIR = ./bin
+BIN_ = $(BINDIR)/$(BIN)
 
 # compiler and archiver
 CPP = g++
@@ -55,7 +56,7 @@ SOURCES = $(wildcard $(SRCDIR)/*.cpp)
 OBJECTS = $(patsubst $(SRCDIR)/%.cpp,obj/%.o,$(SOURCES))
 
 # build the main executable; this should be listed first
-$(BIN): $(OBJECTS)
+$(BIN_): $(OBJECTS) | $(BINDIR)
 	$(CPP) -o $@ $^ $(LDFLAGS) -fopenmp
 
 # automatic rule for building objects
@@ -77,11 +78,8 @@ clean:
 	rm -rf $(LIBDIR)
 	rm -rf $(BINDIR)
 
-install: $(BIN) | $(BINDIR)
-	cp dynamix $(BINDIR)
-
 uninstall:
-	rm -rf $(BINDIR)/$(BIN)
+	rm -rf $(BIN_)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
