@@ -7,17 +7,18 @@ void initLog() {
 
   // define formatter for logs. 'auto' keyword avoids compile error
   // explanation at http://stackoverflow.com/questions/17766998/boost-log-why-doesnt-this-compile
-  auto formatter = expr::stream
+  auto fmt = expr::stream
     << expr::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S")
     << ": <" << logging::trivial::severity << "> " << expr::smessage;
 
-  logging::add_file_log(keywords::file_name = "myLog.log",
-    keywords::auto_flush = true, keywords::format = formatter);
+  logging::add_file_log(keywords::file_name = "dynamix.log",
+    keywords::auto_flush = true, keywords::format = fmt);
 
   logging::add_console_log(std::clog,
-    keywords::auto_flush = true, keywords::format = formatter);
+    keywords::auto_flush = true, keywords::format = fmt);
 
-  logging::core::get()->set_filter (
-    logging::trivial::severity >= logging::trivial::info
-    );
+  logging::core::get()->set_filter(
+    logging::trivial::severity >= logging::trivial::info);
+
+  return;
 }
