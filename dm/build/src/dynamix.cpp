@@ -12,12 +12,12 @@
 void updateDM(N_Vector dm, int timeStep, Params * p) {
   timeStep = timeStep*p->numOutputSteps/p->numsteps;
 #ifdef DEBUG_UPDATE
-  std::cout << "Updating DM at step " << timeStep << "...";
+  BOOST_LOG_SEV(lg, debug) << "Updating DM at step " << timeStep << "...";
 #endif
   int N = 2*p->NEQ2;
   memcpy(&(p->dmt[N*timeStep]), N_VGetArrayPointer(dm), N*sizeof(realtype));
 #ifdef DEBUG_UPDATE
-  std::cout << "done.\n";
+  BOOST_LOG_SEV(lg, debug) << "Done updating DM at step " << timeStep << ".";
 #endif
 
   return;
@@ -27,14 +27,14 @@ void updateDM(N_Vector dm, int timeStep, Params * p) {
 void updateWfn(N_Vector wfn, int timeStep, Params * p) {
   timeStep = timeStep*p->numOutputSteps/p->numsteps;
 #ifdef DEBUG_UPDATE
-  std::cout << "Updating wavefunction at time step " << timeStep << "..." << std::endl;
+  BOOST_LOG_SEV(lg, debug) << "Updating wavefunction at step " << timeStep << "...";
   std::cout << "Wavefunction is " << std::endl;
   N_VPrint_Serial(wfn);
 #endif
   int N = 2*p->NEQ;
   memcpy(&(p->wfnt[N*timeStep]), N_VGetArrayPointer(wfn), N*sizeof(realtype));
 #ifdef DEBUG_UPDATE
-  std::cout << "done updating wavefunction." << std::endl;
+  BOOST_LOG_SEV(lg, debug) << "Done updating wavefunction at step " << timeStep << ".";
 #endif
   return;
 }
@@ -54,7 +54,7 @@ int bandStartIdx(int bandFlag, Params * p) {
     return p->Ic;
   }
   else {
-    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    BOOST_LOG_SEV(lg, warning) << "[" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag;
     return 0;
   }
 }
@@ -74,7 +74,7 @@ int bandEndIdx(int bandFlag, Params * p) {
     return p->Ic + p->Nc;
   }
   else {
-    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    BOOST_LOG_SEV(lg, warning) << "[" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag;
     return 0;
   }
 }
@@ -94,7 +94,7 @@ int bandNumStates(int bandFlag, Params * p) {
     return p->Nc;
   }
   else {
-    std::cout << "WARNING [" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag << std::endl;
+    BOOST_LOG_SEV(lg, warning) << "[" << __FUNCTION__ << "]: unspecified band with flag " << bandFlag;
     return 0;
   }
 }
@@ -135,13 +135,13 @@ void updateHamiltonian(Params * p, realtype t) {
   if (p->torsion) {
     torsionValue = p->getTorsionCoupling(t);
 #ifdef DEBUG_TORSION
-    std::cout << "Value of torsion-mediated coupling is " << torsionValue << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Value of torsion-mediated coupling is " << torsionValue;
 #endif
 
     // bridge is off, coupling is between k and c states
     if (!(p->bridge_on)) {
 #ifdef DEBUG_RHS
-      std::cout << "torsion between k and c states" << std::endl;
+      BOOST_LOG_SEV(lg, debug) << "torsion between k and c states";
 #endif
       for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
   for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
@@ -153,7 +153,7 @@ void updateHamiltonian(Params * p, realtype t) {
     // torsion is at first bridge coupling
     else if (p->torsionSite == 0) {
 #ifdef DEBUG_RHS
-      std::cout << "torsion between k states and bridge" << std::endl;
+      BOOST_LOG_SEV(lg, debug) << "torsion between k states and bridge";
 #endif
       for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
   H[ii*p->NEQ + p->Ib] = torsionValue;
@@ -163,7 +163,7 @@ void updateHamiltonian(Params * p, realtype t) {
     // torsion is at last bridge coupling
     else if (p->torsionSite == p->Nb) {
 #ifdef DEBUG_RHS
-      std::cout << "torsion between bridge and c states" << std::endl;
+      BOOST_LOG_SEV(lg, debug) << "torsion between bridge and c states";
 #endif
       for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
   H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
@@ -173,8 +173,8 @@ void updateHamiltonian(Params * p, realtype t) {
     // torsion is between bridge sites
     else {
 #ifdef DEBUG_RHS
-      std::cout << "torsion between bridge sites " << p->torsionSite - 1
-  << " and " << p->torsionSite << "." << std::endl;
+      BOOST_LOG_SEV(lg, debug) << "torsion between bridge sites " << p->torsionSite - 1
+  << " and " << p->torsionSite << ".";
 #endif
       H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
       H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
@@ -186,7 +186,7 @@ void updateHamiltonian(Params * p, realtype t) {
   if (p->laser_on) {
     laserCoupling = gaussPulse(t, p->pumpFWHM, p->pumpAmpl, p->pumpPeak, p->pumpFreq, p->pumpPhase);
 #ifdef DEBUG_RHS
-    std::cout << "Value of laser coupling between valence and conduction bands is " << laserCoupling << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Value of laser coupling between valence and conduction bands is " << laserCoupling;
 #endif
     // coupling is between valence and conduction bands
     for (int ii = p->Il; ii < (p->Il + p->Nl); ii++) {
@@ -258,7 +258,7 @@ void initHamiltonian(Params * p, const bool readFiles) {
   }
 
 #ifdef DEBUG
-  std::cout << "\nDone reading things from inputs.\n";
+  BOOST_LOG_SEV(lg, debug) << "Done reading things from inputs.";
 #endif
 
   // assign bulk conduction and valence band energies
@@ -305,7 +305,7 @@ void initHamiltonian(Params * p, const bool readFiles) {
   // set up Hamiltonian ////////////////////////////////////////////////////////
 
 #ifdef DEBUG
-  fprintf(stderr, "Building Hamiltonian.\n");
+  BOOST_LOG_SEV(lg, debug) << "Building Hamiltonian.";
 #endif
 
   p->buildCoupling();
@@ -329,13 +329,13 @@ void initWavefunction(Params * p) {
   // bulk valence band /////////////////////////////////////////////////////////
   if (p->VBPopFlag == POP_EMPTY) {
 #ifdef DEBUG
-    std::cout << "Initializing empty valence band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing empty valence band...";
 #endif
     l_coeffs.assign(l_coeffs.size(), 0.0);
   }
   else if (p->VBPopFlag == POP_FULL) {
 #ifdef DEBUG
-    std::cout << "Initializing full valence band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing full valence band...";
 #endif
     l_coeffs.assign(l_coeffs.size(), 1.0);
   }
@@ -346,26 +346,26 @@ void initWavefunction(Params * p) {
   // bulk conduction band //////////////////////////////////////////////////////
   if (p->CBPopFlag == POP_EMPTY) {
 #ifdef DEBUG
-    std::cout << "Initializing empty conduction band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing empty conduction band...";
 #endif
     k_coeffs.assign(k_coeffs.size(), 0.0);
   }
   else if (p->CBPopFlag == POP_FULL) {
 #ifdef DEBUG
-    std::cout << "Initializing full conduction band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing full conduction band...";
 #endif
     k_coeffs.assign(k_coeffs.size(), 1.0);
   }
   else if (p->CBPopFlag == POP_CONSTANT) {
 #ifdef DEBUG
-    std::cout << "Initializing constant distribution in conduction band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing constant distribution in conduction band";
 #endif
     k_coeffs.assign(k_coeffs.size(), 0.0);
     initializeArray(&(k_coeffs[p->Nk_first-1]), p->Nk_final - p->Nk_first + 1, 1.0);
   }
   else if (p->CBPopFlag == POP_GAUSSIAN) {
 #ifdef DEBUG
-    std::cout << "Initializing Gaussian in conduction band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing Gaussian in conduction band";
 #endif
     buildKPopsGaussian(&(k_coeffs[0]), &(p->energies[p->Ik]), p->kBandEdge, p->bulkGaussSigma, p->bulkGaussMu, p->Nk);
   }
@@ -382,7 +382,7 @@ void initWavefunction(Params * p) {
   }
   else if (p->QDPopFlag == POP_CONSTANT) {
 #ifdef DEBUG
-    std::cout << "Initializing constant distribution in QD band" << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Initializing constant distribution in QD band";
 #endif
     c_coeffs.assign(c_coeffs.size(), 0.0);
     initializeArray(&(c_coeffs[p->Nc_first-1]), p->Nc_final - p->Nc_first + 1, 1.0);
@@ -435,35 +435,34 @@ void initWavefunction(Params * p) {
   // print out details of wavefunction coefficients
   std::cout << std::endl;
   for (int ii = 0; ii < p->Nk; ii++) {
-    std::cout << "starting wavefunction: Re[k(" << ii << ")] = " << p->startWfn[p->Ik + ii] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Re[k(" << ii << ")] = " << p->startWfn[p->Ik + ii];
   }
   for (int ii = 0; ii < p->Nc; ii++) {
-    std::cout << "starting wavefunction: Re[c(" << ii << ")] = " << p->startWfn[p->Ic + ii] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Re[c(" << ii << ")] = " << p->startWfn[p->Ic + ii];
   }
   for (int ii = 0; ii < p->Nb; ii++) {
-    std::cout << "starting wavefunction: Re[b(" << ii << ")] = " << p->startWfn[p->Ib + ii] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Re[b(" << ii << ")] = " << p->startWfn[p->Ib + ii];
   }
   for (int ii = 0; ii < p->Nl; ii++) {
-    std::cout << "starting wavefunction: Re[l(" << ii << ")] = " << p->startWfn[p->Il + ii] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Re[l(" << ii << ")] = " << p->startWfn[p->Il + ii];
   }
   for (int ii = 0; ii < p->Nk; ii++) {
-    std::cout << "starting wavefunction: Im[k(" << ii << ")] = " << p->startWfn[p->Ik + ii + p->NEQ] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Im[k(" << ii << ")] = " << p->startWfn[p->Ik + ii + p->NEQ];
   }
   for (int ii = 0; ii < p->Nc; ii++) {
-    std::cout << "starting wavefunction: Im[c(" << ii << ")] = " << p->startWfn[p->Ic + ii + p->NEQ] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Im[c(" << ii << ")] = " << p->startWfn[p->Ic + ii + p->NEQ];
   }
   for (int ii = 0; ii < p->Nb; ii++) {
-    std::cout << "starting wavefunction: Im[b(" << ii << ")] = " << p->startWfn[p->Ib + ii + p->NEQ] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Im[b(" << ii << ")] = " << p->startWfn[p->Ib + ii + p->NEQ];
   }
   for (int ii = 0; ii < p->Nl; ii++) {
-    std::cout << "starting wavefunction: Im[l(" << ii << ")] = " << p->startWfn[p->Il + ii + p->NEQ] << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "starting wavefunction: Im[l(" << ii << ")] = " << p->startWfn[p->Il + ii + p->NEQ];
   }
-  std::cout << std::endl;
   summ = 0;
   for (int ii = 0; ii < 2*p->NEQ; ii++) {
     summ += pow(p->startWfn[ii],2);
   }
-  std::cout << "\nTotal population is " << summ << "\n\n";
+  BOOST_LOG_SEV(lg, debug) << "Total population is " << summ;
 #endif
 
   //// CREATE DENSITY MATRIX
@@ -477,7 +476,7 @@ void initWavefunction(Params * p) {
       if (p->coherent) {
 #ifdef DEBUG
         if (ii == 0) {
-          std::cout << "\nDM starting state is coherent.\n\n";
+          BOOST_LOG_SEV(lg, debug) << "DM starting state is coherent.";
         }
 #endif
         // off-diagonal part
@@ -495,7 +494,7 @@ void initWavefunction(Params * p) {
       else {
 #ifdef DEBUG
         if (ii == 0) {
-          std::cout << "\nDM starting state is incoherent.\n\n";
+          BOOST_LOG_SEV(lg, debug) << "DM starting state is incoherent.";
         }
 #endif
       }
@@ -530,7 +529,7 @@ void initWavefunction(Params * p) {
       }
     }
 #ifdef DEBUG
-    std::cout << "\nThe normalization factor for the density matrix is " << summ << "\n\n";
+    BOOST_LOG_SEV(lg, debug) << "The normalization factor for the density matrix is " << summ;
 #endif
 
     // Error checking for total population; recount population first
@@ -542,7 +541,7 @@ void initWavefunction(Params * p) {
       BOOST_LOG_SEV(lg, warning) << "[populations]: After normalization, total population is not 1, it is " << summ << "!";
     }
 #ifdef DEBUG
-    std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";
+    BOOST_LOG_SEV(lg, debug) << "After normalization, the sum of the populations in the density matrix is " << summ;
 #endif
   }
   // wavefunction
@@ -553,7 +552,7 @@ void initWavefunction(Params * p) {
       summ += pow(p->startWfn[ii],2) + pow(p->startWfn[ii+p->NEQ],2);
     }
 #ifdef DEBUG
-    std::cout << "Before normalization, the total population is " << summ << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "Before normalization, the total population is " << summ << std::endl;
 #endif
     summ = 1.0/sqrt(summ);
     for (int ii = 0; ii < 2*p->NEQ; ii++) {
@@ -566,10 +565,10 @@ void initWavefunction(Params * p) {
       summ += pow(p->startWfn[ii],2) + pow(p->startWfn[ii+p->NEQ],2);
     }
 #ifdef DEBUG
-    std::cout << "After normalization, the total population is " << summ << std::endl;
+    BOOST_LOG_SEV(lg, debug) << "After normalization, the total population is " << summ;
 #endif
     if (fabs(summ - 1.0) > 1e-12) {
-      std::cerr << "WARNING: wavefunction not normalized!  Total density is " << summ << std::endl;
+      BOOST_LOG_SEV(lg, warning) << "wavefunction not normalized!  Total density is " << summ;
     }
   }
 }
