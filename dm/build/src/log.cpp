@@ -2,21 +2,20 @@
 
 void initLog() {
 
+  // adds LineID and TimeStamp attributes
   logging::add_common_attributes();
 
-  logging::add_file_log (
-    keywords::file_name = "myLog.log",                                        /*< file name pattern >*/
-    keywords::format = (
-      // This makes the sink to write log records that look like this:
-      // YYYY-MM-DD HH:MI:SS: <normal> A normal severity message
-      expr::stream
-      << expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S")
-      << ": <" << logging::trivial::severity
-      << "> " << expr::smessage
-      ),
+  // define formatter for logs. 'auto' keyword avoids compile error
+  // explanation at http://stackoverflow.com/questions/17766998/boost-log-why-doesnt-this-compile
+  auto formatter = expr::stream
+    << expr::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S")
+    << ": <" << logging::trivial::severity << "> " << expr::smessage;
 
-    keywords::auto_flush = true
-    );
+  logging::add_file_log(keywords::file_name = "myLog.log",
+    keywords::auto_flush = true, keywords::format = formatter);
+
+  logging::add_console_log(std::clog,
+    keywords::auto_flush = true, keywords::format = formatter);
 
   logging::core::get()->set_filter (
     logging::trivial::severity >= logging::trivial::info
