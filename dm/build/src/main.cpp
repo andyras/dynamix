@@ -8,10 +8,11 @@ int main (int argc, char * argv[]) {
   // Set up logging ////////////////////////////////////////////////////////////
 
   initLog();
-  logging::add_common_attributes();
 
   using namespace logging::trivial;
   src::severity_logger< severity_level > lg;
+
+  BOOST_LOG_SEV(lg, error) << "whoot";
 
   // Struct of parameters //////////////////////////////////////////////////////
 

@@ -1,6 +1,9 @@
 #include "log.hpp"
 
 void initLog() {
+
+  logging::add_common_attributes();
+
   logging::add_file_log (
     keywords::file_name = "myLog.log",                                        /*< file name pattern >*/
     keywords::format = (
@@ -10,7 +13,9 @@ void initLog() {
       << expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S")
       << ": <" << logging::trivial::severity
       << "> " << expr::smessage
-      )
+      ),
+
+    keywords::auto_flush = true
     );
 
   logging::core::get()->set_filter (

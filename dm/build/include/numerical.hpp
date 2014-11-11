@@ -5,11 +5,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
-#include <nvector/nvector_serial.h>
 #include <string>
-#include <string.h>
-#include <stdio.h>
-#include <stdexcept>
+#include <vector>
+
+#include <nvector/nvector_serial.h>
 
 #include "constants.hpp"
 #include "params.hpp"
