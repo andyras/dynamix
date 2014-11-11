@@ -17,11 +17,11 @@ int numberOfValuesInFile(const char * nameOfFile) {
   if (input != NULL) {
     while (fscanf(input, "%lf", &value) != EOF) { numberOfValues++; }
     if (numberOfValues == 0 ) {
-      fprintf(stderr, "WARNING: file %s is empty.\n", nameOfFile);
+      BOOST_LOG_SEV(lg, warning) << "'" << nameOfFile << "'' is an empty file.";
     }
   }
   else {
-    fprintf(stderr, "WARNING [numberOfValuesInFile]: file %s does not exist.\n", nameOfFile);
+    BOOST_LOG_SEV(lg, warning) << "[numberOfValuesInFile]: file '" << nameOfFile << "' does not exist.";
     return -1;
   }
 
@@ -45,7 +45,8 @@ void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfVa
     }
   }
   else {
-    fprintf(stderr, "ERROR [readArrayFromFile]: file %s does not exist.\n", nameOfFile);
+    BOOST_LOG_SEV(lg, fatal) << "[readArrayFromFile]: file '" << nameOfFile << "' does not exist.";
+    exit(1);
   }
 
   fclose(input);
@@ -55,13 +56,14 @@ void readArrayFromFile(realtype * array, const char * nameOfFile, int numberOfVa
 
 /* reads in values from a file to a vector. */
 void readVectorFromFile(std::vector<realtype> & v, const char * fileName, int n) {
+  int nVals = numberOfValuesInFile(fileName);
   // resize vector according to number of lines in file
-  v.resize(numberOfValuesInFile(fileName));
+  v.resize(nVals);
 #ifdef DEBUG_READVECTOR
-  std::cout << numberOfValuesInFile(fileName) << " values in " << fileName << std::endl;
+  BOOST_LOG_SEV(lg, debug) << nVals << " values in " << fileName;
 #endif
-  if (numberOfValuesInFile(fileName) != n) {
-    std::cerr << "ERROR reading in vector from " << fileName << ": wrong number of values in file." << std::endl;
+  if (nVals != n) {
+    BOOST_LOG_SEV(lg, fatal) << "Wrong number of values in " << fileName << ".";
     exit(1);
   }
 
@@ -80,7 +82,7 @@ void readVectorFromFile(std::vector<realtype> & v, const char * fileName, int n)
 /* Returns an array of length n with all values set to initializeValue. */
 void initializeArray(realtype * array, int n, realtype initializeValue) {
 #ifdef DEBUG
-  std::cout << "initializeValue is " << initializeValue << std::endl;
+  BOOST_LOG_SEV(lg, debug) << "initializing array of size " << n << " to value " << initializeValue << ".";
 #endif
 
   for (int ii = 0; ii < n; ii++) {
@@ -115,34 +117,27 @@ void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, real
   for (int ii = 0; ii < Nk; ii++) {
     kPops[ii] = sqrt(1.0/(1.0 + exp((kEnergies[ii]-kBandEdge+0.01)*3.185e5/(temp))));
 #ifdef DEBUG
-    std::cout << "\nk population at state " << ii << " is: "
-      << sqrt(1.0/(1.0 + exp((kEnergies[ii]-kBandEdge+0.01)*3.185e5/(temp))));
+    BOOST_LOG_SEV(lg, debug) << "k population at state " << ii << " is: " << kPops[ii];
 #endif
   }
-#ifdef DEBUG
-  std::cout << std::endl;
-#endif
 }
 
 /* populates a set of states according to a Gaussian distribution. */
 void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk) {
 #ifdef DEBUG_NUMERICAL
-  std::cout << "Conduction band edge is " << kBandEdge << std::endl;
-  std::cout << "Gaussian mu is          " << mu << std::endl;
-  std::cout << "Gaussian sigma is       " << sigma << std::endl;
-  std::cout << "Number of k states is   " << Nk << std::endl;
+  BOOST_LOG_SEV(lg, debug) << "Conduction band edge is " << kBandEdge;
+  BOOST_LOG_SEV(lg, debug) << "Gaussian mu is          " << mu;
+  BOOST_LOG_SEV(lg, debug) << "Gaussian sigma is       " << sigma;
+  BOOST_LOG_SEV(lg, debug) << "Number of k states is   " << Nk;
 #endif
 
   for (int ii = 0; ii < Nk; ii++) {
     // take the square root so that populations have proper width given by sigma
     kPops[ii] = sqrt((1/(sigma*sqrt(2*3.1415926535)))*exp(-pow((kEnergies[ii]-(kBandEdge+mu)),2)/(2*pow(sigma,2))));
 #ifdef DEBUG_NUMERICAL
-    std::cout << "\nk population at state " << ii << " is: " << kPops[ii];
+    BOOST_LOG_SEV(lg, debug) << "k population at state " << ii << " is: " << kPops[ii];
 #endif
   }
-#ifdef DEBUG_NUMERICAL
-  std::cout << std::endl;
-#endif
 }
 
 /* returns the coupling as a function of energy E given that the middle of the
@@ -155,12 +150,14 @@ double parabolicV(double Vee, double E, double bandEdge, double bandTop) {
   double mid = (bandTop - bandEdge)/2.0;
 
 #ifdef DEBUG
-  fprintf(stdout, "coupling at (E - band edge) = %.9e: %.9e\n", E, Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid));
+  BOOST_LOG_SEV(lg, debug) << "Coupling at energy "
+    << std::setw(9) << std::scientific << E << " above band edge: "
+    << std::setw(9) << std::scientific << Vee*sqrt(sqrt(pow(mid,2) - pow((E - mid),2))/mid));
 #endif
   // test whether at the very top or bottom of band
   if (abs(abs(E - mid) - mid) < 1e-10) {
 #ifdef DEBUG
-    fprintf(stdout, "(at bottom or top of band edge, returning 0.0)\n");
+    BOOST_LOG_SEV(lg, debug) " Coupling at bottom or top of band edge is 0.0";
 #endif
     return 0.0;
   }
@@ -218,7 +215,7 @@ double cos2Pulse(double a, double b, double c, double d, double t) {
  */
 int Derivative(double *inputArray, int inputLength, double *outputArray, double timestep) {
   if (inputLength < 6 ) {
-    fprintf(stderr, "ERROR [Derivative]: array has length less than 6 elements, cannot proceed");
+    BOOST_LOG_SEV(lg, fatal) << "[Derivative]: array has less than 6 elements, cannot proceed.";
     return -1;
   }
 
@@ -244,7 +241,7 @@ void arrayDeriv(double * in, int nt, int m, int dim, double * out, double dt) {
   // m is width of array (number of populations)
   // dim is p->NEQ
   if (nt < 6) {
-    std::cerr << "Error [" << __FUNCTION__ << "]: array must be at least six elements." << std::endl;
+    BOOST_LOG_SEV(lg, fatal) << "[" << __FUNCTION__ << "]: array must be at least six elements.";
     exit(-1);
   }
 

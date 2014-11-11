@@ -4,15 +4,13 @@
 #include "log.hpp"
 #include "propagate.hpp"
 
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+
 int main (int argc, char * argv[]) {
   // Set up logging ////////////////////////////////////////////////////////////
 
   initLog();
-
-  using namespace logging::trivial;
-  src::severity_logger< severity_level > lg;
-
-  BOOST_LOG_SEV(lg, error) << "whoot";
 
   // Struct of parameters //////////////////////////////////////////////////////
 
@@ -30,8 +28,8 @@ int main (int argc, char * argv[]) {
         // check that it ends in a slash
         insDir = optarg;
         if (strcmp(&(insDir.at(insDir.length() - 1)), "/")) {
-          std::cerr << "ERROR: option -i requires argument ("
-                    << insDir << ") to have a trailing slash (/)." << std::endl;
+          BOOST_LOG_SEV(lg, error) << "option -i requires argument ("
+                    << insDir << ") to have a trailing slash (/).";
           return 1;
         }
         else {
@@ -85,7 +83,7 @@ int main (int argc, char * argv[]) {
     propagate(&p);
   }
 
-  std::cout << "whoo" << std::endl;
+  BOOST_LOG_SEV(lg, info) << "whoo";
 
   return 0;
 }

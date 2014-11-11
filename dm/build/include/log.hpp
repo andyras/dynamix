@@ -18,4 +18,6 @@ namespace logging = boost::log;
 namespace sinks = boost::log::sinks;
 namespace src = boost::log::sources;
 
+// Trivial severity levels in order: trace, debug, info, warning, error, fatal
+
 void initLog();

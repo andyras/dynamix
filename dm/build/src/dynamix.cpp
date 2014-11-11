@@ -233,7 +233,7 @@ void initHamiltonian(Params * p, const bool readFiles) {
     // bridge-dependent parameters
     if (p->bridge_on) {
       if (p->Nb < 1) {
-        std::cerr << "\nERROR: bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
+        BOOST_LOG_SEV(lg, error) << "bridge_on but no bridge states.  The file b_energies.in is probably empty.\n";
         exit(-1);
       }
 
@@ -340,7 +340,7 @@ void initWavefunction(Params * p) {
     l_coeffs.assign(l_coeffs.size(), 1.0);
   }
   else {
-    std::cerr << "ERROR: unrecognized VBPopFlag " << p->VBPopFlag << std::endl;
+    BOOST_LOG_SEV(lg, error) << "unrecognized VBPopFlag " << p->VBPopFlag << std::endl;
   }
 
   // bulk conduction band //////////////////////////////////////////////////////
@@ -370,7 +370,7 @@ void initWavefunction(Params * p) {
     buildKPopsGaussian(&(k_coeffs[0]), &(p->energies[p->Ik]), p->kBandEdge, p->bulkGaussSigma, p->bulkGaussMu, p->Nk);
   }
   else {
-    std::cerr << "ERROR: unrecognized CBPopFlag " << p->CBPopFlag << std::endl;
+    BOOST_LOG_SEV(lg, error) << "unrecognized CBPopFlag " << p->CBPopFlag << std::endl;
   }
 
   //// QD //////////////////////////////////////////////////////////////////////
@@ -388,7 +388,7 @@ void initWavefunction(Params * p) {
     initializeArray(&(c_coeffs[p->Nc_first-1]), p->Nc_final - p->Nc_first + 1, 1.0);
   }
   else {
-    std::cerr << "ERROR: unrecognized QDPopFlag " << p->QDPopFlag << std::endl;
+    BOOST_LOG_SEV(lg, error) << "unrecognized QDPopFlag " << p->QDPopFlag << std::endl;
   }
 
   // create empty wavefunction
@@ -519,7 +519,7 @@ void initWavefunction(Params * p) {
       summ += p->startDM[p->NEQ*ii + ii];
     }
     if ( summ == 0.0 ) {
-      std::cerr << "\nFATAL ERROR [populations]: total population is 0!\n";
+      BOOST_LOG_SEV(lg, fatal) << "[populations]: total population is 0!";
       exit(-1);
     }
     if (summ != 1.0) {
@@ -539,7 +539,7 @@ void initWavefunction(Params * p) {
       summ += p->startDM[p->NEQ*ii + ii];
     }
     if ( fabs(summ-1.0) > 1e-12) {
-      std::cerr << "\nWARNING [populations]: After normalization, total population is not 1, it is " << summ << "!\n";
+      BOOST_LOG_SEV(lg, warning) << "[populations]: After normalization, total population is not 1, it is " << summ << "!";
     }
 #ifdef DEBUG
     std::cout << "\nAfter normalization, the sum of the populations in the density matrix is " << summ << "\n\n";

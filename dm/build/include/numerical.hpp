@@ -11,7 +11,11 @@
 #include <nvector/nvector_serial.h>
 
 #include "constants.hpp"
+#include "log.hpp"
 #include "params.hpp"
+
+using namespace logging::trivial;
+extern src::severity_logger< severity_level > lg;
 
 /* returns the number of numbers in a file.  This way, it doesn't matter if
  * they are one per line or multiple per line.

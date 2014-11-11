@@ -27,12 +27,16 @@
 #include "analytic.hpp"
 #include "constants.hpp"
 #include "conversions.hpp"
+#include "log.hpp"
 #include "numerical.hpp"
 #include "output.hpp"
 #include "params.hpp"
 #include "parser.hpp"
 #include "plots.hpp"
 #include "rhs.hpp"
+
+using namespace logging::trivial;
+extern src::severity_logger< severity_level > lg;
 
 void updateDM(N_Vector dm, int timeStep, Params * p);
 
