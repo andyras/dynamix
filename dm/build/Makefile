@@ -70,16 +70,13 @@ $(OBJECTS): | $(OBJDIR)
 library: $(OBJECTS) $(LIBDIR)
 	find $(OBJDIR) -name *.o ! -name main.o | xargs $(AR) vrs $(LIBDIR)/lib$(BIN).a
 
-.PHONY: clean install uninstall $(BINDIR) $(OBJDIR) $(LIBDIR	)
+.PHONY: clean $(BINDIR) $(OBJDIR) $(LIBDIR)
 
 clean:
-	rm -f $(BIN)
+	rm -f $(BIN_)
 	rm -rf $(OBJDIR)
 	rm -rf $(LIBDIR)
 	rm -rf $(BINDIR)
-
-uninstall:
-	rm -rf $(BIN_)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
