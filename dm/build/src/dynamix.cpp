@@ -138,46 +138,58 @@ void updateHamiltonian(Params * p, realtype t) {
     BOOST_LOG_SEV(lg, debug) << "Value of torsion-mediated coupling is " << torsionValue;
 #endif
 
-    // bridge is off, coupling is between k and c states
-    if (!(p->bridge_on)) {
+    // same torsion on all bridge sites
+    if (p->torsionAllBridges) {
 #ifdef DEBUG_RHS
-      BOOST_LOG_SEV(lg, debug) << "torsion between k and c states";
+      BOOST_LOG_SEV(lg, debug) << "torsion between all bridge sites.";
 #endif
-      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-  for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
-    H[ii*p->NEQ + jj] = torsionValue;
-    H[jj*p->NEQ + ii] = torsionValue;
-  }
+      for (int ii = 0; ii < (p->Nb - 1); ii++) {
+	H[(p->Ib + ii)*p->NEQ + p->Ib + ii + 1] = torsionValue;
+	H[(p->Ib + ii + 1)*p->NEQ + p->Ib + ii] = torsionValue;
       }
     }
-    // torsion is at first bridge coupling
-    else if (p->torsionSite == 0) {
-#ifdef DEBUG_RHS
-      BOOST_LOG_SEV(lg, debug) << "torsion between k states and bridge";
-#endif
-      for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
-  H[ii*p->NEQ + p->Ib] = torsionValue;
-  H[p->Ib*p->NEQ + ii] = torsionValue;
-      }
-    }
-    // torsion is at last bridge coupling
-    else if (p->torsionSite == p->Nb) {
-#ifdef DEBUG_RHS
-      BOOST_LOG_SEV(lg, debug) << "torsion between bridge and c states";
-#endif
-      for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
-  H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
-  H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
-      }
-    }
-    // torsion is between bridge sites
     else {
+      // bridge is off, coupling is between k and c states
+      if (!(p->bridge_on)) {
 #ifdef DEBUG_RHS
-      BOOST_LOG_SEV(lg, debug) << "torsion between bridge sites " << p->torsionSite - 1
-  << " and " << p->torsionSite << ".";
+	BOOST_LOG_SEV(lg, debug) << "torsion between k and c states";
 #endif
-      H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
-      H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
+	for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+    for (int jj = p->Ic; jj < (p->Ic + p->Nc); jj++) {
+      H[ii*p->NEQ + jj] = torsionValue;
+      H[jj*p->NEQ + ii] = torsionValue;
+    }
+	}
+      }
+      // torsion is at first bridge coupling
+      else if (p->torsionSite == 0) {
+#ifdef DEBUG_RHS
+	BOOST_LOG_SEV(lg, debug) << "torsion between k states and bridge";
+#endif
+	for (int ii = p->Ik; ii < (p->Ik + p->Nk); ii++) {
+    H[ii*p->NEQ + p->Ib] = torsionValue;
+    H[p->Ib*p->NEQ + ii] = torsionValue;
+	}
+      }
+      // torsion is at last bridge coupling
+      else if (p->torsionSite == p->Nb) {
+#ifdef DEBUG_RHS
+	BOOST_LOG_SEV(lg, debug) << "torsion between bridge and c states";
+#endif
+	for (int ii = p->Ic; ii < (p->Ic + p->Nc); ii++) {
+    H[ii*p->NEQ + p->Ib + p->Nb - 1] = torsionValue;
+    H[(p->Ib + p->Nb - 1)*p->NEQ + ii] = torsionValue;
+	}
+      }
+      // torsion is between bridge sites
+      else {
+#ifdef DEBUG_RHS
+	BOOST_LOG_SEV(lg, debug) << "torsion between bridge sites " << p->torsionSite - 1
+    << " and " << p->torsionSite << ".";
+#endif
+	H[(p->Ib + p->torsionSite - 1)*p->NEQ + p->Ib + p->torsionSite] = torsionValue;
+	H[(p->Ib + p->torsionSite)*p->NEQ + p->Ib + p->torsionSite - 1] = torsionValue;
+      }
     }
   }
 

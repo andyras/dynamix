@@ -206,6 +206,7 @@ void assignParams(std::string inputFile, Params * p) {
     else if (input_param == "torsion" ) { p->torsion = atoi(param_val.c_str()); }
     else if (input_param == "torsionFile" ) { p->torsionFile = param_val; }
     else if (input_param == "torsionSite" ) { p->torsionSite = atoi(param_val.c_str()); }
+    else if (input_param == "torsionAllBridges" ) { p->torsionAllBridges = atoi(param_val.c_str()); }
     else if (input_param == "torsionSin2" ) { p->torsionSin2 = atoi(param_val.c_str()); }
     else if (input_param == "torsionCos2Pulse" ) { p->torsionCos2Pulse = atoi(param_val.c_str()); }
     else if (input_param == "torsionGaussianPulse" ) { p->torsionGaussianPulse = atoi(param_val.c_str()); }

@@ -81,6 +81,7 @@ public:
   bool torsion = false;
   std::string torsionFile;
   int torsionSite = 0;
+  bool torsionAllBridges = false;
   bool torsionSin2 = false;             // flag to turn on sin^2 torsional coupling
   bool torsionGaussianPulse = false;    // flag for Gaussian "half-cycle" torsion coupling
   bool torsionCos2Pulse = false;        // flag for cos^2 "half-cycle" torsion coupling

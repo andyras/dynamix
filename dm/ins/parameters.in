@@ -76,6 +76,7 @@ random_seed=-1				# -1 for random seed, otherwise specify seed
 torsion=0				# turn torsion-mediated coupling on or off
 torsionFile=ins/tors.in
 torsionSite=1				# 0 = coupling between bulk and bridge
+torsionAllBridges=1			# replicate torsion coupling across all bridge sites
 torsionSin2=0				# flag to turn on sin^2 torsional coupling
 torsionGaussianPulse=1  # flag for Gaussian "half-cycle" torsion coupling
 torsionCos2Pulse=0       # flag for cos^2 "half-cycle" torsion coupling
