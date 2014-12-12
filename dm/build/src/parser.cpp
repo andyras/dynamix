@@ -287,6 +287,7 @@ void assignParams(std::string inputFile, Params * p) {
   std::cout << "torsion is " << p->torsion << std::endl;
   std::cout << "torsionFile is " << p->torsionFile << std::endl;
   std::cout << "torsionSite is " << p->torsionSite << std::endl;
+  std::cout << "torsionAllBridges is " << p->torsionAllBridges << std::endl;
   std::cout << "torsionSin2 is " << p->torsionSin2 << std::endl;
   std::cout << "torsionCos2Pulse is " << p->torsionCos2Pulse << std::endl;
   std::cout << "torsionGaussianPulse is " << p->torsionGaussianPulse << std::endl;
