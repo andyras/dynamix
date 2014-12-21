@@ -169,7 +169,7 @@ void RELAX_KINETIC(int bandFlag, realtype * yp, realtype * ydotp, Params * p) {
     }
 
     //// find bounds for Fermi level
-    mu = findDynamicMu(pop, T, CONDUCTION, p);
+    mu = findDynamicMu(pop, T, bandFlag, p);
 #ifdef DEBUG_DYNAMIC_MU
     std::cout << "mu is " << mu << std::endl;
 #endif
