@@ -381,6 +381,12 @@ void initWavefunction(Params * p) {
 #endif
     buildKPopsGaussian(&(k_coeffs[0]), &(p->energies[p->Ik]), p->kBandEdge, p->bulkGaussSigma, p->bulkGaussMu, p->Nk);
   }
+  else if (p->CBPopFlag == POP_FDD) {
+#ifdef DEBUG
+    BOOST_LOG_SEV(lg, debug) << "Initializing FDD in conduction band";
+#endif
+    buildKPopsFDD(&(k_coeffs[0]), &(p->energies[p->Ik]), p->kBandEdge, p->temperature, p->Nk);
+  }
   else {
     BOOST_LOG_SEV(lg, error) << "unrecognized CBPopFlag " << p->CBPopFlag << std::endl;
   }

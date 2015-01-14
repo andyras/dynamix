@@ -39,7 +39,7 @@ void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, 
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
  * below the lowest-energy state in the set of states being populated.
  */
-void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk);
+void buildKPopsFDD(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk);
 
 /* populates a set of states according to a Gaussian distribution. */
 void buildKPopsGaussian(realtype * kPops, realtype * kEnergies, realtype kBandEdge, double sigma, double mu, int Nk);

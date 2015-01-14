@@ -112,7 +112,7 @@ void buildContinuum(realtype * Energies, int numberOfStates, realtype BandEdge, 
  * I'm not sure where the actual Fermi level is, so it defaults to 0.01 Eh
  * below the lowest-energy state in the set of states being populated.
  */
-void buildKPops(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk) {
+void buildKPopsFDD(realtype * kPops, realtype * kEnergies, realtype kBandEdge, realtype temp, int Nk) {
 
   for (int ii = 0; ii < Nk; ii++) {
     kPops[ii] = sqrt(1.0/(1.0 + exp((kEnergies[ii]-kBandEdge+0.01)*3.185e5/(temp))));
