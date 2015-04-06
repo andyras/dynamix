@@ -214,6 +214,7 @@ void assignParams(std::string inputFile, Params * p) {
     else if (input_param == "torsionCouplingV1" ) { p->torsionCouplingV1 = atof(param_val.c_str()); }
     else if (input_param == "torsionCouplingOmega" ) { p->torsionCouplingOmega = atof(param_val.c_str()); }
     else if (input_param == "torsionCouplingPhi" ) { p->torsionCouplingPhi = atof(param_val.c_str()); }
+    else if (input_param == "torsionCouplingDamping" ) { p->torsionCouplingDamping = atof(param_val.c_str()); }
     else {
       std::cerr << "ERROR [" << __FUNCTION__ << "]: input parameter " << input_param << " not recognized." << std::endl;
       exit(-1);
@@ -295,6 +296,7 @@ void assignParams(std::string inputFile, Params * p) {
   std::cout << "torsionCouplingV1 is " << p->torsionCouplingV1 << std::endl;
   std::cout << "torsionCouplingOmega is " << p->torsionCouplingOmega << std::endl;
   std::cout << "torsionCouplingPhi is " << p->torsionCouplingPhi << std::endl;
+  std::cout << "torsionCouplingDamping is " << p->torsionCouplingDamping << std::endl;
 #endif
 
   // Error checking

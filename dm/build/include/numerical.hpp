@@ -52,7 +52,7 @@ double parabolicV(double Vee, double E, double bandEdge, double bandTop);
 
 realtype gaussPulse(realtype t, double pumpFWHM, double pumpAmpl, double pumpPeak, double pumpFreq, double pumpPhase);
 
-double sin2(double a, double b, double c, double d, double t);
+double sin2(double a, double b, double c, double d, double e, double t);
 
 double gaussianOffset(double a, double b, double c, double d, double t);
 

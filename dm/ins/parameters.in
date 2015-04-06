@@ -9,7 +9,7 @@ debug=0
 # number of processors to use with OpenMP
 nproc=1
 # method parameters #
-wavefunction=0				# 1 => wavefunction; 0 => density matrix
+wavefunction=1				# 1 => wavefunction; 0 => density matrix
 coherent=1				# 1 => \rho = \ket{\psi}\bra{\psi}; 0 => \rho_ij = 0
 justPlots=0				# just make plots, no propagation or other output
 timedepH=0				# if H is TD, use CVODE, else diag H and propogate
@@ -23,9 +23,9 @@ progressStdout=1			# show progress in stdout
 # numerical parameters #
 abstol=1.0e-12				# absolute tolerance
 reltol=1.0e-12				# relative tolerance
-tout=10000				# final time reached by solver (a.u.)
+tout=200000				# final time reached by solver (a.u.)
 numsteps=10000				# number of timesteps
-numOutputSteps=200			# number of output timesteps
+numOutputSteps=500			# number of output timesteps
 # bulk parameters #
 kBandEdge=0.00				# lower band edge of bulk conduction band (a.u.)
 kBandTop=0.01				# upper band edge of bulk conduction band (a.u.)
@@ -69,21 +69,22 @@ scale_bubr=0
 scale_brqd=0
 scale_buqd=0
 scale_laser=1
-bridge_on=0
+bridge_on=1
 random_phase=0				# turning this on may break normalization
 random_seed=-1				# -1 for random seed, otherwise specify seed
 # Torsional parameters #
-torsion=0				# turn torsion-mediated coupling on or off
+torsion=1				# turn torsion-mediated coupling on or off
 torsionFile=ins/tors.in
-torsionSite=1				# 0 = coupling between bulk and bridge
+torsionSite=0				# 0 = coupling between bulk and bridge
 torsionAllBridges=1			# replicate torsion coupling across all bridge sites
-torsionSin2=0				# flag to turn on sin^2 torsional coupling
-torsionGaussianPulse=1  # flag for Gaussian "half-cycle" torsion coupling
+torsionSin2=1				# flag to turn on sin^2 torsional coupling
+torsionGaussianPulse=0  # flag for Gaussian "half-cycle" torsion coupling
 torsionCos2Pulse=0       # flag for cos^2 "half-cycle" torsion coupling
 torsionCouplingV0=0.000023			# V(t) = V0 + V1*sin^2(omega*t + phi)
 torsionCouplingV1=0.000023
-torsionCouplingOmega=1000
-torsionCouplingPhi=2000
+torsionCouplingOmega=0.002
+torsionCouplingPhi=1.5707963267949
+torsionCouplingDamping=0.0001
 ## END INPUT PARAMETERS ##
 
 # return here so that when this file is sourced by bash the output files are not confusing.

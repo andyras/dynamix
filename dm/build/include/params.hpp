@@ -89,6 +89,7 @@ public:
   double torsionCouplingV1 = 0.001;
   double torsionCouplingOmega = 0.001;
   double torsionCouplingPhi = 0.0;
+  double torsionCouplingDamping = 0.0;
 
   int Nk = 1;                           // number of each type of state
   int Nc = 0;                           // number of each type of state

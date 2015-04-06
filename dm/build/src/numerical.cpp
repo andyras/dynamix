@@ -188,8 +188,8 @@ int Normalize_NV(N_Vector nv, realtype total) {
 }
 
 /* gives the value of [a + b*sin^2(c*t + d)] at a certain t */
-double sin2(double a, double b, double c, double d, double t) {
-  return a + b*pow(sin(c*t + d),2);
+double sin2(double a, double b, double c, double d, double e, double t) {
+  return a + b*pow(sin(c*t + d),2)*exp(-e*t);
 }
 
 /* gives value of Gaussian (not normalized) with time and vertical offsets.

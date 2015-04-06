@@ -226,7 +226,7 @@ void Params::buildHamiltonian() {
 
 double Params::getTorsionCoupling(double t) {
   if (torsionSin2) {
-    return sin2(torsionCouplingV0, torsionCouplingV1, torsionCouplingOmega, torsionCouplingPhi, t);
+    return sin2(torsionCouplingV0, torsionCouplingV1, torsionCouplingOmega, torsionCouplingPhi, torsionCouplingDamping, t);
   }
   else if (torsionGaussianPulse) {
     return gaussianOffset(torsionCouplingV0, torsionCouplingV1, torsionCouplingOmega, torsionCouplingPhi, t);
